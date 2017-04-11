@@ -10,6 +10,10 @@
   ],
   "author": "Pedro Machado Santa <pedro@reedsy.com>",
   "license": "MIT",
+  "main": "dist/quill-cursors.js",
+  "scripts": {
+    "build": "node_modules/.bin/webpack"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/reedsy/quill-cursors.git"
