@@ -20,5 +20,8 @@
   },
   "devDependencies": {
     "webpack": "^2.3.3"
+  },
+  "dependencies": {
+    "rangefix": "^0.2.3"
   }
 }
