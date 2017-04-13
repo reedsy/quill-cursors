@@ -5,5 +5,8 @@ module.exports = {
 	output: {
 		filename: 'quill-cursors.js',
 		path: path.resolve(__dirname, 'dist')
+	},
+	devServer: {
+		contentBase: path.join(__dirname, 'example')
 	}
 };

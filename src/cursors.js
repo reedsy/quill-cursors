@@ -1,4 +1,5 @@
 import RangeFix from 'rangefix/rangefix';
+import Quill from 'Quill';
 
 var DEFAULT_OPTIONS = {
   template: [
@@ -270,4 +271,4 @@ var rectIndex;
   }
 }, this);
 
-//Quill.register('modules/cursor-highlight', CursorHighlight);
+//Quill.register('modules/cursors', CursorsModule);

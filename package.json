@@ -12,14 +12,17 @@
   "license": "MIT",
   "main": "dist/quill-cursors.js",
   "scripts": {
-    "build": "node_modules/.bin/webpack"
+    "build": "./node_modules/.bin/webpack",
+    "start": "./node_modules/.bin/webpack-dev-server --open"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/reedsy/quill-cursors.git"
   },
   "devDependencies": {
-    "webpack": "^2.3.3"
+    "quill": "^1.2.3",
+    "webpack": "^2.3.3",
+    "webpack-dev-server": "^2.4.2"
   },
   "dependencies": {
     "rangefix": "^0.2.3"
