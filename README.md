@@ -6,7 +6,7 @@ A multi cursor module for Quill.
 Install `quill-cursors` module through npm:
 
 ```bash
-$ npm install quill-modules --save
+$ npm install quill-cursors --save
 ```
 Or you can just take the files from the `dist` folder. That works too.
 

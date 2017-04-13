@@ -271,4 +271,4 @@ var rectIndex;
   }
 }, this);
 
-//Quill.register('modules/cursors', CursorsModule);
+Quill.register('modules/cursors', CursorsModule);
