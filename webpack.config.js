@@ -1,6 +1,6 @@
 var path = require('path');
 
-module.exports = {
+module.exports = [{
 	entry: './src/cursors.js',
 	output: {
 		filename: 'quill-cursors.js',
@@ -12,4 +12,4 @@ module.exports = {
 	devServer: {
 		contentBase: path.join(__dirname, 'example')
 	}
-};
+}];
