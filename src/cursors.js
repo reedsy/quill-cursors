@@ -1,5 +1,5 @@
 import RangeFix from 'rangefix/rangefix';
-import Quill from 'Quill';
+import Quill from 'quill';
 
 var DEFAULT_OPTIONS = {
   template: [
