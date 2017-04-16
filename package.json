@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "quill": "^1.2.3",
+    "uglifyjs-webpack-plugin": "^0.4.2",
     "webpack": "^2.3.3",
     "webpack-dev-server": "^2.4.2"
   },

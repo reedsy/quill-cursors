@@ -252,23 +252,23 @@ CursorsModule.prototype._updateSelection = function(cursor, rects, containerRect
 
     return selectionBlockEl;
   }
+
+  // Wipe the slate clean
+  cursor.selectionEl.innerHTML = null;
+
+  var index = [];
+  var rectIndex;
+
+  [].forEach.call(rects, function(rect) {
+    rectIndex = ('' + rect.top + rect.left + rect.width + rect.height);
+
+    // Note: Safari throws a rect with length 1 when caret with no selection.
+    // A check was addedfor to avoid drawing those carets - they show up on blinking.
+    if (!~index.indexOf(rectIndex) && rect.width > 1) {
+      index.push(rectIndex);
+      cursor.selectionEl.appendChild(createSelectionBlock(rect));
+    }
+  }, this);
 };
-
-// Wipe the slate clean
-cursor.selectionEl.innerHTML = null;
-
-var index = [];
-var rectIndex;
-
-[].forEach.call(rects, function(rect) {
-  rectIndex = ('' + rect.top + rect.left + rect.width + rect.height);
-
-  // Note: Safari throws a rect with length 1 when caret with no selection.
-  // A check was addedfor to avoid drawing those carets - they show up on blinking.
-  if (!~index.indexOf(rectIndex) && rect.width > 1) {
-    index.push(rectIndex);
-    cursor.selectionEl.appendChild(createSelectionBlock(rect));
-  }
-}, this);
 
 Quill.register('modules/cursors', CursorsModule);

@@ -1,15 +1,37 @@
 var path = require('path');
+var UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
-module.exports = [{
-	entry: './src/cursors.js',
-	output: {
-		filename: 'quill-cursors.js',
-		path: path.resolve(__dirname, 'dist')
-	},
-	externals: {
-		quill: 'Quill'
-	},
-	devServer: {
-		contentBase: path.join(__dirname, 'example')
-	}
-}];
+var moduleBundle = {
+
+  entry: {
+    'quill-cursors': './src/cursors.js',
+    'quill-cursors.min': './src/cursors.js',
+  },
+
+  output: {
+    filename: '[name].js',
+    path: path.resolve(__dirname, 'dist')
+  },
+
+  externals: {
+    quill: 'Quill'
+  },
+
+  devServer: {
+    contentBase: [
+      path.join(__dirname, 'example'),
+      path.join(__dirname, 'dist'),
+      path.join(__dirname, 'node_modules/quill/dist')
+    ]
+  },
+
+  plugins: [
+    new UglifyJSPlugin({
+      include: /\.min\.js$/,
+    })
+  ]
+};
+
+var exampleBundle = {};
+
+module.exports = [ moduleBundle ];
