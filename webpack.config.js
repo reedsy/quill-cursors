@@ -21,6 +21,7 @@ var moduleBundle = {
     contentBase: [
       path.join(__dirname, 'example'),
       path.join(__dirname, 'dist'),
+      path.join(__dirname, 'node_modules/normalize.css'),
       path.join(__dirname, 'node_modules/quill/dist')
     ]
   },

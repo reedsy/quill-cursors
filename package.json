@@ -20,6 +20,7 @@
     "url": "git+https://github.com/reedsy/quill-cursors.git"
   },
   "devDependencies": {
+    "normalize.css": "^6.0.0",
     "quill": "^1.2.3",
     "uglifyjs-webpack-plugin": "^0.4.2",
     "webpack": "^2.3.3",
