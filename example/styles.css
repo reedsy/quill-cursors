@@ -13,4 +13,5 @@ h1 {
 .editor {
   margin: 10px;
   flex-grow: 1;
+  width: 40%;
 }

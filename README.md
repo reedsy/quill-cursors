@@ -27,7 +27,7 @@ To include `quill-cursors` in your Quill project, simply add the stylesheet and 
   <script>
     var editor = new Quill('#editor-container', {
       modules: {
-        'cursors': { /* add your configuration here */ },
+        'cursors': true,
       }
     });
   </script>

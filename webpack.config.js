@@ -1,11 +1,12 @@
 var path = require('path');
 var UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 var moduleBundle = {
 
   entry: {
-    'quill-cursors': './src/cursors.js',
-    'quill-cursors.min': './src/cursors.js',
+    'quill-cursors': ['./src/cursors.js', './src/cursors.scss'],
+    'quill-cursors.min': ['./src/cursors.js'],
   },
 
   output: {
@@ -17,6 +18,22 @@ var moduleBundle = {
     quill: 'Quill'
   },
 
+  module: {
+    rules: [{
+      test: /\.scss$/,
+      loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
+    }]
+  },
+
+  plugins: [
+    new UglifyJSPlugin({
+      include: /\.min\.js$/,
+    }),
+    new ExtractTextPlugin({ // define where to save the file
+      filename: '[name].css'
+    })
+  ],
+
   devServer: {
     contentBase: [
       path.join(__dirname, 'example'),
@@ -25,14 +42,6 @@ var moduleBundle = {
       path.join(__dirname, 'node_modules/quill/dist')
     ]
   },
-
-  plugins: [
-    new UglifyJSPlugin({
-      include: /\.min\.js$/,
-    })
-  ]
 };
 
-var exampleBundle = {};
-
-module.exports = [ moduleBundle ];
+module.exports = [moduleBundle];

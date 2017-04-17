@@ -1,5 +1,6 @@
-import RangeFix from 'rangefix/rangefix';
 import Quill from 'quill';
+import 'rangefix/rangefix';
+import tinycolor from 'tinycolor2';
 
 var DEFAULT_OPTIONS = {
   template: [
@@ -211,7 +212,7 @@ CursorsModule.prototype._update = function(cursor) {
 
   range.setStart(startLeaf[0].domNode, startLeaf[1]);
   range.setEnd(endLeaf[0].domNode, endLeaf[1]);
-  rects = RangeFix.getClientRects(range);
+  rects = window.RangeFix.getClientRects(range);
 
   this._updateCaret(cursor, endLeaf, containerRect);
   this._updateSelection(cursor, rects, containerRect);
