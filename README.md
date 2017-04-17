@@ -1,5 +1,5 @@
 # quill-cursors
-A multi cursor module for Quill.
+A multi cursor module for [Quill](https://github.com/quilljs/quill) text editor.
 
 ## Install
 
@@ -8,7 +8,6 @@ Install `quill-cursors` module through npm:
 ```bash
 $ npm install quill-cursors --save
 ```
-Or you can just take the files from the `dist` folder. That works too.
 
 ## Usage
 
@@ -37,9 +36,9 @@ To include `quill-cursors` in your Quill project, simply add the stylesheet and 
 </body>
 ```
 
-To set a multicursor call:
+To set a cursor call:
 
-```
+```javascript
 editor.getModule('cursors').set({
   id: '1',
   name: 'User 1',
@@ -48,7 +47,13 @@ editor.getModule('cursors').set({
 });
 ```
 
-For more info check out [the included example](example).
+**Please note**, that this module only handles the cursors drawing on a Quill instance. You must produce some additional code to handle actual cursor sync in a real scenario. So, it's assumed that:
+
+* You should implement some sort of server-side code/API (or another suitable mechanism) to maintain cursors information synced across clients/Quill instances;
+* This module is responsible for automatically updating the cursors configured on the instance when there is a `'text-change'` event - so if the client/instance contents are updated locally or through a `updateContents()` call, one shouldn't be needing to do anything to update/shift the displayed cursors;
+* It is expected for the clients/instances to send updated cursor/range information on `selection-change` events;​
+
+For a simple local-based implementation, check [the included example](example).
 
 ## Development
 
@@ -60,3 +65,4 @@ A few things that can be improved:
 
 * Add tests
 * Improve bundling, namely on styles/add minified styles
+* Better API documentation
