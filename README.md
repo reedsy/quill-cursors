@@ -30,7 +30,33 @@ To include `quill-cursors` in your Quill project, simply add the stylesheet and 
         'cursors': true,
       }
     });
+
+    editor.registerTextChangeListener();
   </script>
 
 </body>
 ```
+
+To set a multicursor call:
+
+```
+editor.getModule('cursors').set({
+  id: '1',
+  name: 'User 1',
+  color: 'red',
+  range: range
+});
+```
+
+For more info check out [the included example](example).
+
+## Development
+
+Run `npm run build` to package a build and `npm run start` to build, start the example webserver and watch for changes.
+
+## TODO
+
+A few things that can be improved:
+
+* Add tests
+* Improve bundling, namely on styles/add minified styles
