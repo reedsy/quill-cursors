@@ -2,15 +2,15 @@ import Quill from 'quill';
 import 'rangefix/rangefix';
 import tinycolor from 'tinycolor2';
 
-var DEFAULT_OPTIONS = {
+var DEFAULTS = {
   template: [
-    '<span class="cursor-selections"></span>',
-    '<span class="cursor-caret-container">',
-    '  <span class="cursor-caret"></span>',
+    '<span class="ql-cursor-selections"></span>',
+    '<span class="ql-cursor-caret-container">',
+    '  <span class="ql-cursor-caret"></span>',
     '</span>',
-    '<div class="cursor-flag">',
-    '  <small class="cursor-name"></small>',
-    '  <span class="cursor-flag-flap"></span>',
+    '<div class="ql-cursor-flag">',
+    '  <small class="ql-cursor-name"></small>',
+    '  <span class="ql-cursor-flag-flap"></span>',
     '</div>'
   ].join('')
 };
@@ -69,7 +69,7 @@ CursorsModule.prototype.removeAll = function() {
 };
 
 CursorsModule.prototype._initOptions = function(options) {
-  this.options = DEFAULT_OPTIONS;
+  this.options = DEFAULTS;
   this.template = options.template || this.template;
 };
 
@@ -79,17 +79,17 @@ CursorsModule.prototype._build = function(data) {
   var caretEl;
   var flagEl;
 
-  el.classList.add('cursor');
+  el.classList.add('ql-cursor');
   el.innerHTML = this.options.template;
-  selectionEl = el.querySelector('.cursor-selections');
-  caretEl = el.querySelector('.cursor-caret-container');
-  flagEl = el.querySelector('.cursor-flag');
+  selectionEl = el.querySelector('.ql-cursor-selections');
+  caretEl = el.querySelector('.ql-cursor-caret-container');
+  flagEl = el.querySelector('.ql-cursor-flag');
 
   // Set color
   flagEl.style.backgroundColor = data.color;
-  caretEl.querySelector('.cursor-caret').style.backgroundColor = data.color;
+  caretEl.querySelector('.ql-cursor-caret').style.backgroundColor = data.color;
 
-  el.querySelector('.cursor-name').innerText = data.name;
+  el.querySelector('.ql-cursor-name').innerText = data.name;
 
   this.container.appendChild(el);
 
@@ -214,7 +214,7 @@ CursorsModule.prototype._updateSelection = function(cursor, rects, containerRect
   function createSelectionBlock(rect) {
     var selectionBlockEl = document.createElement('span');
 
-    selectionBlockEl.classList.add('selection-block');
+    selectionBlockEl.classList.add('ql-cursor-selection-block');
     selectionBlockEl.style.top = (rect.top - containerRect.top) + 'px';
     selectionBlockEl.style.left = (rect.left - containerRect.left) + 'px';
     selectionBlockEl.style.width = rect.width + 'px';

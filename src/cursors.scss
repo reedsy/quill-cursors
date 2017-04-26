@@ -66,18 +66,18 @@ $cursor-hide-delay: 3000ms;
 
 
 
-.cursor {
+.ql-cursor {
 
   &.hidden {
     display: none;
   }
 
-  .cursor-caret-container,
-  .cursor-flag {
+  .ql-cursor-caret-container,
+  .ql-cursor-flag {
     position: absolute;
   }
 
-  .cursor-flag {
+  .ql-cursor-flag {
     z-index: 1;
     transform: translate3d(-$border-width-base / 2, -100%, 0);
     opacity: 0;
@@ -88,14 +88,14 @@ $cursor-hide-delay: 3000ms;
       opacity
     ), $delay: $cursor-hide-delay);
 
-    .cursor-name {
+    .ql-cursor-name {
       margin-left: $spacing-xs;
       margin-right: $spacing-xs / 2;
       display: inline-block;
       margin-top: -2px;
     }
 
-    .cursor-flag-flap {
+    .ql-cursor-flag-flap {
       display: inline-block;
       z-index: -1;
       width: $spacing-xs;
@@ -108,17 +108,17 @@ $cursor-hide-delay: 3000ms;
     }
   }
 
-  .cursor-caret-container:hover + .cursor-flag {
+  .ql-cursor-caret-container:hover + .ql-cursor-flag {
     opacity: 1;
     transition: none;
   }
 
-  .cursor-caret-container {
+  .ql-cursor-caret-container {
     margin-left: -$spacing-sm;
     padding: 0 $spacing-sm;
     z-index: 1;
 
-    .cursor-caret {
+    .ql-cursor-caret {
       position: absolute;
       top: 0;
       bottom: 0;
@@ -129,7 +129,7 @@ $cursor-hide-delay: 3000ms;
     }
   }
 
-  .selection-block {
+  .ql-cursor-selection-block {
     position: absolute;
   }
 }
