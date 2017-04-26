@@ -15,9 +15,6 @@ var quillTwo = new Quill('#editor-two', {
 var cursorsOne = quillOne.getModule('cursors');
 var cursorsTwo = quillTwo.getModule('cursors');
 
-cursorsOne.registerTextChangeListener();
-cursorsTwo.registerTextChangeListener();
-
 function textChangeHandler(quill) {
   return function(delta, oldDelta, source) {
     if (source == 'user')

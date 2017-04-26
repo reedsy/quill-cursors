@@ -12,7 +12,8 @@ var DEFAULTS = {
     '  <small class="ql-cursor-name"></small>',
     '  <span class="ql-cursor-flag-flap"></span>',
     '</div>'
-  ].join('')
+  ].join(''),
+  autoRegisterListener: true
 };
 
 function CursorsModule(quill, options) {
@@ -22,6 +23,9 @@ function CursorsModule(quill, options) {
   this.container = this.quill.addContainer('ql-cursors');
 
   window.addEventListener('resize', this.refreshAll.bind(this));
+
+  if(this.options.autoRegisterListener)
+    this.registerTextChangeListener();
 }
 
 CursorsModule.prototype.registerTextChangeListener = function() {
@@ -70,7 +74,8 @@ CursorsModule.prototype.removeAll = function() {
 
 CursorsModule.prototype._initOptions = function(options) {
   this.options = DEFAULTS;
-  this.template = options.template || this.template;
+  this.options.template = options.template || this.options.template;
+  this.options.autoRegisterListener = options.autoRegisterListener || this.options.autoRegisterListener;
 };
 
 CursorsModule.prototype._build = function(data) {
