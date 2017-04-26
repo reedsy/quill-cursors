@@ -129,42 +129,12 @@ CursorsModule.prototype._applyDelta = function(delta, oldDelta, source) {
   }
 
   delta.ops.forEach(function(op) {
-    lookbackOffset = 0;
-
-    if (op.retain) {
+    if (op.retain)
       index += op.retain;
-
-      // Store last retain char, for lookback fix purposes (see below)
-      lastRetainChar = charAt.call(this, index - 1);
-    } else {
-      if (op.insert) {
-        // Quill/Delta operation diff optimization/merge policy fix
-        // Note: When you have 'word|\n' and insert a '\n', op comes as (retain: 5, insert: '\n')
-        // and not with retain 4, because of diff/merge policy internal to Delta/Quill OT format.
-        // To alleviate this, we probe the char on the last index of the last retain,
-        // and if it's the same as the first of the insert
-        // we keep shifting one position back as an offset.
-        if (op.insert.length &&
-          lastRetainChar == op.insert.charAt(0)) {
-
-          lookbackOffset = getLookbackOffset.call(this, index, lastRetainChar);
-        }
-
-        index += this._shiftAll(index - lookbackOffset, op.insert.length);
-      } else if (op.delete) {
-        // Quill/Delta operation diff optimization/merge policy fix
-        // Note: When you have 'word\n|\n' and delete the '\n', op comes as (retain: 6, delete: 1)
-        // and not with retain 5, because of diff/merge policy internal to Delta/Quill OT format.
-        // To alleviate this, we probe the char on the last index of the last retain
-        // and keep shifting one position back as an offset.
-        lookbackOffset = getLookbackOffset.call(this, index, lastRetainChar);
-
-        index += this._shiftAll(index - lookbackOffset, -1 * op.delete);
-      }
-
-      // Clear last retain char
-      lastRetainChar = undefined;
-    }
+    else if (op.insert)
+      index += this._shiftAll(index, op.insert.length);
+    else if (op.delete)
+      index += this._shiftAll(index, -1 * op.delete);
   }, this);
 
   this.refreshAll();
