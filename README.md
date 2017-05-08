@@ -21,6 +21,8 @@ To include `quill-cursors` in your Quill project, simply add the stylesheet and 
 </head>
 <body>
   ...
+  <div id="editor-container"></div>
+  ...
   <script src="/path/to/quill.min.js"></script>
   <script src="/path/to/quill-cursors.min.js"></script>
   <script>
@@ -94,7 +96,7 @@ Removes and clears all cursors.
 
 Moves a specified cursor to a specified range. Does nothing if a cursors with the specified id isn't found. Parameters:
 
-* `userId` - the id/user id of the cursor being updated; 
+* `userId` - the id/user id of the cursor being updated;
 * `range` - the new range of the cursor, as returned by `editor.getSelection()`;
 
 #### `cursors.removeCursor(userId)`
