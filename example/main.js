@@ -1,14 +1,14 @@
 var quillOne = new Quill('#editor-one', {
   theme: 'snow',
   modules: {
-    'cursors': true
+    cursors: true
   }
 });
 
 var quillTwo = new Quill('#editor-two', {
   theme: 'snow',
   modules: {
-    'cursors': true
+    cursors: true
   }
 });
 
@@ -27,20 +27,10 @@ quillTwo.on('text-change', textChangeHandler(quillOne));
 
 quillOne.on('selection-change', function(range, oldRange, source) {
   if (range)
-    cursorsTwo.set({
-      id: '1',
-      name: 'User 1',
-      color: 'red',
-      range: range
-    });
+    cursorsTwo.setCursor('1', range, 'User 1', 'red');
 });
 
 quillTwo.on('selection-change', function(range, oldRange, source) {
   if (range)
-    cursorsOne.set({
-      id: '2',
-      name: 'User 2',
-      color: 'blue',
-      range: range
-    });
+    cursorsOne.setCursor('2', range, 'User 2', 'blue');
 });

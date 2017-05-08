@@ -22,54 +22,81 @@ function CursorsModule(quill, options) {
   this.cursors = {};
   this.container = this.quill.addContainer('ql-cursors');
 
-  window.addEventListener('resize', this.refreshAll.bind(this));
-
-  if(this.options.autoRegisterListener)
+  if (this.options.autoRegisterListener)
     this.registerTextChangeListener();
+
+  window.addEventListener('resize', this.update.bind(this));
 }
 
 CursorsModule.prototype.registerTextChangeListener = function() {
   this.quill.on(this.quill.constructor.events.TEXT_CHANGE, this._applyDelta.bind(this));
 };
 
-CursorsModule.prototype.set = function(data) {
+CursorsModule.prototype.clearCursors = function() {
+  Object.keys(this.cursors).forEach(this.removeCursor.bind(this));
+};
+
+CursorsModule.prototype.moveCursor = function(userId, range) {
+  var cursor = this.cursors[userId];
+  if (cursor) {
+    cursor.range = range;
+    cursor.el.classList.remove('hidden');
+    this._updateCursor(cursor);
+    // TODO Implement cursor hiding timeout like 0.20/benbro?
+  }
+};
+
+CursorsModule.prototype.removeCursor = function(userId) {
+  var cursor = this.cursors[userId];
+  if (cursor)
+    cursor.el.parentNode.removeChild(cursor.el);
+  delete this.cursors[userId];
+};
+
+CursorsModule.prototype.setCursor = function(userId, range, name, color) {
+  // Init cursor if it doesn't exist
+  if (!this.cursors[userId]) {
+    this.cursors[userId] = {
+      userId: userId,
+      color: color,
+      range: range,
+      el: null,
+      selectionEl: null,
+      caretEl: null,
+      flagEl: null
+    };
+
+    // Build and init the remaining cursor elements
+    this._buildCursor(userId, name);
+  }
+
+  // Move and update cursor
+  window.setTimeout(function() {
+    this.moveCursor(userId, range);
+  }.bind(this));
+
+  return this.cursors[userId];
+};
+
+CursorsModule.prototype.shiftCursors = function(index, length) {
   var cursor;
 
-  if (cursor = this.cursors[data.id]) {
-    this.move(cursor, data.range);
-  } else {
-    cursor = this._build(data);
-    window.setTimeout(function() {
-      this.move(cursor, data.range);
-    }.bind(this));
-  };
-};
-
-CursorsModule.prototype.move = function(cursor, range) {
-  cursor.range = range;
-  cursor.el.classList.remove('hidden');
-  this._update(cursor);
-};
-
-CursorsModule.prototype.refreshAll = function() {
-  Object.keys(this.cursors).forEach(function(id) {
-    this._update(this.cursors[id]);
+  Object.keys(this.cursors).forEach(function(userId) {
+    if((cursor = this.cursors[userId]) && cursor.range) {
+      // If characters we're added or there is no selection
+      // advance start/end if it's greater or equal than index
+      if (length > 0 || cursor.range.length == 0)
+        this._shiftCursor(userId, index - 1, length);
+      // Else if characters were removed
+      // move start/end back if it's only greater than index
+      else
+        this._shiftCursor(userId, index, length);
+    }
   }, this);
 };
 
-CursorsModule.prototype.hide = function(cursor) {
-  cursor.el.classList.add('hidden');
-};
-
-CursorsModule.prototype.remove = function(cursor) {
-  cursor.el.parentNode.removeChild(cursor.el);
-  delete this.cursors[cursor.id];
-};
-
-CursorsModule.prototype.removeAll = function() {
-  Object.keys(this.cursors).forEach(function(id) {
-    this.remove(this.cursors[id])
-  }, this);
+CursorsModule.prototype.update = function() {
+  Object.values(this.cursors).forEach(this._updateCursor.bind(this));
 };
 
 CursorsModule.prototype._initOptions = function(options) {
@@ -78,7 +105,31 @@ CursorsModule.prototype._initOptions = function(options) {
   this.options.autoRegisterListener = options.autoRegisterListener || this.options.autoRegisterListener;
 };
 
-CursorsModule.prototype._build = function(data) {
+CursorsModule.prototype._applyDelta = function(delta) {
+  var index = 0;
+
+  delta.ops.forEach(function (op) {
+    var length = 0;
+
+    if(op.insert){
+      length = op.insert.length || 1;
+      this.shiftCursors(index, length);
+    } else if(op.delete){
+      this.shiftCursors(index, -1 * op.delete);
+    } else if(op.retain) {
+      // Is this really needed?
+      //this.shiftCursors(index, 0);
+      length = op.retain
+    }
+
+    index += length;
+  }, this);
+
+  this.update();
+};
+
+CursorsModule.prototype._buildCursor = function(userId, name) {
+  var cursor = this.cursors[userId];
   var el = document.createElement('span');
   var selectionEl;
   var caretEl;
@@ -91,84 +142,33 @@ CursorsModule.prototype._build = function(data) {
   flagEl = el.querySelector('.ql-cursor-flag');
 
   // Set color
-  flagEl.style.backgroundColor = data.color;
-  caretEl.querySelector('.ql-cursor-caret').style.backgroundColor = data.color;
+  flagEl.style.backgroundColor = cursor.color;
+  caretEl.querySelector('.ql-cursor-caret').style.backgroundColor = cursor.color;
 
-  el.querySelector('.ql-cursor-name').innerText = data.name;
+  el.querySelector('.ql-cursor-name').innerText = name;
 
   this.container.appendChild(el);
 
-  return this.cursors[data.id] = {
-    id: data.id,
-    color: data.color,
-    el: el,
-    selectionEl: selectionEl,
-    caretEl: caretEl,
-    flagEl: flagEl,
-    range: null
-  };
+  // Set cursor elements
+  cursor.el = el;
+  cursor.selectionEl = selectionEl;
+  cursor.caretEl = caretEl;
+  cursor.flagEl = flagEl;
 };
 
-CursorsModule.prototype._applyDelta = function(delta, oldDelta, source) {
-  var index = 0,
-    lastRetainChar,
-    lookbackOffset;
-
-  function charAt(index) {
-    var contentAt;
-
-    if (index < 0) return;
-
-    contentAt = this.quill.getContents(index, index + 1);
-
-    return contentAt.ops[0] && contentAt.ops[0].insert;
-  }
-
-  function getLookbackOffset(index, char) {
-    var offset = 0;
-
-    while (char && charAt.call(this, index - 1 - offset) == char)
-      offset++;
-
-    return offset;
-  }
-
-  delta.ops.forEach(function(op) {
-    if (op.retain)
-      index += op.retain;
-    else if (op.insert)
-      index += this._shiftAll(index, op.insert.length);
-    else if (op.delete)
-      index += this._shiftAll(index, -1 * op.delete);
-  }, this);
-
-  this.refreshAll();
+CursorsModule.prototype._shiftCursor = function(userId, index, length) {
+  var cursor = this.cursors[userId];
+  if(cursor.range.index > index)
+    cursor.range.index += length;
 };
 
-CursorsModule.prototype._shiftCursor = function(cursor, index, length) {
-  cursor.range.index += (cursor.range.index > index) ? length : 0;
+CursorsModule.prototype._hideCursor = function(userId) {
+  var cursor = this.cursors[userId];
+  if(cursor)
+    cursor.el.classList.add('hidden');
 };
 
-CursorsModule.prototype._shiftAll = function(index, length) {
-  var selection;
-
-  Object.keys(this.cursors).forEach(function(id) {
-    if ((selection = this.cursors[id]) && selection.range) {
-      // If characters we're added or there is no selection
-      // advance start/end if it's greater or equal than index
-      if (length > 0 || selection.range.length == 0)
-        this._shiftCursor(selection, index - 1, length);
-      // Else if characters were removed
-      // move start/end back if it's only greater than index
-      else
-        this._shiftCursor(selection, index, length);
-    }
-  }, this);
-
-  return length;
-};
-
-CursorsModule.prototype._update = function(cursor) {
+CursorsModule.prototype._updateCursor = function(cursor) {
   if (!cursor || !cursor.range) return;
 
   var containerRect = this.quill.container.getBoundingClientRect();
@@ -182,14 +182,16 @@ CursorsModule.prototype._update = function(cursor) {
     !startLeaf[0] || !endLeaf[0] ||
     startLeaf[1] < 0 || endLeaf[1] < 0 ||
     !startLeaf[0].domNode || !endLeaf[0].domNode) {
-    return this.hide(cursor);
+    console.log('Troubles!', cursor);
+
+    return this._hideCursor(cursor.userId);
   }
 
   range.setStart(startLeaf[0].domNode, startLeaf[1]);
   range.setEnd(endLeaf[0].domNode, endLeaf[1]);
   rects = window.RangeFix.getClientRects(range);
 
-  this._updateCaret(cursor, endLeaf, containerRect);
+  this._updateCaret(cursor, endLeaf);
   this._updateSelection(cursor, rects, containerRect);
 };
 
