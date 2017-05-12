@@ -1,6 +1,6 @@
 {
   "name": "quill-cursors",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A multi cursor module for Quill.",
   "keywords": [
     "quill",
