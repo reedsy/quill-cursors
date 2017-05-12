@@ -82,7 +82,7 @@ CursorsModule.prototype.shiftCursors = function(index, length) {
   var cursor;
 
   Object.keys(this.cursors).forEach(function(userId) {
-    if((cursor = this.cursors[userId]) && cursor.range) {
+    if ((cursor = this.cursors[userId]) && cursor.range) {
       // If characters we're added or there is no selection
       // advance start/end if it's greater or equal than index
       if (length > 0 || cursor.range.length == 0)
@@ -102,21 +102,21 @@ CursorsModule.prototype.update = function() {
 CursorsModule.prototype._initOptions = function(options) {
   this.options = DEFAULTS;
   this.options.template = options.template || this.options.template;
-  this.options.autoRegisterListener = options.autoRegisterListener || this.options.autoRegisterListener;
+  this.options.autoRegisterListener = (options.autoRegisterListener == false) ? options.autoRegisterListener : this.options.autoRegisterListener;
 };
 
 CursorsModule.prototype._applyDelta = function(delta) {
   var index = 0;
 
-  delta.ops.forEach(function (op) {
+  delta.ops.forEach(function(op) {
     var length = 0;
 
-    if(op.insert){
+    if (op.insert) {
       length = op.insert.length || 1;
       this.shiftCursors(index, length);
-    } else if(op.delete){
+    } else if (op.delete) {
       this.shiftCursors(index, -1 * op.delete);
-    } else if(op.retain) {
+    } else if (op.retain) {
       // Is this really needed?
       //this.shiftCursors(index, 0);
       length = op.retain
@@ -158,13 +158,13 @@ CursorsModule.prototype._buildCursor = function(userId, name) {
 
 CursorsModule.prototype._shiftCursor = function(userId, index, length) {
   var cursor = this.cursors[userId];
-  if(cursor.range.index > index)
+  if (cursor.range.index > index)
     cursor.range.index += length;
 };
 
 CursorsModule.prototype._hideCursor = function(userId) {
   var cursor = this.cursors[userId];
-  if(cursor)
+  if (cursor)
     cursor.el.classList.add('hidden');
 };
 
