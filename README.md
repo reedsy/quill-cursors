@@ -136,3 +136,7 @@ A few things that can be improved:
 * Add tests
 * Improve bundling, namely on styles/add minified styles
 * EventEmitter events?
+
+## License
+
+This code is available under the [MIT license](LICENSE-MIT.txt).
