@@ -203,9 +203,9 @@ CursorsModule.prototype._updateCaret = function(cursor, leaf) {
   // and end points of the range will be exactly the same... if they are not then
   // a block selection is taking place and we need to offset the character position
   // by -1;
-  if (index > 0 && leaf[1] === 0 && cursor.range.index !== (cursor.range.index + cursor.range.length)) {
-    index--;
-  }
+  //if (index > 0 && leaf[1] === 0 && cursor.range.index !== (cursor.range.index + cursor.range.length)) {
+  //  index--;
+  //}
 
   rect = this.quill.getBounds(index);
 
