@@ -11,6 +11,8 @@ var moduleBundle = {
 
   output: {
     filename: '[name].js',
+    library: 'QuillCursors',
+    libraryTarget: 'umd',
     path: path.resolve(__dirname, 'dist')
   },
 
