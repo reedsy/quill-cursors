@@ -12,6 +12,7 @@
   "license": "MIT",
   "main": "dist/quill-cursors.js",
   "scripts": {
+    "prepublish": "npm run build",
     "build": "./node_modules/.bin/webpack",
     "start": "./node_modules/.bin/webpack-dev-server --open"
   },
