@@ -17,7 +17,12 @@ var moduleBundle = {
   },
 
   externals: {
-    quill: 'Quill'
+    quill: {
+      root: 'Quill',
+      commonjs2: 'quill',
+      commonjs: 'quill',
+      amd: 'quill'
+    }
   },
 
   module: {
