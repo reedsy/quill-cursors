@@ -67,6 +67,8 @@ var editor = new Quill('#editor-container', {
     cursors: {
       template: '<div class="custom-cursor">...</div>',
       autoRegisterListener: false, // default: true
+      hideDelay: 500, // default: 3000
+      hideSpeed: 0 // default: 400
     }
   }
 });
@@ -79,6 +81,14 @@ Option to add a custom HTML string to customise the cursor template. Check the d
 #### `autoRegisterListener` - Boolean (default: `true`)
 
 Option to define if the module should register the `text-change` handler on init, or if it will relegate that responsibility to the dependent client code. Clients can register this handler manually by calling `editor.getModule('cursors').registerTextChangeListener()`.
+
+#### `hideDelay` - String (default: `3000`)
+
+Option to define the delay in milliseconds for the cursor flag hiding transition.
+
+#### `hideSpeed` - String (default: `400`)
+
+Option to define the speed in milliseconds for the cursor flag hiding transition.
 
 ### Public Methods/Interface
 

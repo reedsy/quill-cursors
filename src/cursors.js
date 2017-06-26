@@ -13,7 +13,9 @@ var DEFAULTS = {
     '  <span class="ql-cursor-flag-flap"></span>',
     '</div>'
   ].join(''),
-  autoRegisterListener: true
+  autoRegisterListener: true,
+  hideDelay: 3000,
+  hideSpeed: 400
 };
 
 function CursorsModule(quill, options) {
@@ -105,6 +107,8 @@ CursorsModule.prototype._initOptions = function(options) {
   this.options = DEFAULTS;
   this.options.template = options.template || this.options.template;
   this.options.autoRegisterListener = (options.autoRegisterListener == false) ? options.autoRegisterListener : this.options.autoRegisterListener;
+  this.options.hideDelay = (options.hideDelay == undefined) ? this.options.hideDelay : options.hideDelay;
+  this.options.hideSpeed = (options.hideSpeed == undefined) ? this.options.hideSpeed : options.hideSpeed;
 };
 
 CursorsModule.prototype._applyDelta = function(delta) {
@@ -148,6 +152,10 @@ CursorsModule.prototype._buildCursor = function(userId, name) {
   caretEl.querySelector('.ql-cursor-caret').style.backgroundColor = cursor.color;
 
   el.querySelector('.ql-cursor-name').innerText = name;
+
+  // Set flag delay, speed
+  flagEl.style.transitionDelay = this.options.hideDelay + 'ms';
+  flagEl.style.transitionDuration = this.options.hideSpeed + 'ms';
 
   this.container.appendChild(el);
 

@@ -8,11 +8,7 @@ $spacing-sm: 9px;
 $border-width-base: 2px;
 $border-width-lg:   3px;
 
-$transition-time-base: 400ms;
-
 $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
-
-$cursor-hide-delay: 3000ms;
 
 
 /**********
@@ -35,7 +31,7 @@ $cursor-hide-delay: 3000ms;
 }
 
 //
-@mixin transition($properties, $speed: $transition-time-base, $delay: 0ms) {
+@mixin transition($properties, $speed: 0ms, $delay: 0ms) {
   @include whenScreen {
     transition: buildTransition($properties, $speed, $delay);
   }
@@ -64,8 +60,6 @@ $cursor-hide-delay: 3000ms;
   white-space: pre-wrap;
 }
 
-
-
 .ql-cursor {
 
   &.hidden {
@@ -86,7 +80,7 @@ $cursor-hide-delay: 3000ms;
 
     @include transition((
       opacity
-    ), $delay: $cursor-hide-delay);
+    ));
 
     .ql-cursor-name {
       margin-left: $spacing-xs;
