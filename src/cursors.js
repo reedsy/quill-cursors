@@ -96,7 +96,9 @@ CursorsModule.prototype.shiftCursors = function(index, length) {
 };
 
 CursorsModule.prototype.update = function() {
-  Object.values(this.cursors).forEach(this._updateCursor.bind(this));
+  Object.keys(this.cursors).map(function(key) {
+    this._updateCursor(this.cursors[key])
+  }.bind(this));
 };
 
 CursorsModule.prototype._initOptions = function(options) {
@@ -204,7 +206,7 @@ CursorsModule.prototype._updateCaret = function(cursor, leaf) {
   // a block selection is taking place and we need to offset the character position
   // by -1;
   if (index > 0 && leaf[1] === 0 && cursor.range.index !== (cursor.range.index + cursor.range.length)) {
-   index--;
+    index--;
   }
 
   rect = this.quill.getBounds(index);
