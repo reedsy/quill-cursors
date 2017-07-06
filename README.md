@@ -1,6 +1,8 @@
 # quill-cursors
 A multi cursor module for [Quill](https://github.com/quilljs/quill) text editor.
 
+(Fancy working with these libraries to help build an amazing product for self-publishing authors? Don't miss out [Reedsy current job openings](https://angel.co/reedsy/jobs).)
+
 ## Install
 
 Install `quill-cursors` module through npm:
