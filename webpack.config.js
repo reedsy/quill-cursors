@@ -12,6 +12,7 @@ var moduleBundle = {
   output: {
     filename: '[name].js',
     library: 'QuillCursors',
+    libraryExport: 'default',
     libraryTarget: 'umd',
     path: path.resolve(__dirname, 'dist')
   },

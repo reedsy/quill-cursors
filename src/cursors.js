@@ -1,5 +1,4 @@
-import Quill from 'quill';
-import 'rangefix/rangefix';
+import rangeFix from 'rangefix';
 import tinycolor from 'tinycolor2';
 
 var DEFAULTS = {
@@ -18,7 +17,7 @@ var DEFAULTS = {
   hideSpeed: 400
 };
 
-function CursorsModule(quill, options) {
+function QuillCursors(quill, options) {
   this.quill = quill;
   this._initOptions(options);
   this.cursors = {};
@@ -30,15 +29,15 @@ function CursorsModule(quill, options) {
   window.addEventListener('resize', this.update.bind(this));
 }
 
-CursorsModule.prototype.registerTextChangeListener = function() {
+QuillCursors.prototype.registerTextChangeListener = function() {
   this.quill.on(this.quill.constructor.events.TEXT_CHANGE, this._applyDelta.bind(this));
 };
 
-CursorsModule.prototype.clearCursors = function() {
+QuillCursors.prototype.clearCursors = function() {
   Object.keys(this.cursors).forEach(this.removeCursor.bind(this));
 };
 
-CursorsModule.prototype.moveCursor = function(userId, range) {
+QuillCursors.prototype.moveCursor = function(userId, range) {
   var cursor = this.cursors[userId];
   if (cursor) {
     cursor.range = range;
@@ -48,14 +47,14 @@ CursorsModule.prototype.moveCursor = function(userId, range) {
   }
 };
 
-CursorsModule.prototype.removeCursor = function(userId) {
+QuillCursors.prototype.removeCursor = function(userId) {
   var cursor = this.cursors[userId];
   if (cursor)
     cursor.el.parentNode.removeChild(cursor.el);
   delete this.cursors[userId];
 };
 
-CursorsModule.prototype.setCursor = function(userId, range, name, color) {
+QuillCursors.prototype.setCursor = function(userId, range, name, color) {
   // Init cursor if it doesn't exist
   if (!this.cursors[userId]) {
     this.cursors[userId] = {
@@ -80,7 +79,7 @@ CursorsModule.prototype.setCursor = function(userId, range, name, color) {
   return this.cursors[userId];
 };
 
-CursorsModule.prototype.shiftCursors = function(index, length) {
+QuillCursors.prototype.shiftCursors = function(index, length) {
   var cursor;
 
   Object.keys(this.cursors).forEach(function(userId) {
@@ -97,13 +96,13 @@ CursorsModule.prototype.shiftCursors = function(index, length) {
   }, this);
 };
 
-CursorsModule.prototype.update = function() {
+QuillCursors.prototype.update = function() {
   Object.keys(this.cursors).map(function(key) {
     this._updateCursor(this.cursors[key])
   }.bind(this));
 };
 
-CursorsModule.prototype._initOptions = function(options) {
+QuillCursors.prototype._initOptions = function(options) {
   this.options = DEFAULTS;
   this.options.template = options.template || this.options.template;
   this.options.autoRegisterListener = (options.autoRegisterListener == false) ? options.autoRegisterListener : this.options.autoRegisterListener;
@@ -111,7 +110,7 @@ CursorsModule.prototype._initOptions = function(options) {
   this.options.hideSpeed = (options.hideSpeed == undefined) ? this.options.hideSpeed : options.hideSpeed;
 };
 
-CursorsModule.prototype._applyDelta = function(delta) {
+QuillCursors.prototype._applyDelta = function(delta) {
   var index = 0;
 
   delta.ops.forEach(function(op) {
@@ -134,7 +133,7 @@ CursorsModule.prototype._applyDelta = function(delta) {
   this.update();
 };
 
-CursorsModule.prototype._buildCursor = function(userId, name) {
+QuillCursors.prototype._buildCursor = function(userId, name) {
   var cursor = this.cursors[userId];
   var el = document.createElement('span');
   var selectionEl;
@@ -166,19 +165,19 @@ CursorsModule.prototype._buildCursor = function(userId, name) {
   cursor.flagEl = flagEl;
 };
 
-CursorsModule.prototype._shiftCursor = function(userId, index, length) {
+QuillCursors.prototype._shiftCursor = function(userId, index, length) {
   var cursor = this.cursors[userId];
   if (cursor.range.index > index)
     cursor.range.index += length;
 };
 
-CursorsModule.prototype._hideCursor = function(userId) {
+QuillCursors.prototype._hideCursor = function(userId) {
   var cursor = this.cursors[userId];
   if (cursor)
     cursor.el.classList.add('hidden');
 };
 
-CursorsModule.prototype._updateCursor = function(cursor) {
+QuillCursors.prototype._updateCursor = function(cursor) {
   if (!cursor || !cursor.range) return;
 
   var containerRect = this.quill.container.getBoundingClientRect();
@@ -199,13 +198,13 @@ CursorsModule.prototype._updateCursor = function(cursor) {
 
   range.setStart(startLeaf[0].domNode, startLeaf[1]);
   range.setEnd(endLeaf[0].domNode, endLeaf[1]);
-  rects = window.RangeFix.getClientRects(range);
+  rects = rangeFix.getClientRects(range);
 
   this._updateCaret(cursor, endLeaf);
   this._updateSelection(cursor, rects, containerRect);
 };
 
-CursorsModule.prototype._updateCaret = function(cursor, leaf) {
+QuillCursors.prototype._updateCaret = function(cursor, leaf) {
   var rect, index = cursor.range.index + cursor.range.length;
 
   // The only time a valid offset of 0 can occur is when the cursor is positioned
@@ -227,7 +226,7 @@ CursorsModule.prototype._updateCaret = function(cursor, leaf) {
   cursor.flagEl.style.left = (rect.left) + 'px';
 };
 
-CursorsModule.prototype._updateSelection = function(cursor, rects, containerRect) {
+QuillCursors.prototype._updateSelection = function(cursor, rects, containerRect) {
   function createSelectionBlock(rect) {
     var selectionBlockEl = document.createElement('span');
 
@@ -259,4 +258,4 @@ CursorsModule.prototype._updateSelection = function(cursor, rects, containerRect
   }, this);
 };
 
-Quill.register('modules/cursors', CursorsModule);
+export default QuillCursors;

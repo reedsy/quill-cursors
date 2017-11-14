@@ -28,6 +28,8 @@ To include `quill-cursors` in your Quill project, simply add the stylesheet and 
   <script src="/path/to/quill.min.js"></script>
   <script src="/path/to/quill-cursors.min.js"></script>
   <script>
+    Quill.register('modules/cursors', QuillCursors);
+
     var editor = new Quill('#editor-container', {
       modules: {
         cursors: true // or with options object, cursors: { ... }

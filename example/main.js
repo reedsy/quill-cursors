@@ -1,3 +1,5 @@
+Quill.register('modules/cursors', QuillCursors);
+
 var quillOne = new Quill('#editor-one', {
   theme: 'snow',
   modules: {
