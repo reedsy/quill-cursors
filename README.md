@@ -13,7 +13,7 @@ $ npm install quill-cursors --save
 
 ## Usage
 
-To include `quill-cursors` in your Quill project, simply add the stylesheet and all the Javascripts to your page. The module already takes care of its registering so you just need to add 'cursors' to your module config when you instantiate your editor(s).
+To include `quill-cursors` in your Quill project, simply add the stylesheet and all the Javascripts to your page. The module is built as a [UMD module](https://github.com/umdjs/umd) falling back to expose a `QuillCursors` global. Keep in mind you should register this module on Quill as below before usage.
 
 ```html
 <head>
