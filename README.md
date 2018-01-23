@@ -141,7 +141,7 @@ Force an update/refresh of _all_ cursors registered on the module.
 
 ## Development
 
-Run `npm run build` to package a build and `npm run start` to build, start the example webserver and watch for changes.
+Run `npm run build` to package a build and `npm run dev` to build, start the example webserver and watch for changes.
 
 ## TODO
 
