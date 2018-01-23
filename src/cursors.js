@@ -180,9 +180,16 @@ QuillCursors.prototype._hideCursor = function(userId) {
 QuillCursors.prototype._updateCursor = function(cursor) {
   if (!cursor || !cursor.range) return;
 
+  var startRange = cursor.range.index;
+  var endRange = cursor.range.index + cursor.range.length;
+
+  // Check ranges
+  if(endRange > this.quill.getLength() - 1)
+    endRange = this.quill.getLength() - 1;
+
   var containerRect = this.quill.container.getBoundingClientRect();
-  var startLeaf = this.quill.getLeaf(cursor.range.index);
-  var endLeaf = this.quill.getLeaf(cursor.range.index + cursor.range.length);
+  var startLeaf = this.quill.getLeaf(startRange);
+  var endLeaf = this.quill.getLeaf(endRange);
   var range = document.createRange();
   var rects;
 
@@ -191,9 +198,12 @@ QuillCursors.prototype._updateCursor = function(cursor) {
     !startLeaf[0] || !endLeaf[0] ||
     startLeaf[1] < 0 || endLeaf[1] < 0 ||
     !startLeaf[0].domNode || !endLeaf[0].domNode) {
-    console.log('Troubles!', cursor);
 
-    return this._hideCursor(cursor.userId);
+    console.warn('[quill-cursors] A cursor couldn\'t be updated (ID ' + cursor.userId +'), hiding.');
+
+    this._hideCursor(cursor.userId);
+
+    return;
   }
 
   range.setStart(startLeaf[0].domNode, startLeaf[1]);
