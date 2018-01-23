@@ -35,7 +35,7 @@ var moduleBundle = {
 
   plugins: [
     new UglifyJSPlugin({
-      include: /\.min\.js$/,
+      test: /\.min\.js$/
     }),
     new ExtractTextPlugin({ // define where to save the file
       filename: '[name].css'
@@ -45,7 +45,6 @@ var moduleBundle = {
   devServer: {
     contentBase: [
       path.join(__dirname, 'example'),
-      path.join(__dirname, 'dist'),
       path.join(__dirname, 'node_modules/normalize.css'),
       path.join(__dirname, 'node_modules/quill/dist')
     ]
