@@ -53,9 +53,13 @@ editor.getModule('cursors').set({
 
 **Please note**, that this module only handles the cursors drawing on a Quill instance. You must produce some additional code to handle actual cursor sync in a real scenario. So, it's assumed that:
 
-* You should implement some sort of server-side code/API (or another suitable mechanism) to maintain cursors information synced across clients/Quill instances;
-* This module is responsible for automatically updating the cursors configured on the instance when there is a `'text-change'` event - so if the client/instance contents are updated locally or through a `updateContents()` call, one shouldn't be needing to do anything to update/shift the displayed cursors;
+* You should implement some sort of server-side code/API (or another suitable mechanism) to maintain the cursors information synced across clients/Quill instances;
+* This module is responsible for automatically updating the cursors configured on the module when there is a `'text-change'` event - so if the client/instance contents are updated locally or through a `updateContents()` call, one shouldn't be needing to do anything to update/shift the displayed cursors;
 * It is expected for the clients/instances to send updated cursor/range information on `selection-change` events;​
+* Additionally, the client code should guarantee:
+  * The drawing the initial cursors for all the active connections at init;
+  * Updating a cursor with move/set when an cursor update is received;
+  * Calling remove cursor when receiving a cursor/client disconnection;
 
 For a simple local-based implementation, check [the included example](example).
 
