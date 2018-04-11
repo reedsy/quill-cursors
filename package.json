@@ -10,10 +10,6 @@
   ],
   "author": "Pedro Machado Santa <pedro@reedsy.com>",
   "license": "MIT",
-  "engines": {
-    "node": "~8",
-    "npm": "~5"
-  },
   "main": "dist/quill-cursors.js",
   "module": "src/cursors.js",
   "scripts": {
