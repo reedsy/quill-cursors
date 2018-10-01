@@ -43,12 +43,12 @@ To include `quill-cursors` in your Quill project, simply add the stylesheet and 
 To set a cursor call:
 
 ```javascript
-editor.getModule('cursors').set({
-  id: '1',
-  name: 'User 1',
-  color: 'red',
-  range: range
-});
+editor.getModule('cursors').setCursor(
+  '1', /* userId */
+  range, /* range */
+  'User 1', /* name */
+  'red' /* color */
+);
 ```
 
 **Please note**, that this module only handles the cursors drawing on a Quill instance. You must produce some additional code to handle actual cursor sync in a real scenario. So, it's assumed that:
