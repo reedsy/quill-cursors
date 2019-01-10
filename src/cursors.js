@@ -109,6 +109,7 @@ QuillCursors.prototype._initOptions = function(options) {
   this.options.autoRegisterListener = (options.autoRegisterListener == false) ? options.autoRegisterListener : this.options.autoRegisterListener;
   this.options.hideDelay = (options.hideDelay == undefined) ? this.options.hideDelay : options.hideDelay;
   this.options.hideSpeed = (options.hideSpeed == undefined) ? this.options.hideSpeed : options.hideSpeed;
+  this.options.suppressWarnings = options.suppressWarnings || this.options.suppressWarnings;
 };
 
 QuillCursors.prototype._applyDelta = function(delta) {
