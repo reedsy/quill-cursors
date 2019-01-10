@@ -14,7 +14,8 @@ var DEFAULTS = {
   ].join(''),
   autoRegisterListener: true,
   hideDelay: 3000,
-  hideSpeed: 400
+  hideSpeed: 400,
+  suppressWarnings: false
 };
 
 function QuillCursors(quill, options) {
@@ -199,7 +200,7 @@ QuillCursors.prototype._updateCursor = function(cursor) {
     startLeaf[1] < 0 || endLeaf[1] < 0 ||
     !startLeaf[0].domNode || !endLeaf[0].domNode) {
 
-    console.warn('[quill-cursors] A cursor couldn\'t be updated (ID ' + cursor.userId +'), hiding.');
+    if (!this.options.suppressWarnings) console.warn('[quill-cursors] A cursor couldn\'t be updated (ID ' + cursor.userId +'), hiding.');
 
     this._hideCursor(cursor.userId);
 
