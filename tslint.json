@@ -1,0 +1,10 @@
+{
+  "extends": "@reedsy/eslint-config-reedsy/tslint.yaml",
+  "rules": {
+    "variable-name": [
+      true,
+      "check-format",
+      "allow-leading-underscore"
+    ]
+  }
+}

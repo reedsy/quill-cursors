@@ -1,159 +1,170 @@
-# quill-cursors
-A multi cursor module for [Quill](https://github.com/quilljs/quill) text editor.
+[![NPM Version](https://img.shields.io/npm/v/quill-cursors.svg)](https://npmjs.org/package/quill-cursors)
+[![Build Status](https://travis-ci.com/reedsy/quill-cursors.svg?branch=master)](https://travis-ci.com/reedsy/quill-cursors)
 
-(Fancy working with these libraries to help build an amazing product for self-publishing authors? Don't miss out [Reedsy current job openings](https://angel.co/reedsy/jobs).)
+# quill-cursors
+
+A collaborative editing module for the [Quill](https://github.com/quilljs/quill) text editor used by the
+[Reedsy](https://reedsy.com) team.
+
+![Quill cursors](assets/demo.gif)
 
 ## Install
 
-Install `quill-cursors` module through npm:
-
 ```bash
-$ npm install quill-cursors --save
+npm install quill-cursors --save
 ```
 
 ## Usage
 
-To include `quill-cursors` in your Quill project, simply add the stylesheet and all the Javascripts to your page. The module is built as a [UMD module](https://github.com/umdjs/umd) falling back to expose a `QuillCursors` global. Keep in mind you should register this module on Quill as below before usage.
+`quill-cursors` is a Quill module that exposes a number of methods to help display other users' cursors for
+collaborative editing.
 
-```html
-<head>
-  ...
-  <link rel="stylesheet" href="/path/to/quill-cursors.css">
-  ...
-</head>
-<body>
-  ...
-  <div id="editor-container"></div>
-  ...
-  <script src="/path/to/quill.min.js"></script>
-  <script src="/path/to/quill-cursors.min.js"></script>
-  <script>
-    Quill.register('modules/cursors', QuillCursors);
+First, [set up a Quill editor](https://quilljs.com/docs/quickstart/).
 
-    var editor = new Quill('#editor-container', {
-      modules: {
-        cursors: true // or with options object, cursors: { ... }
-      }
-    });
-  </script>
+Next, load `quill-cursors` through any of the options presented by [UMD](https://github.com/umdjs/umd).
 
-</body>
-```
-
-To set a cursor call:
+Then, register the `quill-cursors` module:
 
 ```javascript
-editor.getModule('cursors').setCursor(
-  '1', /* userId */
-  range, /* range */
-  'User 1', /* name */
-  'red' /* color */
-);
-```
+Quill.register('modules/cursors', QuillCursors);
 
-**Please note**, that this module only handles the cursors drawing on a Quill instance. You must produce some additional code to handle actual cursor sync in a real scenario. So, it's assumed that:
-
-* You should implement some sort of server-side code/API (or another suitable mechanism) to maintain the cursors information synced across clients/Quill instances;
-* This module is responsible for automatically updating the cursors configured on the module when there is a `'text-change'` event - so if the client/instance contents are updated locally or through a `updateContents()` call, one shouldn't be needing to do anything to update/shift the displayed cursors;
-* It is expected for the clients/instances to send updated cursor/range information on `selection-change` events;​
-* Additionally, the client code should guarantee:
-  * The drawing the initial cursors for all the active connections at init;
-  * Updating a cursor with move/set when an cursor update is received;
-  * Calling remove cursor when receiving a cursor/client disconnection;
-
-For a simple local-based implementation, check [the included example](example).
-
-## API
-
-### Config Options
-
-To enable the module (and rely on the default settings) you just need to set the `modules.cursors` property to `true` on the Quill options object. For more custom config you can use the following options:
-
-```javascript
-var editor = new Quill('#editor-container', {
+const quill = new Quill('#editor', {
   modules: {
-    cursors: {
-      template: '<div class="custom-cursor">...</div>',
-      autoRegisterListener: false, // default: true
-      hideDelay: 500, // default: 3000
-      hideSpeed: 0 // default: 400
-    }
+    cursors: true,
   }
 });
 ```
 
-#### `template` - String
+Finally, use the exposed `quill-cursors` methods to update the cursors (see below). For an example setup, see the
+[example code](example), which can be run with:
 
-Option to add a custom HTML string to customise the cursor template. Check the default template on the code.
+```bash
+npm start
+```
 
-#### `autoRegisterListener` - Boolean (default: `true`)
+## API
 
-Option to define if the module should register the `text-change` handler on init, or if it will relegate that responsibility to the dependent client code. Clients can register this handler manually by calling `editor.getModule('cursors').registerTextChangeListener()`.
+### Configuration
 
-#### `hideDelay` - String (default: `3000`)
+The `quill-cursors` module has the following optional configuration:
 
-Option to define the delay in milliseconds for the cursor flag hiding transition.
+  - `template` _string_: override the default HTML template used for a cursor
+  - `hideDelayMs`: _number_ (default: `3000`): number of milliseconds to show the username flag before hiding it
+  - `hideSpeedMs`: _number_ (default: `400`): the duration of the flag hiding animation in milliseconds
+  - `selectionChangeSource` _string_ | _null_ (default: `api`): the event source to use when emitting `selection-change`
 
-#### `hideSpeed` - String (default: `400`)
+Provide these options when setting up the Quill editor:
 
-Option to define the speed in milliseconds for the cursor flag hiding transition.
+```javascript
+const editor = new Quill('#editor', {
+  modules: {
+    cursors: {
+      template: '<div class="custom-cursor">...</div>',
+      hideDelayMs: 5000,
+      hideSpeedMs: 0,
+      selectionChangeSource: null,
+    },
+  },
+});
+```
 
-### Public Methods/Interface
+#### `template`
 
-Public methods of a module instance. You can get the module instance through `var cursors = editor.getModule('cursors') `.
+For the custom template to work correctly with the module, it should closely follow the classes in the
+[original template](src/quill-cursors/template.ts).
 
-#### `cursors.registerTextChangeListener()`
+#### `selectionChangeSource`
 
-Registers the necessary internal `text-change` event handler to take care of cursors shifting when new updates happen on the Quill editor.
+By default, QuillJS will [suppress `selection-change` events when typing](https://quilljs.com/docs/api/#selection-change)
+to avoid noise.
 
-#### `cursors.clearCursors()`
+However, you will probably want to update the `quill-cursors` selection on both `selection-change` and `text-change`.
+In order to aid this, `quill-cursors` will automatically emit a `selection-change` event on `text-change`.
 
-Removes and clears all cursors.
+You can differentiate between user input and the `quill-cursors` module by checking the `source` argument for the
+`selection-change` event. By default, `quill-cursors` will have `source = 'api'`, but if you need to differentiate
+between calls from `quill-cursors` and other events, then you can change this `source` using the `selectionChangeSource`
+option.
 
-#### `cursors.moveCursor(userId, range)`
+If emitting an event is undesirable (eg you want `selection-change` to act like the Quill default), then the
+`selectionChangeSource` can be set to `null`, and an event will not be emitted. Note that in this case, you will need to
+separately handle the `text-change` event and update the cursor position.
 
-Moves a specified cursor to a specified range. Does nothing if a cursors with the specified id isn't found. Parameters:
+### Methods
 
-* `userId` - the id/user id of the cursor being updated;
-* `range` - the new range of the cursor, as returned by `editor.getSelection()`;
+The module instance can be retrieved through Quill's [`getModule`](https://quilljs.com/docs/api/#getmodule):
 
-#### `cursors.removeCursor(userId)`
+```javascript
+const cursors = editor.getModule('cursors');
+```
 
-Removes the specified cursor. Parameters:
+#### `createCursor`
 
-* `userId` - the id/user id of the cursor being updated;
+```typescript
+createCursor(id: string, name: string, color: string): Cursor;
+```
 
-#### `cursors.setCursor(userId, range, name, color)`
+Creates a `Cursor` instance with the given `id`. If a cursor with this `id` already exists, a new one is not created.
 
-Adds and sets/registers a new cursor with the specified data - range, name and color. If the cursor doesn't yet exist a new one will be initted and placed on the editor. If the cursor already exists sets _only_ the new range for that new cursor - same as `cursors.moveCursor(userId, range)`. Parameters:
+- `id` _string_: the unique ID for the cursor
+- `name` _string_: the name to display on the cursor
+- `color` _string_: the [CSS color](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value) to use for the cursor
 
-* `userId` - the id/user id of the cursor being updated;
-* `range` - the new range of the cursor, as returned by `editor.getSelection()`;
-* `name` - the display name for the user of this cursor;
-* `color` - the color of this cursor (any valid CSS color as a string will work);
+Returns a `Cursor` object:
 
-#### `cursors.shiftCursors(index, length)`
+```typescript
+{
+  id: string;
+  name: string;
+  color: string;
+  range: Range; // See https://quilljs.com/docs/api/#selection-change
+}
+```
 
-Move/shift _all_ cursors _on or after_ specified index by the specified length. Parameters:
+#### `moveCursor`
 
-* `index` - the index from which to upgrade cursors from, all cursors _on or after_ this index will be shifted;
-* `length` - the amount of shifting, can be positive or negative;
+```typescript
+moveCursor(id: string, range: QuillRange): void;
+```
 
-#### `cursors.update()`
+Sets the selection range of the cursor with the given `id`.
 
-Force an update/refresh of _all_ cursors registered on the module.
+- `id` _string_: the ID of the cursor to move
+- `range` [_Range_](https://quilljs.com/docs/api/#selection-change): the selection range
 
-## Development
+#### `removeCursor`
 
-Run `npm run build` to package a build and `npm run dev` to build, start the example webserver and watch for changes.
+```typescript
+removeCursor(id: string): void;
+```
 
-## TODO
+Removes the cursor with the given `id` from the DOM.
 
-A few things that can be improved:
+- `id` _string_: the ID of the cursor to remove
 
-* Add tests
-* Improve bundling, namely on styles/add minified styles
-* EventEmitter events?
+#### `update`
+
+```typescript
+update(): void;
+```
+
+Redraws all of the cursors in the DOM.
+
+#### `clearCursors`
+
+```typescript
+clearCursors(): void;
+```
+
+Removes all the cursors from the DOM.
+
+#### `cursors`
+
+```typescript
+cursors(): Cursor[];
+```
+
+Returns an array of all the `Cursor` objects in the DOM in no particular order.
 
 ## License
 

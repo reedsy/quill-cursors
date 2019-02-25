@@ -1,54 +1,67 @@
-var path = require('path');
-var UglifyJSPlugin = require('uglifyjs-webpack-plugin');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+const path = require('path');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 
-var moduleBundle = {
+const environment = process.env.NODE_ENV || 'development';
 
+const moduleBundle = {
   entry: {
-    'quill-cursors': ['./src/cursors.js', './src/cursors.scss'],
-    'quill-cursors.min': ['./src/cursors.js'],
+    'quill-cursors': './src/index.ts',
   },
-
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        exclude: /node_modules/,
+        use: ['ts-loader'],
+      },
+      {
+        test: /\.scss$/,
+        use: [
+          'style-loader',
+          'css-loader',
+          'sass-loader',
+        ],
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.ts', '.js'],
+  },
   output: {
     filename: '[name].js',
+    path: path.resolve(__dirname, 'dist'),
     library: 'QuillCursors',
     libraryExport: 'default',
     libraryTarget: 'umd',
-    path: path.resolve(__dirname, 'dist')
   },
-
-  externals: {
-    quill: {
-      root: 'Quill',
-      commonjs2: 'quill',
-      commonjs: 'quill',
-      amd: 'quill'
-    }
-  },
-
-  module: {
-    rules: [{
-      test: /\.scss$/,
-      loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
-    }]
-  },
-
-  plugins: [
-    new UglifyJSPlugin({
-      test: /\.min\.js$/
-    }),
-    new ExtractTextPlugin({ // define where to save the file
-      filename: '[name].css'
-    })
-  ],
-
+  mode: environment,
+  devtool: 'inline-source-map',
   devServer: {
     contentBase: [
       path.join(__dirname, 'example'),
-      path.join(__dirname, 'node_modules/normalize.css'),
       path.join(__dirname, 'node_modules/quill/dist')
-    ]
+    ],
   },
+  plugins: [
+    new CleanWebpackPlugin(['dist']),
+  ],
 };
+
+if (environment === 'production') {
+  moduleBundle.module.rules.push({
+    test: /\.ts$/,
+    exclude: /node_modules/,
+    use: [{
+      loader: 'tslint-loader',
+      options: {
+        emitErrors: true,
+        formatter: 'stylish',
+        tsConfigFile: 'tsconfig.base.json',
+      },
+    }],
+  });
+
+  delete moduleBundle.devtool;
+}
 
 module.exports = [moduleBundle];
