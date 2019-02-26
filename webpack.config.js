@@ -74,7 +74,7 @@ DtsBundlePlugin.prototype.apply = function (compiler) {
       main: 'src/index.d.ts',
       out: '../dist/quill-cursors.d.ts',
       removeSource: true,
-      outputAsModuleFolder: true // to use npm in-package typings
+      outputAsModuleFolder: false
     });
   });
 };
