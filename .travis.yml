@@ -11,17 +11,3 @@ node_js:
 
 before_script:
 - npm run build
-
-after_success:
-  - bash deploy.sh
-
-deploy:
-  provider: npm
-  skip_cleanup: true
-  email: aleckgibson@googlemail.com
-  api_key:
-    secure: C/Z6aaR0BCmui9HoqKXtx6H+WzV7wLEBgVGG0LNLFhKYKDYis/oK5rH3euSYzqKfo7E22YURE7z1jP5RTS9s+iuJDdd5qzo/DA2tsxzoDIvc5tX3zjy3X9nBiwUBvU+fQFg7zxDgEEmdArP//9c8Ohxob16PybPD5metBhrg5wCmTZb1NG0p1KVKXSewJV9Gc3lPQXTS2bMgXT4MwOvt1nNZj114hE/JPz/ijqhgvfw1E4RWxJ+HzYjvJAkROlLy4ZgPOalKWWi9d5swFIhsXnRAlxENg53iY6K3HXl5QL+78H14Oi7HOg9aNJIguuCGeVrJZaAR5wA2tpdGHlq2q65HMzLwjCePWrTeYLbzxCtQkYOpbK+J/uNgTt/ZzPmQAq092G+h6tHDoQF+jHISxx5GupR2Y1ww57V9loskSgcfoQ16Jk4Ot/0mw8+qr5dqDPiZz41vkJIF/456SVEJEzNcHoTJ/41szVVWb/9jDYiqxKJCwPpZpdvG5o2kORxnc7ruf9zBEXRar+Q8r1ExaSsPN0hcbzj3K03PkLhTOHW694dBIzN0PvWow7DJx6W1N/lY7GL6W30N8aCTPXzBDfpcLJjU5XkDnbHaL8BlVkLdTm8xrknqn8wsTpZ378zWCOeGR44erDgKBdu+kEPRi0kD7cfUAATibpPs313WS+I=
-  on:
-    tags: true
-    branch: master
-    repo: reedsy/quill-cursors
