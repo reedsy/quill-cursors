@@ -30,7 +30,7 @@ export default class QuillCursors {
     if (!cursor) {
       cursor = new Cursor(id, name, color);
       this._cursors[id] = cursor;
-      const element = cursor.build(this._options);
+      const element = cursor.build(this._options, this._quill);
       this._container.appendChild(element);
     }
 
@@ -121,7 +121,7 @@ export default class QuillCursors {
 
     const selectionRectangles = RangeFix.getClientRects(range);
     const containerRectangle = this._quill.container.getBoundingClientRect();
-    cursor.updateSelection(selectionRectangles, containerRectangle);
+    cursor.updateSelection(selectionRectangles, containerRectangle, this._quill);
   }
 
   private _indexWithinQuillBounds(index: number): number {

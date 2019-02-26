@@ -31,7 +31,7 @@ export default class Cursor {
     this.color = color;
   }
 
-  public build(options: IQuillCursorsOptions): HTMLElement {
+  public build(options: IQuillCursorsOptions, quill?: any): HTMLElement {
     const element = document.createElement(Cursor.CONTAINER_ELEMENT_TAG);
     element.classList.add(Cursor.CURSOR_CLASS);
     element.innerHTML = options.template;
@@ -42,6 +42,14 @@ export default class Cursor {
 
     flagElement.style.backgroundColor = this.color;
     caretElement.style.backgroundColor = this.color;
+
+    if (quill !== null) {
+      quill.root.addEventListener('scroll', () => {
+          const marginTop = `${-1 * quill.root.scrollTop}px`;
+          caretContainerElement.style.marginTop = marginTop;
+          flagElement.style.marginTop = marginTop;
+      });
+    }
 
     element.getElementsByClassName(Cursor.NAME_CLASS)[0].textContent = this.name;
 
@@ -77,24 +85,24 @@ export default class Cursor {
     this._flagEl.style.left = `${rectangle.left}px`;
   }
 
-  public updateSelection(selections: ClientRect[], container: ClientRect) {
+  public updateSelection(selections: ClientRect[], container: ClientRect, quill?: any) {
     this._clearSelection();
     selections = selections || [];
 
     Array.from(selections)
-      .forEach((selection: ClientRect) => this._addSelection(selection, container));
+      .forEach((selection: ClientRect) => this._addSelection(selection, container, quill));
   }
 
   private _clearSelection() {
     this._selectionEl.innerHTML = null;
   }
 
-  private _addSelection(selection: ClientRect, container: ClientRect) {
-    const selectionBlock = this._selectionBlock(selection, container);
+  private _addSelection(selection: ClientRect, container: ClientRect, quill?: any) {
+    const selectionBlock = this._selectionBlock(selection, container, quill);
     this._selectionEl.appendChild(selectionBlock);
   }
 
-  private _selectionBlock(selection: ClientRect, container: ClientRect): HTMLElement {
+  private _selectionBlock(selection: ClientRect, container: ClientRect, quill?: any): HTMLElement {
     const element = document.createElement(Cursor.SELECTION_ELEMENT_TAG);
 
     element.classList.add(Cursor.SELECTION_BLOCK_CLASS);
@@ -103,6 +111,12 @@ export default class Cursor {
     element.style.width = `${selection.width}px`;
     element.style.height = `${selection.height}px`;
     element.style.backgroundColor = tinycolor(this.color).setAlpha(0.3).toString();
+
+    if (quill !== null) {
+      quill.root.addEventListener('scroll', () => {
+        element.style.marginTop = `${-1 * quill.root.scrollTop}px`;
+      });
+    }
 
     return element;
   }
