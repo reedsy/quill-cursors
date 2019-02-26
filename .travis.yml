@@ -12,7 +12,7 @@ node_js:
 before_script:
 - npm run build
 
-before_deploy:
+after_success:
   provider: script
   script: bash deploy.sh
 
