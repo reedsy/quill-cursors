@@ -1,6 +1,5 @@
 const path = require('path');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-
 const environment = process.env.NODE_ENV || 'development';
 
 const moduleBundle = {
@@ -44,6 +43,7 @@ const moduleBundle = {
   },
   plugins: [
     new CleanWebpackPlugin(['dist']),
+    new DtsBundlePlugin(),
   ],
 };
 
@@ -63,5 +63,20 @@ if (environment === 'production') {
 
   delete moduleBundle.devtool;
 }
+
+function DtsBundlePlugin(){}
+DtsBundlePlugin.prototype.apply = function (compiler) {
+  compiler.plugin('done', function(){
+    const dts = require('dts-bundle');
+
+    dts.bundle({
+      name: 'QuillCursors',
+      main: 'src/index.d.ts',
+      out: '../dist/quill-cursors.d.ts',
+      removeSource: true,
+      outputAsModuleFolder: true // to use npm in-package typings
+    });
+  });
+};
 
 module.exports = [moduleBundle];
