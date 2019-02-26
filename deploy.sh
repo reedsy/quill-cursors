@@ -2,6 +2,8 @@
 
 VERSION="v$(node -p "require('./package.json').version")"
 
+git checkout master
+git pull
 git fetch --tags
 VERSION_COUNT=$(git tag --list $VERSION | wc -l)
 
@@ -15,11 +17,17 @@ fi
 
 echo '!/dist' >> .gitignore
 
+npm test
+npm run build
+
 git checkout -b release-$VERSION
 git add .gitignore
 git add --all dist/
 git commit --message "Release version $VERSION"
 git tag $VERSION
 git push origin refs/tags/$VERSION
+
+git checkout master
+git branch --delete --force release-$VERSION
 
 npm publish
