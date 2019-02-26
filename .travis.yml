@@ -1,6 +1,7 @@
-branches:
-  only:
-  - master
+# TODO: Put back
+# branches:
+#   only:
+#   - master
 
 dist: trusty
 sudo: false

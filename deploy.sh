@@ -1,11 +1,9 @@
 #!/bin/bash
 
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ $BRANCH == "master" ]
+echo "On $TRAVIS_BRANCH branch."
+if [ $TRAVIS_BRANCH != "master" ]
 then
-  echo "On master branch. Checking version for deploy."
-else
-  echo "On $BRANCH branch. Skipping deploy."
+  echo "Not on master. Skipping deploy."
   exit 0
 fi
 
