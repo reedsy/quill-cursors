@@ -1,11 +1,16 @@
 #!/bin/bash
 
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ $BRANCH == "master" ]
+echo "Travis event type: $TRAVIS_EVENT_TYPE"
+if [ $TRAVIS_EVENT_TYPE == "pull_request" ]
 then
-  echo "On master branch. Checking version for deploy."
-else
-  echo "On $BRANCH branch. Skipping deploy."
+  echo "Pull request build. Skipping deploy."
+  exit 0
+fi
+
+echo "On $TRAVIS_BRANCH branch."
+if [ $TRAVIS_BRANCH != "master" ]
+then
+  echo "Not on master. Skipping deploy."
   exit 0
 fi
 
