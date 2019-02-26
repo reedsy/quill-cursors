@@ -1,3 +1,13 @@
+# Unreleased
+
+# 2.0.2
+
+- deploy.sh fix
+
+# 2.0.1
+
+- deploy.sh fix
+
 # 2.0.0
 
 - Move to TypeScript

@@ -27,7 +27,7 @@ git commit --message "Release version $VERSION"
 git tag $VERSION
 git push origin refs/tags/$VERSION
 
+npm publish
+
 git checkout master
 git branch --delete --force release-$VERSION
-
-npm publish
