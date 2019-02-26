@@ -1,5 +1,12 @@
 #!/bin/bash
 
+echo "Travis event type: $TRAVIS_EVENT_TYPE"
+if [ $TRAVIS_EVENT_TYPE == "pull_request" ]
+then
+  echo "Pull request build. Skipping deploy."
+  exit 0
+fi
+
 echo "On $TRAVIS_BRANCH branch."
 if [ $TRAVIS_BRANCH != "master" ]
 then
