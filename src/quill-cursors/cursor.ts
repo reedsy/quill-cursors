@@ -43,7 +43,7 @@ export default class Cursor {
     flagElement.style.backgroundColor = this.color;
     caretElement.style.backgroundColor = this.color;
 
-    if (quill !== null) {
+    if (quill !== null && quill !== undefined) {
       quill.root.addEventListener('scroll', () => {
           const marginTop = `${-1 * quill.root.scrollTop}px`;
           caretContainerElement.style.marginTop = marginTop;
@@ -112,7 +112,7 @@ export default class Cursor {
     element.style.height = `${selection.height}px`;
     element.style.backgroundColor = tinycolor(this.color).setAlpha(0.3).toString();
 
-    if (quill !== null) {
+    if (quill !== null && quill !== undefined) {
       quill.root.addEventListener('scroll', () => {
         element.style.marginTop = `${-1 * quill.root.scrollTop}px`;
       });
