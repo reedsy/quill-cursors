@@ -1,4 +1,4 @@
-# Unreleased
+# 2.0.3
 
 - Fixes for editor with a fixed height container
 
