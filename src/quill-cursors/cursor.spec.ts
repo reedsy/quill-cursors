@@ -75,8 +75,15 @@ describe('Cursor', () => {
   });
 
   it('updates the caret position', () => {
+    const quillMock = {
+      root: document.createElement('DIV'),
+    };
+
     const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
-    const element = cursor.build(options);
+    const element = cursor.build(options, quillMock);
+
+    const scrollEvent = new Event('scroll');
+    quillMock.root.dispatchEvent(scrollEvent);
 
     const rectangle: any = {
       top: 100,
@@ -126,7 +133,16 @@ describe('Cursor', () => {
         height: 2000,
       };
 
-      cursor.updateSelection([selection1, selection2], container);
+      const quillMock = {
+        root: document.createElement('DIV'),
+      };
+
+      cursor.updateSelection([selection1, selection2], container, quillMock);
+
+      const scrollEvent = new Event('scroll');
+      quillMock.root.dispatchEvent(scrollEvent);
+
+      expect(quillMock.root).toHaveStyle('scrollTop: 0px')
     });
 
     it('adds selections', () => {
