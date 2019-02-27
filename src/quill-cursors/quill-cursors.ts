@@ -21,7 +21,7 @@ export default class QuillCursors {
 
     this._registerSelectionChangeListeners();
     this._registerTextChangeListener();
-    window.addEventListener('resize', () => this.update());
+    this._registerDomListeners();
   }
 
   public createCursor(id: string, name: string, color: string): Cursor {
@@ -93,6 +93,12 @@ export default class QuillCursors {
         this.update();
       })
     );
+  }
+
+  private _registerDomListeners() {
+    window.addEventListener('resize', () => this.update());
+    const editor = this._quill.container.getElementsByClassName('ql-editor')[0];
+    editor.addEventListener('scroll', () => this.update());
   }
 
   private _updateCursor(cursor: Cursor) {

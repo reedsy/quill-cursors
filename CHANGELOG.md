@@ -1,5 +1,7 @@
 # Unreleased
 
+- Fixes for editor with a fixed height container
+
 # 2.0.2
 
 - deploy.sh fix

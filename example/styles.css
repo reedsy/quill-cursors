@@ -15,3 +15,7 @@ h1, h2 {
   flex-grow: 1;
   width: 40%;
 }
+
+#editor-two {
+  height: 200px;
+}
