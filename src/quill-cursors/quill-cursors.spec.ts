@@ -17,10 +17,11 @@ describe('QuillCursors', () => {
         },
       },
       addContainer: (className: string) => {
-        quill.container = document.createElement('DIV');
-        quill.container.classList.add(className);
-        document.body.appendChild(quill.container);
-        return quill.container;
+        const cursorsContainer = document.createElement('DIV');
+        cursorsContainer.classList.add(className);
+        quill.container.appendChild(cursorsContainer);
+
+        return cursorsContainer;
       },
       container: null,
       emitter: {
@@ -32,6 +33,13 @@ describe('QuillCursors', () => {
       getSelection: () => {},
       on: () => {},
     };
+
+    quill.container = document.createElement('DIV');
+    document.body.appendChild(quill.container);
+
+    const editor = document.createElement('DIV');
+    editor.classList.add('ql-editor');
+    quill.container.appendChild(editor);
   });
 
   describe('initialisation', () => {
@@ -49,6 +57,18 @@ describe('QuillCursors', () => {
       jest.spyOn(cursors, 'update');
       const resize = new Event('resize');
       window.dispatchEvent(resize);
+      expect(cursors.update).toHaveBeenCalled();
+    });
+
+    it('registers a scroll listener', () => {
+      const editor = quill.container.getElementsByClassName('ql-editor')[0];
+      jest.spyOn(editor, 'addEventListener');
+      const cursors = new QuillCursors(quill);
+      expect(editor.addEventListener).toHaveBeenCalledWith('scroll', expect.anything());
+
+      jest.spyOn(cursors, 'update');
+      const scroll = new Event('scroll');
+      editor.dispatchEvent(scroll);
       expect(cursors.update).toHaveBeenCalled();
     });
   });
@@ -179,10 +199,12 @@ describe('QuillCursors', () => {
 
     it('adds the cursor to the DOM', () => {
       const cursors = new QuillCursors(quill);
-      expect(quill.container.childElementCount).toBe(0);
+      const cursorsContainer = quill.container.getElementsByClassName(QuillCursors.CONTAINER_CLASS)[0];
+
+      expect(cursorsContainer.childElementCount).toBe(0);
 
       cursors.createCursor('abc', 'Joe Bloggs', 'red');
-      expect(quill.container.childElementCount).toBe(1);
+      expect(cursorsContainer.childElementCount).toBe(1);
     });
 
     it('can override the hide delay and speed', () => {
@@ -225,22 +247,26 @@ describe('QuillCursors', () => {
     });
 
     it('removes the cursor from the DOM', () => {
-      expect(quill.container.childElementCount).toBe(1);
+      const cursorsContainer = quill.container.getElementsByClassName(QuillCursors.CONTAINER_CLASS)[0];
+
+      expect(cursorsContainer.childElementCount).toBe(1);
       expect(cursors.cursors()).toHaveLength(1);
 
       cursors.removeCursor(cursor.id);
 
-      expect(quill.container.childElementCount).toBe(0);
+      expect(cursorsContainer.childElementCount).toBe(0);
       expect(cursors.cursors()).toHaveLength(0);
     });
 
     it('clears cursors', () => {
-      expect(quill.container.childElementCount).toBe(1);
+      const cursorsContainer = quill.container.getElementsByClassName(QuillCursors.CONTAINER_CLASS)[0];
+
+      expect(cursorsContainer.childElementCount).toBe(1);
       expect(cursors.cursors()).toHaveLength(1);
 
       cursors.clearCursors();
 
-      expect(quill.container.childElementCount).toBe(0);
+      expect(cursorsContainer.childElementCount).toBe(0);
       expect(cursors.cursors()).toHaveLength(0);
     });
 
