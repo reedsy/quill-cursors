@@ -5,8 +5,6 @@ import * as RangeFix from 'rangefix';
 import template from './template';
 
 export default class QuillCursors {
-  public static readonly CONTAINER_CLASS = 'ql-cursors';
-
   private readonly _cursors: { [id: string]: Cursor } = {};
   private readonly _quill: any;
   private readonly _container: HTMLElement;
@@ -15,8 +13,8 @@ export default class QuillCursors {
 
   public constructor(quill: any, options: IQuillCursorsOptions = {}) {
     this._quill = quill;
-    this._container = this._quill.addContainer(QuillCursors.CONTAINER_CLASS);
     this._options = this._setDefaults(options);
+    this._container = this._quill.addContainer(this._options.containerClass);
     this._currentSelection = this._quill.getSelection();
 
     this._registerSelectionChangeListeners();
@@ -153,6 +151,7 @@ export default class QuillCursors {
     options = Object.assign({}, options);
 
     options.template = options.template || template;
+    options.containerClass = options.containerClass || 'ql-cursors';
 
     if (options.selectionChangeSource !== null) {
       options.selectionChangeSource = options.selectionChangeSource || this._quill.constructor.sources.API;

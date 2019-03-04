@@ -49,6 +49,7 @@ npm start
 The `quill-cursors` module has the following optional configuration:
 
   - `template` _string_: override the default HTML template used for a cursor
+  - `containerClass` _string_ (default: `ql-cursors`): the CSS class to add to the cursors container
   - `hideDelayMs`: _number_ (default: `3000`): number of milliseconds to show the username flag before hiding it
   - `hideSpeedMs`: _number_ (default: `400`): the duration of the flag hiding animation in milliseconds
   - `selectionChangeSource` _string_ | _null_ (default: `api`): the event source to use when emitting `selection-change`

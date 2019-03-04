@@ -199,7 +199,7 @@ describe('QuillCursors', () => {
 
     it('adds the cursor to the DOM', () => {
       const cursors = new QuillCursors(quill);
-      const cursorsContainer = quill.container.getElementsByClassName(QuillCursors.CONTAINER_CLASS)[0];
+      const cursorsContainer = quill.container.getElementsByClassName('ql-cursors')[0];
 
       expect(cursorsContainer.childElementCount).toBe(0);
 
@@ -218,6 +218,12 @@ describe('QuillCursors', () => {
       const flag = quill.container.getElementsByClassName(Cursor.FLAG_CLASS)[0];
       expect(flag).toHaveStyle('transition-delay: 1000ms');
       expect(flag).toHaveStyle('transition-speed: 2000ms');
+    });
+
+    it('can override the Quill container class', () => {
+      new QuillCursors(quill, { containerClass: 'my-class' });
+      const containers = quill.container.getElementsByClassName('my-class');
+      expect(containers.length).toBe(1);
     });
   });
 
@@ -247,7 +253,7 @@ describe('QuillCursors', () => {
     });
 
     it('removes the cursor from the DOM', () => {
-      const cursorsContainer = quill.container.getElementsByClassName(QuillCursors.CONTAINER_CLASS)[0];
+      const cursorsContainer = quill.container.getElementsByClassName('ql-cursors')[0];
 
       expect(cursorsContainer.childElementCount).toBe(1);
       expect(cursors.cursors()).toHaveLength(1);
@@ -259,7 +265,7 @@ describe('QuillCursors', () => {
     });
 
     it('clears cursors', () => {
-      const cursorsContainer = quill.container.getElementsByClassName(QuillCursors.CONTAINER_CLASS)[0];
+      const cursorsContainer = quill.container.getElementsByClassName('ql-cursors')[0];
 
       expect(cursorsContainer.childElementCount).toBe(1);
       expect(cursors.cursors()).toHaveLength(1);
