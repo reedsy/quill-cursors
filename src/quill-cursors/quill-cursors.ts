@@ -3,6 +3,7 @@ import Cursor from './cursor';
 import IQuillRange from './i-range';
 import * as RangeFix from 'rangefix';
 import template from './template';
+import { ResizeObserver } from 'resize-observer';
 
 export default class QuillCursors {
   private readonly _cursors: { [id: string]: Cursor } = {};
@@ -94,9 +95,10 @@ export default class QuillCursors {
   }
 
   private _registerDomListeners() {
-    window.addEventListener('resize', () => this.update());
     const editor = this._quill.container.getElementsByClassName('ql-editor')[0];
     editor.addEventListener('scroll', () => this.update());
+    const resizeObserver = new ResizeObserver(() => this.update());
+    resizeObserver.observe(editor);
   }
 
   private _updateCursor(cursor: Cursor) {

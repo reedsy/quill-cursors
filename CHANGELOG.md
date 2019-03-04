@@ -2,6 +2,7 @@
 
 - Add custom CSS class option
 - Add HTML id attributes to the cursors
+- Use ResizeObserver instead of window.onresize
 
 # 2.0.3
 
