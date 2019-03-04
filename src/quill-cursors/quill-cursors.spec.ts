@@ -49,15 +49,23 @@ describe('QuillCursors', () => {
       expect(quill.addContainer).toHaveBeenCalledTimes(1);
     });
 
-    it('registers a window resize listener', () => {
-      jest.spyOn(window, 'addEventListener');
+    it('registers a resize observer', (done: Function) => {
       const cursors = new QuillCursors(quill);
-      expect(window.addEventListener).toHaveBeenCalledWith('resize', expect.anything());
+      const editor = quill.container.getElementsByClassName('ql-editor')[0];
+      editor.style.width = '200px';
 
       jest.spyOn(cursors, 'update');
-      const resize = new Event('resize');
-      window.dispatchEvent(resize);
-      expect(cursors.update).toHaveBeenCalled();
+
+      jest.spyOn(window, 'requestAnimationFrame').mockImplementation((callback: Function) => {
+        const updateMock = <any> cursors.update;
+        if (updateMock.mock.calls.length) {
+          return done();
+        } else {
+          return callback();
+        }
+      });
+
+      editor.style.width = '100px';
     });
 
     it('registers a scroll listener', () => {
