@@ -17,6 +17,7 @@ fi
 
 echo '!/dist' >> .gitignore
 
+npm install
 npm test
 npm run build
 

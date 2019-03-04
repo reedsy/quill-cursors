@@ -1,4 +1,4 @@
-# Unreleased
+# 2.1.0
 
 - Add custom CSS class option
 - Add HTML id attributes to the cursors
