@@ -34,7 +34,6 @@ export default class Cursor {
   public build(options: IQuillCursorsOptions): HTMLElement {
     const element = document.createElement(Cursor.CONTAINER_ELEMENT_TAG);
     element.classList.add(Cursor.CURSOR_CLASS);
-    options.cursorCssClass && element.classList.add(options.cursorCssClass);
     element.id = `ql-cursor-${ this.id }`;
     element.innerHTML = options.template;
     const selectionElement = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0] as HTMLElement;

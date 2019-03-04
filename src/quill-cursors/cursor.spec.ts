@@ -48,17 +48,8 @@ describe('Cursor', () => {
     `);
   });
 
-  it('adds a custom CSS class', () => {
-    options.cursorCssClass = 'my-class';
-    const element = new Cursor('abc', 'Jane Bloggs', 'red').build(options);
-
-    expect(element.classList).toContain('my-class');
-  });
-
   it('adds the ID to the element', () => {
-    options.cursorCssClass = 'my-class';
     const element = new Cursor('abc', 'Jane Bloggs', 'red').build(options);
-
     expect(element.id).toBe('ql-cursor-abc');
   });
 

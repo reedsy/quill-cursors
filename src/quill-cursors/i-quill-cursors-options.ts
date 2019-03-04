@@ -1,6 +1,6 @@
 export default interface IQuillCursorsOptions {
   template?: string;
-  cursorCssClass?: string;
+  containerClass?: string;
   selectionChangeSource?: string;
   hideDelayMs?: number;
   hideSpeedMs?: number;
