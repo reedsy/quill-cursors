@@ -1,3 +1,8 @@
+# Unreleased
+
+- Add custom CSS class option
+- Add HTML id attributes to the cursors
+
 # 2.0.3
 
 - Fixes for editor with a fixed height container

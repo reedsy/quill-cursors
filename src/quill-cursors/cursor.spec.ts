@@ -48,6 +48,20 @@ describe('Cursor', () => {
     `);
   });
 
+  it('adds a custom CSS class', () => {
+    options.cursorCssClass = 'my-class';
+    const element = new Cursor('abc', 'Jane Bloggs', 'red').build(options);
+
+    expect(element.classList).toContain('my-class');
+  });
+
+  it('adds the ID to the element', () => {
+    options.cursorCssClass = 'my-class';
+    const element = new Cursor('abc', 'Jane Bloggs', 'red').build(options);
+
+    expect(element.id).toBe('ql-cursor-abc');
+  });
+
   it('toggles element visibility', () => {
     const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
     const element = cursor.build(options);
