@@ -71,6 +71,9 @@ The `quill-cursors` module has the following optional configuration:
   - `hideDelayMs`: _number_ (default: `3000`): number of milliseconds to show the username flag before hiding it
   - `hideSpeedMs`: _number_ (default: `400`): the duration of the flag hiding animation in milliseconds
   - `selectionChangeSource` _string_ | _null_ (default: `api`): the event source to use when emitting `selection-change`
+  - `transformOnTextChange`: _boolean_ (default: `false`): attempt to locally infer cursor positions whenever the editor
+    contents change, without receiving an update from the other client. This can be useful for smoother performance on
+    high-latency connections.
 
 Provide these options when setting up the Quill editor:
 
@@ -82,6 +85,7 @@ const editor = new Quill('#editor', {
       hideDelayMs: 5000,
       hideSpeedMs: 0,
       selectionChangeSource: null,
+      transformOnTextChange: true,
     },
   },
 });
