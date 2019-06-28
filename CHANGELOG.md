@@ -1,6 +1,7 @@
 # Unreleased
 
 - Sort selection `span` elements
+- Deduplicate perfectly overlapping selection rectangles
 
 # 2.1.0
 

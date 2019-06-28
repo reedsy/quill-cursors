@@ -80,6 +80,9 @@ export default class Cursor {
 
   public updateSelection(selections: ClientRect[], container: ClientRect) {
     this._clearSelection();
+    selections = selections || [];
+    selections = Array.from(selections);
+    selections = this._deduplicate(selections);
     selections = this._sortByDomPosition(selections);
     selections.forEach((selection: ClientRect) => this._addSelection(selection, container));
   }
@@ -107,16 +110,35 @@ export default class Cursor {
   }
 
   private _sortByDomPosition(selections: ClientRect[]): ClientRect[] {
-    if (!selections) {
-      return [];
-    }
-
-    return Array.from(selections).sort((a, b) => {
+    return selections.sort((a, b) => {
       if (a.top === b.top) {
         return a.left - b.left;
       }
 
       return a.top - b.top;
     });
+  }
+
+  private _deduplicate(selections: ClientRect[]): ClientRect[] {
+    const serializedSelections = new Set();
+
+    return selections.filter((selection: ClientRect) => {
+      const serialized = this._serialize(selection);
+      if (serializedSelections.has(serialized)) {
+        return false;
+      }
+
+      serializedSelections.add(serialized);
+      return true;
+    });
+  }
+
+  private _serialize(selection: ClientRect): string {
+    return [
+      `top:${ selection.top }`,
+      `right:${ selection.right }`,
+      `bottom:${ selection.bottom }`,
+      `left:${ selection.left }`,
+    ].join(';');
   }
 }
