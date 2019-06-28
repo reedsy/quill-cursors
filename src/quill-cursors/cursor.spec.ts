@@ -201,5 +201,41 @@ describe('Cursor', () => {
       expect(selections.children[0]).toHaveStyle('top: 0px');
       expect(selections.children[0]).toHaveStyle('left: 50px');
     });
+
+    it('ignores selections with no width', () => {
+      const noWidthSelection = {
+        top: 0,
+        left: 0,
+        width: 0,
+        height: 100,
+      };
+
+      cursor.updateSelection([selection1, noWidthSelection], container);
+
+      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
+
+      expect(selections.children).toHaveLength(1);
+
+      expect(selections.children[0]).toHaveStyle('top: 0px');
+      expect(selections.children[0]).toHaveStyle('left: 50px');
+    });
+
+    it('ignores selections with no height', () => {
+      const noHeightSelection = {
+        top: 0,
+        left: 0,
+        width: 100,
+        height: 0,
+      };
+
+      cursor.updateSelection([selection1, noHeightSelection], container);
+
+      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
+
+      expect(selections.children).toHaveLength(1);
+
+      expect(selections.children[0]).toHaveStyle('top: 0px');
+      expect(selections.children[0]).toHaveStyle('left: 50px');
+    });
   });
 });

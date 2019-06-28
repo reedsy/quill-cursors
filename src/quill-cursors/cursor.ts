@@ -82,7 +82,7 @@ export default class Cursor {
     this._clearSelection();
     selections = selections || [];
     selections = Array.from(selections);
-    selections = this._deduplicate(selections);
+    selections = this._sanitize(selections);
     selections = this._sortByDomPosition(selections);
     selections.forEach((selection: ClientRect) => this._addSelection(selection, container));
   }
@@ -119,10 +119,14 @@ export default class Cursor {
     });
   }
 
-  private _deduplicate(selections: ClientRect[]): ClientRect[] {
+  private _sanitize(selections: ClientRect[]): ClientRect[] {
     const serializedSelections = new Set();
 
     return selections.filter((selection: ClientRect) => {
+      if (!selection.width || !selection.height) {
+        return false;
+      }
+
       const serialized = this._serialize(selection);
       if (serializedSelections.has(serialized)) {
         return false;
