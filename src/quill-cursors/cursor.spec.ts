@@ -190,5 +190,16 @@ describe('Cursor', () => {
       expect(selections.children[1]).toHaveStyle('top: 0px');
       expect(selections.children[1]).toHaveStyle('left: 150px');
     });
+
+    it('deduplicates selections', () => {
+      cursor.updateSelection([selection1, selection1], container);
+
+      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
+
+      expect(selections.children).toHaveLength(1);
+
+      expect(selections.children[0]).toHaveStyle('top: 0px');
+      expect(selections.children[0]).toHaveStyle('left: 50px');
+    });
   });
 });
