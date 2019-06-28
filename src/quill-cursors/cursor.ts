@@ -80,10 +80,8 @@ export default class Cursor {
 
   public updateSelection(selections: ClientRect[], container: ClientRect) {
     this._clearSelection();
-    selections = selections || [];
-
-    Array.from(selections)
-      .forEach((selection: ClientRect) => this._addSelection(selection, container));
+    selections = this._sortByDomPosition(selections);
+    selections.forEach((selection: ClientRect) => this._addSelection(selection, container));
   }
 
   private _clearSelection() {
@@ -106,5 +104,19 @@ export default class Cursor {
     element.style.backgroundColor = tinycolor(this.color).setAlpha(0.3).toString();
 
     return element;
+  }
+
+  private _sortByDomPosition(selections: ClientRect[]): ClientRect[] {
+    if (!selections) {
+      return [];
+    }
+
+    return Array.from(selections).sort((a, b) => {
+      if (a.top === b.top) {
+        return a.left - b.left;
+      }
+
+      return a.top - b.top;
+    });
   }
 }

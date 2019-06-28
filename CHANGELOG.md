@@ -1,3 +1,7 @@
+# Unreleased
+
+- Sort selection `span` elements
+
 # 2.1.0
 
 - Add custom CSS class option
