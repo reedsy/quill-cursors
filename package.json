@@ -36,7 +36,7 @@
     "jest-dom": "^3.1.2",
     "node-sass": "^4.11.0",
     "quill": "^1.3.6",
-    "rangefix": "^0.2.5",
+    "rangefix": "^0.2.7",
     "resize-observer": "^1.0.0",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",

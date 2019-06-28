@@ -105,19 +105,21 @@ describe('Cursor', () => {
     let cursor: Cursor;
     let element: HTMLElement;
     let container: any;
+    let selection1: any;
+    let selection2: any;
 
     beforeEach(() => {
       cursor = new Cursor('abc', 'Jane Bloggs', 'red');
       element = cursor.build(options);
 
-      const selection1: any = {
+      selection1 = {
         top: 0,
         left: 50,
         width: 100,
         height: 200,
       };
 
-      const selection2: any = {
+      selection2 = {
         top: 1000,
         left: 1050,
         width: 200,
@@ -156,6 +158,37 @@ describe('Cursor', () => {
       cursor.updateSelection(null, container);
       const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
       expect(selections.children).toHaveLength(0);
+    });
+
+    it('sorts the selections by DOM position', () => {
+      cursor.updateSelection([selection2, selection1], container);
+
+      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
+
+      expect(selections.children[0]).toHaveStyle('top: 0px');
+      expect(selections.children[0]).toHaveStyle('left: 50px');
+
+      expect(selections.children[1]).toHaveStyle('top: 1000px');
+      expect(selections.children[1]).toHaveStyle('left: 1050px');
+    });
+
+    it('sorts by left-to-right if the selection tops are the same', () => {
+      const selection3 = {
+        top: 0,
+        left: 150,
+        width: 100,
+        height: 200,
+      };
+
+      cursor.updateSelection([selection3, selection1], container);
+
+      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
+
+      expect(selections.children[0]).toHaveStyle('top: 0px');
+      expect(selections.children[0]).toHaveStyle('left: 50px');
+
+      expect(selections.children[1]).toHaveStyle('top: 0px');
+      expect(selections.children[1]).toHaveStyle('left: 150px');
     });
   });
 });

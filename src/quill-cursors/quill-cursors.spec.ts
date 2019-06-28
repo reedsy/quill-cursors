@@ -312,6 +312,7 @@ describe('QuillCursors', () => {
             const rectangles: any[] = [];
             return rectangles;
           },
+          getBoundingClientRect: () => ({}),
           cloneRange: () => range,
         };
 
@@ -350,7 +351,7 @@ describe('QuillCursors', () => {
       expect(cursor.show).not.toHaveBeenCalled();
     });
 
-    it('shows a cursors with a valid range and leaf', () => {
+    it('shows a cursor with a valid range and leaf', () => {
       jest.spyOn(cursor, 'hide');
       jest.spyOn(cursor, 'show');
       jest.spyOn(quill, 'getLeaf').mockReturnValue([
