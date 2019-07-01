@@ -1,6 +1,7 @@
 # Unreleased
 
 - Move selection behind text with `z-index` so that other users' selections don't block interaction with the editor
+- Ignore zero-width and zero-height selection rectangles
 
 # 2.1.1
 
