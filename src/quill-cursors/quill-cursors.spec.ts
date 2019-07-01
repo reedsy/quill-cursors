@@ -31,6 +31,7 @@ describe('QuillCursors', () => {
       getLeaf: () => {},
       getLength: () => 0,
       getSelection: () => {},
+      getLines: () => [] as any[],
       on: () => {},
     };
 
@@ -292,6 +293,7 @@ describe('QuillCursors', () => {
   describe('updating cursors', () => {
     let cursors: QuillCursors;
     let cursor: Cursor;
+    let mockRange: any;
 
     beforeEach(() => {
       cursors = new QuillCursors(quill);
@@ -304,20 +306,18 @@ describe('QuillCursors', () => {
         height: 0,
       });
 
-      document.createRange = () => {
-        const range: any = {
-          setStart: () => {},
-          setEnd: () => {},
-          getClientRects: () => {
-            const rectangles: any[] = [];
-            return rectangles;
-          },
-          getBoundingClientRect: () => ({}),
-          cloneRange: () => range,
-        };
-
-        return range;
+      mockRange = {
+        setStart: () => { },
+        setEnd: () => { },
+        getClientRects: () => {
+          const rectangles: any[] = [];
+          return rectangles;
+        },
+        getBoundingClientRect: () => ({}),
+        cloneRange: () => mockRange,
+        selectNode: () => { },
       };
+      document.createRange = () => mockRange;
     });
 
     it('hides a cursor with no range', () => {
@@ -354,10 +354,7 @@ describe('QuillCursors', () => {
     it('shows a cursor with a valid range and leaf', () => {
       jest.spyOn(cursor, 'hide');
       jest.spyOn(cursor, 'show');
-      jest.spyOn(quill, 'getLeaf').mockReturnValue([
-        { domNode: document.createElement('DIV') },
-        0,
-      ]);
+      jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
       cursors.moveCursor(cursor.id, { index: 0, length: 0 });
 
       expect(cursor.hide).not.toHaveBeenCalled();
@@ -373,5 +370,97 @@ describe('QuillCursors', () => {
       expect(quill.getLeaf).toHaveBeenCalledWith(0);
       expect(quill.getLeaf).toHaveBeenCalledWith(10);
     });
+
+    it('selects a block embed element', () => {
+      const img = document.createElement('img');
+      jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
+      jest.spyOn(quill, 'getLines').mockReturnValue([
+        { domNode: img },
+      ]);
+      jest.spyOn(mockRange, 'selectNode');
+
+      cursors.moveCursor(cursor.id, { index: 0, length: 0 });
+
+      expect(mockRange.selectNode).toHaveBeenCalledWith(img);
+    });
+
+    it('sets the range for a single line on the start and leafs', () => {
+      const startIndex = 0;
+      const endIndex = 2;
+      const startLeaf = createLeaf();
+      const endLeaf = createLeaf();
+      jest.spyOn(quill, 'getLeaf').mockImplementation((index: number) => {
+        switch (index) {
+          case startIndex:
+            return startLeaf;
+          case endIndex:
+            return endLeaf;
+          default:
+            return null;
+        }
+      });
+      jest.spyOn(quill, 'getLines').mockReturnValue([{
+        children: [],
+      }]);
+      jest.spyOn(mockRange, 'setStart');
+      jest.spyOn(mockRange, 'setEnd');
+
+      const range = { index: startIndex, length: endIndex - startIndex };
+
+      cursors.moveCursor(cursor.id, range);
+
+      expect(mockRange.setStart).toHaveBeenCalledWith(startLeaf[0].domNode, startLeaf[1]);
+      expect(mockRange.setEnd).toHaveBeenCalledWith(endLeaf[0].domNode, endLeaf[1]);
+    });
+
+    it('sets the range for multiple lines based on the line path', () => {
+      const startIndex = 0;
+      const endIndex = 2;
+      const startLeaf = createLeaf();
+      const endLeaf = createLeaf();
+      jest.spyOn(quill, 'getLeaf').mockImplementation((index: number) => {
+        switch (index) {
+          case startIndex:
+            return startLeaf;
+          case endIndex:
+            return endLeaf;
+          default:
+            return null;
+        }
+      });
+      const line1Leaf = createLeaf();
+      const line2Leaf = createLeaf();
+      jest.spyOn(quill, 'getLines').mockReturnValue([
+        {
+          children: [],
+          path: () => [line1Leaf],
+          length: () => 1,
+        },
+        {
+          children: [],
+          path: () => [line2Leaf],
+          length: () => 1,
+        },
+      ]);
+      jest.spyOn(mockRange, 'setStart');
+      jest.spyOn(mockRange, 'setEnd');
+
+      const range = { index: startIndex, length: endIndex - startIndex };
+
+      cursors.moveCursor(cursor.id, range);
+
+      expect(mockRange.setStart).toHaveBeenCalledWith(startLeaf[0].domNode, startLeaf[1]);
+      expect(mockRange.setEnd).toHaveBeenCalledWith(line1Leaf[0].domNode, line1Leaf[1]);
+
+      expect(mockRange.setStart).toHaveBeenCalledWith(line2Leaf[0].domNode, line2Leaf[1]);
+      expect(mockRange.setEnd).toHaveBeenCalledWith(line1Leaf[0].domNode, line1Leaf[1]);
+    });
   });
+
+  function createLeaf(): any[] {
+    return [
+      { domNode: document.createElement('DIV') },
+      0,
+    ];
+  }
 });

@@ -118,14 +118,13 @@ export default class QuillCursors {
 
     cursor.show();
 
-    const range = document.createRange();
-    range.setStart(startLeaf[0].domNode, startLeaf[1]);
-    range.setEnd(endLeaf[0].domNode, endLeaf[1]);
-
     const endBounds = this._quill.getBounds(endIndex);
     cursor.updateCaret(endBounds);
 
-    const selectionRectangles = RangeFix.getClientRects(range);
+    const ranges = this._lineRanges(cursor, startLeaf, endLeaf);
+    const selectionRectangles = ranges
+      .reduce((rectangles, range) => rectangles.concat(Array.from(RangeFix.getClientRects(range))), []);
+
     const containerRectangle = this._quill.container.getBoundingClientRect();
     cursor.updateSelection(selectionRectangles, containerRectangle);
   }
@@ -163,5 +162,36 @@ export default class QuillCursors {
     options.hideSpeedMs = Number.isInteger(options.hideSpeedMs) ? options.hideSpeedMs : 400;
 
     return options;
+  }
+
+  // Rather than just use the start leaf and end leaf directly to build a single range,
+  // we instead find all the lines in that single range and create a sub-range for each
+  // of these lines. This avoids the browser creating a range around an entire paragraph
+  // element, and instead forces the browser to draw rectangles around the paragraph's
+  // constituent text nodes, which is more consistent with the existing browser selection
+  // behaviour.
+  private _lineRanges(cursor: Cursor, startLeaf: any[], endLeaf: any[]): Range[] {
+    const lines = this._quill.getLines(cursor.range);
+    return lines.reduce((ranges: Range[], line: any, index: number) => {
+      if (!line.children) {
+        const singleElementRange = document.createRange();
+        singleElementRange.selectNode(line.domNode);
+        return ranges.concat(singleElementRange);
+      }
+
+      const [rangeStart, startOffset] = index === 0
+        ? startLeaf
+        : line.path(0).pop();
+
+      const [rangeEnd, endOffset] = index === lines.length - 1
+        ? endLeaf
+        : line.path(line.length() - 1).pop();
+
+      const range = document.createRange();
+      range.setStart(rangeStart.domNode, startOffset);
+      range.setEnd(rangeEnd.domNode, endOffset);
+
+      return ranges.concat(range);
+    }, []);
   }
 }

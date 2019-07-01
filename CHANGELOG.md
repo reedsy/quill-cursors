@@ -2,6 +2,7 @@
 
 - Apply `pointer-events: none` CSS to selections so that other users' selections don't block mouse and touch interaction
 - Ignore zero-width and zero-height selection rectangles
+- Build selections from multiple `Range`s
 
 # 2.1.1
 
