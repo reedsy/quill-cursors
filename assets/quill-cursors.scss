@@ -131,6 +131,6 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
 
   .ql-cursor-selection-block {
     position: absolute;
-    z-index: -1;
+    pointer-events: none;
   }
 }
