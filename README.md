@@ -23,6 +23,24 @@ First, [set up a Quill editor](https://quilljs.com/docs/quickstart/).
 
 Next, load `quill-cursors` through any of the options presented by [UMD](https://github.com/umdjs/umd).
 
+Load script in HTML:
+
+```html
+<script src="quill-cursors.js"></script>
+```
+
+Using [ES6-style `import`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import):
+
+```javascript
+import QuillCursors from 'quill-cursors';
+```
+
+Using CommonJS-style `require`:
+
+```javascript
+const QuillCursors = require('quill-cursors');
+```
+
 Then, register the `quill-cursors` module:
 
 ```javascript
