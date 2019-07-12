@@ -24,6 +24,7 @@ export default class Cursor {
   private _selectionEl: HTMLElement;
   private _caretEl: HTMLElement;
   private _flagEl: HTMLElement;
+  private _timer: number;
 
   public constructor(id: string, name: string, color: string) {
     this.id = id;
@@ -144,5 +145,25 @@ export default class Cursor {
       `bottom:${ selection.bottom }`,
       `left:${ selection.left }`,
     ].join(';');
+  }
+
+  private _fade(flagEl: HTMLElement) {
+    this._flagEl.style.transition = 'visibility 0s 1s, opacity 1s linear';
+    flagEl.style.opacity = '0';
+    flagEl.style.visibility = 'hidden';
+  }
+
+  private _delayedFade() {
+    if (this._timer) {
+      clearTimeout(this._timer);
+    }
+    this._timer = window.setTimeout(() => this._fade(this._flagEl), 2000);
+  }
+
+  public flash() {
+    this._flagEl.style.transition = 'visibility 0s 0s, opacity 0.3s linear';
+    this._flagEl.style.opacity = '1';
+    this._flagEl.style.visibility = 'visible';
+    this._delayedFade();
   }
 }

@@ -194,4 +194,11 @@ export default class QuillCursors {
       return ranges.concat(range);
     }, []);
   }
+
+ public flashCursor(id: string) {
+    const cursor = this._cursors[id];
+    if (cursor) {
+      cursor.flash();
+    }
+  }
 }
