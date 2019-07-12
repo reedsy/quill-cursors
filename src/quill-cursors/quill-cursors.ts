@@ -69,6 +69,13 @@ export default class QuillCursors {
       .map(key => this._cursors[key]);
   }
 
+  public flashCursor(id: string) {
+    const cursor = this._cursors[id];
+    if (cursor) {
+      cursor.flash();
+    }
+  }
+
   private _registerSelectionChangeListeners() {
     this._quill.on(
       this._quill.constructor.events.SELECTION_CHANGE,
@@ -193,12 +200,5 @@ export default class QuillCursors {
 
       return ranges.concat(range);
     }, []);
-  }
-
-  public flashCursor(id: string) {
-    const cursor = this._cursors[id];
-    if (cursor) {
-      cursor.flash();
-    }
   }
 }

@@ -88,6 +88,13 @@ export default class Cursor {
     selections.forEach((selection: ClientRect) => this._addSelection(selection, container));
   }
 
+  public flash() {
+    this._flagEl.style.transition = 'visibility 0s 0s, opacity 0.3s linear';
+    this._flagEl.style.opacity = '1';
+    this._flagEl.style.visibility = 'visible';
+    this._delayedFade();
+  }
+
   private _clearSelection() {
     this._selectionEl.innerHTML = null;
   }
@@ -158,12 +165,5 @@ export default class Cursor {
       clearTimeout(this._timer);
     }
     this._timer = window.setTimeout(() => this._fade(this._flagEl), 2000);
-  }
-
-  public flash() {
-    this._flagEl.style.transition = 'visibility 0s 0s, opacity 0.3s linear';
-    this._flagEl.style.opacity = '1';
-    this._flagEl.style.visibility = 'visible';
-    this._delayedFade();
   }
 }
