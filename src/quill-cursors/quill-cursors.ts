@@ -195,7 +195,7 @@ export default class QuillCursors {
     }, []);
   }
 
- public flashCursor(id: string) {
+  public flashCursor(id: string) {
     const cursor = this._cursors[id];
     if (cursor) {
       cursor.flash();
