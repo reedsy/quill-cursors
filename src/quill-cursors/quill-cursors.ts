@@ -130,8 +130,10 @@ export default class QuillCursors {
   }
 
   private _indexWithinQuillBounds(index: number): number {
+    const quillLength = this._quill.getLength();
+    const maxQuillIndex = quillLength ? quillLength - 1 : 0;
     index = Math.max(index, 0);
-    index = Math.min(index, this._quill.getLength());
+    index = Math.min(index, maxQuillIndex);
     return index;
   }
 
