@@ -368,7 +368,7 @@ describe('QuillCursors', () => {
       cursors.moveCursor(cursor.id, { index: -10, length: 100 });
 
       expect(quill.getLeaf).toHaveBeenCalledWith(0);
-      expect(quill.getLeaf).toHaveBeenCalledWith(10);
+      expect(quill.getLeaf).toHaveBeenCalledWith(9);
     });
 
     it('selects a block embed element', () => {
@@ -384,7 +384,7 @@ describe('QuillCursors', () => {
       expect(mockRange.selectNode).toHaveBeenCalledWith(img);
     });
 
-    it('sets the range for a single line on the start and leafs', () => {
+    it('sets the range for a single line on the start and end leafs', () => {
       const startIndex = 0;
       const endIndex = 2;
       const startLeaf = createLeaf();
