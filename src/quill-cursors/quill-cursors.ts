@@ -4,6 +4,7 @@ import IQuillRange from './i-range';
 import * as RangeFix from 'rangefix';
 import template from './template';
 import { ResizeObserver } from 'resize-observer';
+import * as Delta from 'quill-delta';
 
 export default class QuillCursors {
   private readonly _cursors: { [id: string]: Cursor } = {};
@@ -79,18 +80,9 @@ export default class QuillCursors {
   }
 
   private _registerTextChangeListener() {
-    if (!this._options.selectionChangeSource) {
-      return;
-    }
-
     this._quill.on(
       this._quill.constructor.events.TEXT_CHANGE,
-      // Wrap in a timeout to give the text change an opportunity to finish
-      // before checking for the current selection
-      () => window.setTimeout(() => {
-        this._emitSelection();
-        this.update();
-      })
+      (delta: any) => this._handleTextChange(delta)
     );
   }
 
@@ -141,6 +133,21 @@ export default class QuillCursors {
     return leaf && leaf[0] && leaf[0].domNode && leaf[1] >= 0;
   }
 
+  private _handleTextChange(delta: any) {
+    // Wrap in a timeout to give the text change an opportunity to finish
+    // before checking for the current selection
+    window.setTimeout(() => {
+      if (this._options.transformOnTextChange) {
+        this._transformCursors(delta);
+      }
+
+      if (this._options.selectionChangeSource) {
+        this._emitSelection();
+        this.update();
+      }
+    });
+  }
+
   private _emitSelection() {
     this._quill.emitter.emit(
       this._quill.constructor.events.SELECTION_CHANGE,
@@ -162,6 +169,7 @@ export default class QuillCursors {
 
     options.hideDelayMs = Number.isInteger(options.hideDelayMs) ? options.hideDelayMs : 3000;
     options.hideSpeedMs = Number.isInteger(options.hideSpeedMs) ? options.hideSpeedMs : 400;
+    options.transformOnTextChange = !!options.transformOnTextChange;
 
     return options;
   }
@@ -195,5 +203,16 @@ export default class QuillCursors {
 
       return ranges.concat(range);
     }, []);
+  }
+
+  private _transformCursors(delta: any) {
+    delta = new Delta(delta);
+
+    this.cursors()
+      .filter((cursor: Cursor) => cursor.range)
+      .forEach((cursor: Cursor) => {
+        cursor.range.index = delta.transformPosition(cursor.range.index);
+        this._updateCursor(cursor);
+      });
   }
 }

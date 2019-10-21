@@ -4,6 +4,7 @@
 - Ignore zero-width and zero-height selection rectangles
 - Build selections from multiple `Range`s
 - Fix max Quill index bug
+- Add a local cursor transform for smoother experience on high-latency connections
 
 # 2.1.1
 

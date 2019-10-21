@@ -4,4 +4,5 @@ export default interface IQuillCursorsOptions {
   selectionChangeSource?: string;
   hideDelayMs?: number;
   hideSpeedMs?: number;
+  transformOnTextChange?: boolean;
 }

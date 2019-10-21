@@ -102,9 +102,14 @@ describe('QuillCursors', () => {
       expect(listeners['text-change']).toBeTruthy();
     });
 
-    it('does not register the text change listener if setting the source to null', () => {
+    it('does not emit a selection change event if setting the source to null', () => {
+      jest.useFakeTimers();
       new QuillCursors(quill, { selectionChangeSource: null });
-      expect(listeners['text-change']).toBeFalsy();
+
+      listeners['text-change']();
+      jest.runAllTimers();
+
+      expect(quill.emitter.emit).not.toHaveBeenCalled();
     });
 
     it('emits the selection on text change', () => {
@@ -139,6 +144,22 @@ describe('QuillCursors', () => {
         { index: 0, length: 0 },
         'quill-cursors'
       );
+    });
+
+    it('transforms an existing cursor after an insertion', () => {
+      jest.useFakeTimers();
+      const cursors = new QuillCursors(quill, { transformOnTextChange: true });
+      const cursor = cursors.createCursor('abc', 'Joe Bloggs', 'red');
+      cursors.moveCursor('abc', { index: 10, length: 5 });
+
+      const delta = [
+        { retain: 5 },
+        { insert: 'foo' },
+      ];
+      listeners['text-change'](delta);
+      jest.runAllTimers();
+
+      expect(cursor.range).toEqual({ index: 13, length: 5 });
     });
   });
 
