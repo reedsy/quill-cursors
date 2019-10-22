@@ -1,3 +1,7 @@
+# 2.2.1
+
+- Fix bad npm publish
+
 # 2.2.0
 
 - Apply `pointer-events: none` CSS to selections so that other users' selections don't block mouse and touch interaction
