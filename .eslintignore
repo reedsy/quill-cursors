@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+typings
+
+yarn.lock
+
+example
+assets
+
+**/*.json
+**/*.md
+**/*.txt
+**/*.sh

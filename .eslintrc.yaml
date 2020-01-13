@@ -1,0 +1,5 @@
+extends:
+  - '@reedsy/eslint-config-reedsy'
+env:
+  node: true
+  es6: true

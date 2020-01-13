@@ -1,6 +1,6 @@
 import Cursor from './cursor';
 import IQuillCursorsOptions from './i-quill-cursors-options';
-import 'jest-dom/extend-expect';
+import '@testing-library/jest-dom/extend-expect';
 
 describe('Cursor', () => {
   let template: string;
