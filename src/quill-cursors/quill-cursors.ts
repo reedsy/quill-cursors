@@ -3,8 +3,8 @@ import Cursor from './cursor';
 import IQuillRange from './i-range';
 import * as RangeFix from 'rangefix';
 import template from './template';
-import { ResizeObserver } from 'resize-observer';
-import * as Delta from 'quill-delta';
+import ResizeObserver from 'resize-observer-polyfill';
+import Delta = require('quill-delta');
 
 export default class QuillCursors {
   private readonly _cursors: { [id: string]: Cursor } = {};
@@ -37,7 +37,7 @@ export default class QuillCursors {
     return cursor;
   }
 
-  public moveCursor(id: string, range: IQuillRange) {
+  public moveCursor(id: string, range: IQuillRange): void {
     const cursor = this._cursors[id];
     if (!cursor) {
       return;
@@ -47,7 +47,7 @@ export default class QuillCursors {
     this._updateCursor(cursor);
   }
 
-  public removeCursor(id: string) {
+  public removeCursor(id: string): void {
     const cursor = this._cursors[id];
     if (!cursor) {
       return;
@@ -57,43 +57,43 @@ export default class QuillCursors {
     delete this._cursors[id];
   }
 
-  public update() {
+  public update(): void {
     this.cursors().forEach((cursor: Cursor) => this._updateCursor(cursor));
   }
 
-  public clearCursors() {
+  public clearCursors(): void {
     this.cursors().forEach((cursor: Cursor) => this.removeCursor(cursor.id));
   }
 
-  public cursors() {
+  public cursors(): Cursor[] {
     return Object.keys(this._cursors)
-      .map(key => this._cursors[key]);
+      .map((key) => this._cursors[key]);
   }
 
-  private _registerSelectionChangeListeners() {
+  private _registerSelectionChangeListeners(): void {
     this._quill.on(
       this._quill.constructor.events.SELECTION_CHANGE,
       (selection: IQuillRange) => {
         this._currentSelection = selection;
-      }
+      },
     );
   }
 
-  private _registerTextChangeListener() {
+  private _registerTextChangeListener(): void {
     this._quill.on(
       this._quill.constructor.events.TEXT_CHANGE,
-      (delta: any) => this._handleTextChange(delta)
+      (delta: any) => this._handleTextChange(delta),
     );
   }
 
-  private _registerDomListeners() {
+  private _registerDomListeners(): void {
     const editor = this._quill.container.getElementsByClassName('ql-editor')[0];
     editor.addEventListener('scroll', () => this.update());
     const resizeObserver = new ResizeObserver(() => this.update());
     resizeObserver.observe(editor);
   }
 
-  private _updateCursor(cursor: Cursor) {
+  private _updateCursor(cursor: Cursor): void {
     if (!cursor.range) {
       return cursor.hide();
     }
@@ -133,7 +133,7 @@ export default class QuillCursors {
     return leaf && leaf[0] && leaf[0].domNode && leaf[1] >= 0;
   }
 
-  private _handleTextChange(delta: any) {
+  private _handleTextChange(delta: any): void {
     // Wrap in a timeout to give the text change an opportunity to finish
     // before checking for the current selection
     window.setTimeout(() => {
@@ -148,12 +148,12 @@ export default class QuillCursors {
     });
   }
 
-  private _emitSelection() {
+  private _emitSelection(): void {
     this._quill.emitter.emit(
       this._quill.constructor.events.SELECTION_CHANGE,
       this._quill.getSelection(),
       this._currentSelection,
-      this._options.selectionChangeSource
+      this._options.selectionChangeSource,
     );
   }
 
@@ -189,13 +189,13 @@ export default class QuillCursors {
         return ranges.concat(singleElementRange);
       }
 
-      const [rangeStart, startOffset] = index === 0
-        ? startLeaf
-        : line.path(0).pop();
+      const [rangeStart, startOffset] = index === 0 ?
+        startLeaf :
+        line.path(0).pop();
 
-      const [rangeEnd, endOffset] = index === lines.length - 1
-        ? endLeaf
-        : line.path(line.length() - 1).pop();
+      const [rangeEnd, endOffset] = index === lines.length - 1 ?
+        endLeaf :
+        line.path(line.length() - 1).pop();
 
       const range = document.createRange();
       range.setStart(rangeStart.domNode, startOffset);
@@ -205,7 +205,7 @@ export default class QuillCursors {
     }, []);
   }
 
-  private _transformCursors(delta: any) {
+  private _transformCursors(delta: any): void {
     delta = new Delta(delta);
 
     this.cursors()

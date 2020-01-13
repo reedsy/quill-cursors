@@ -1,5 +1,5 @@
 const path = require('path');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 
 const environment = process.env.NODE_ENV || 'development';
 
@@ -39,28 +39,15 @@ const moduleBundle = {
   devServer: {
     contentBase: [
       path.join(__dirname, 'example'),
-      path.join(__dirname, 'node_modules/quill/dist')
+      path.join(__dirname, 'node_modules/quill/dist'),
     ],
   },
   plugins: [
-    new CleanWebpackPlugin(['dist']),
+    new CleanWebpackPlugin(),
   ],
 };
 
 if (environment === 'production') {
-  moduleBundle.module.rules.push({
-    test: /\.ts$/,
-    exclude: /node_modules/,
-    use: [{
-      loader: 'tslint-loader',
-      options: {
-        emitErrors: true,
-        formatter: 'stylish',
-        tsConfigFile: 'tsconfig.base.json',
-      },
-    }],
-  });
-
   delete moduleBundle.devtool;
 }
 

@@ -23,7 +23,7 @@ const quillTwo = new Quill('#editor-two', {
     cursors: {
       transformOnTextChange: true,
     },
-  }
+  },
 });
 
 const cursorsOne = quillOne.getModule('cursors');
@@ -75,10 +75,10 @@ quillOne.on('selection-change', selectionChangeHandler(cursorsTwo));
 quillTwo.on('selection-change', selectionChangeHandler(cursorsOne));
 
 function debounce(func, wait) {
-  var timeout;
+  let timeout;
   return function(...args) {
-    var context = this;
-    var later = function() {
+    const context = this;
+    const later = function() {
       timeout = null;
       func.apply(context, args);
     };

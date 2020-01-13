@@ -1,6 +1,6 @@
 import IQuillCursorsOptions from './i-quill-cursors-options';
 import IQuillRange from './i-range';
-import * as tinycolor from 'tinycolor2';
+import tinycolor = require('tinycolor2');
 
 export default class Cursor {
   public static readonly CONTAINER_ELEMENT_TAG = 'SPAN';
@@ -57,19 +57,19 @@ export default class Cursor {
     return this._el;
   }
 
-  public show() {
+  public show(): void {
     this._el.classList.remove(Cursor.HIDDEN_CLASS);
   }
 
-  public hide() {
+  public hide(): void {
     this._el.classList.add(Cursor.HIDDEN_CLASS);
   }
 
-  public remove() {
+  public remove(): void {
     this._el.parentNode.removeChild(this._el);
   }
 
-  public updateCaret(rectangle: ClientRect) {
+  public updateCaret(rectangle: ClientRect): void {
     this._caretEl.style.top = `${rectangle.top}px`;
     this._caretEl.style.left = `${rectangle.left}px`;
     this._caretEl.style.height = `${rectangle.height}px`;
@@ -78,7 +78,7 @@ export default class Cursor {
     this._flagEl.style.left = `${rectangle.left}px`;
   }
 
-  public updateSelection(selections: ClientRect[], container: ClientRect) {
+  public updateSelection(selections: ClientRect[], container: ClientRect): void {
     this._clearSelection();
     selections = selections || [];
     selections = Array.from(selections);
@@ -87,11 +87,11 @@ export default class Cursor {
     selections.forEach((selection: ClientRect) => this._addSelection(selection, container));
   }
 
-  private _clearSelection() {
+  private _clearSelection(): void {
     this._selectionEl.innerHTML = '';
   }
 
-  private _addSelection(selection: ClientRect, container: ClientRect) {
+  private _addSelection(selection: ClientRect, container: ClientRect): void {
     const selectionBlock = this._selectionBlock(selection, container);
     this._selectionEl.appendChild(selectionBlock);
   }
