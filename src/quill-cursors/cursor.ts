@@ -88,7 +88,7 @@ export default class Cursor {
   }
 
   private _clearSelection() {
-    this._selectionEl.innerHTML = null;
+    this._selectionEl.innerHTML = '';
   }
 
   private _addSelection(selection: ClientRect, container: ClientRect) {

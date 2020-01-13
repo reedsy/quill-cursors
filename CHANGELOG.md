@@ -1,3 +1,7 @@
+# Unreleased
+
+- Fix 'null' being rendered in IE
+
 # 2.2.1
 
 - Fix bad npm publish
