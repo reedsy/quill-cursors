@@ -167,6 +167,23 @@ describe('QuillCursors', () => {
 
       expect(cursor.range).toEqual({index: 13, length: 5});
     });
+
+    it('shows flag after cursor creation', () => {
+      const cursors = new QuillCursors(quill, {transformOnTextChange: true, showFlagOnMove: true});
+      cursors.createCursor('abc', 'Joe Bloggs', 'red');
+      const flag = quill.container.getElementsByClassName(Cursor.FLAG_CLASS)[0];
+      expect(flag).toHaveClass(Cursor.FORCE_VISIBLE_CLASS);
+    });
+
+    it('shows flag after cursor movement', () => {
+      const cursors = new QuillCursors(quill, {transformOnTextChange: true, showFlagOnMove: true});
+      const cursor = cursors.createCursor('abc', 'Joe Bloggs', 'red');
+
+      jest.spyOn(cursor, 'showFlag');
+      cursors.moveCursor(cursor.id, null);
+
+      expect(cursor.showFlag).toHaveBeenCalled();
+    });
   });
 
   describe('tracking current selection', () => {
