@@ -5,4 +5,5 @@ export default interface IQuillCursorsOptions {
   hideDelayMs?: number;
   hideSpeedMs?: number;
   transformOnTextChange?: boolean;
+  showFlagOnMove?: boolean;
 }

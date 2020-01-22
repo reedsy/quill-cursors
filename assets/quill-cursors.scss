@@ -74,6 +74,13 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
   }
 
   .ql-cursor-flag {
+
+    &.force-visible {
+      opacity: 1;
+      visibility: visible;
+      transition: none;
+    }
+
     z-index: 1;
     transform: translate3d(-$border-width-base / 2, -100%, 0);
     opacity: 0;

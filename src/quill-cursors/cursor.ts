@@ -14,6 +14,7 @@ export default class Cursor {
   public static readonly FLAG_FLAP_CLASS = 'ql-cursor-flag-flap';
   public static readonly NAME_CLASS = 'ql-cursor-name';
   public static readonly HIDDEN_CLASS = 'hidden';
+  public static readonly FORCE_VISIBLE_CLASS = 'force-visible';
 
   public readonly id: string;
   public readonly name: string;
@@ -63,6 +64,13 @@ export default class Cursor {
 
   public hide(): void {
     this._el.classList.add(Cursor.HIDDEN_CLASS);
+  }
+
+  public showFlag(duration: number): void {
+    this._flagEl.classList.add(Cursor.FORCE_VISIBLE_CLASS);
+    setTimeout(() => {
+      this._flagEl.classList.remove(Cursor.FORCE_VISIBLE_CLASS);
+    }, duration);
   }
 
   public remove(): void {

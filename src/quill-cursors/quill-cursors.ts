@@ -32,6 +32,9 @@ export default class QuillCursors {
       this._cursors[id] = cursor;
       const element = cursor.build(this._options);
       this._container.appendChild(element);
+      if (this._options.showFlagOnMove) {
+        cursor.showFlag(this._options.hideDelayMs);
+      }
     }
 
     return cursor;
@@ -45,6 +48,9 @@ export default class QuillCursors {
 
     cursor.range = range;
     this._updateCursor(cursor);
+    if (this._options.showFlagOnMove) {
+      cursor.showFlag(this._options.hideDelayMs);
+    }
   }
 
   public removeCursor(id: string): void {
@@ -170,6 +176,7 @@ export default class QuillCursors {
     options.hideDelayMs = Number.isInteger(options.hideDelayMs) ? options.hideDelayMs : 3000;
     options.hideSpeedMs = Number.isInteger(options.hideSpeedMs) ? options.hideSpeedMs : 400;
     options.transformOnTextChange = !!options.transformOnTextChange;
+    options.showFlagOnMove = !!options.showFlagOnMove;
 
     return options;
   }
