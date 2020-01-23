@@ -65,6 +65,15 @@ export default class QuillCursors {
     this.cursors().forEach((cursor: Cursor) => this.removeCursor(cursor.id));
   }
 
+  public toggleFlag(id: string, shouldShow?: boolean): void {
+    const cursor = this._cursors[id];
+    if (!cursor) {
+      return;
+    }
+
+    cursor.toggleFlag(shouldShow);
+  }
+
   public cursors(): Cursor[] {
     return Object.keys(this._cursors)
       .map((key) => this._cursors[key]);

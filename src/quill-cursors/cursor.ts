@@ -11,6 +11,7 @@ export default class Cursor {
   public static readonly CARET_CLASS = 'ql-cursor-caret';
   public static readonly CARET_CONTAINER_CLASS = 'ql-cursor-caret-container';
   public static readonly FLAG_CLASS = 'ql-cursor-flag';
+  public static readonly SHOW_FLAG_CLASS = 'show-flag';
   public static readonly FLAG_FLAP_CLASS = 'ql-cursor-flag-flap';
   public static readonly NAME_CLASS = 'ql-cursor-name';
   public static readonly HIDDEN_CLASS = 'hidden';
@@ -67,6 +68,10 @@ export default class Cursor {
 
   public remove(): void {
     this._el.parentNode.removeChild(this._el);
+  }
+
+  public toggleFlag(shouldShow?: boolean): void {
+    this._flagEl.classList.toggle(Cursor.SHOW_FLAG_CLASS, shouldShow);
   }
 
   public updateCaret(rectangle: ClientRect): void {

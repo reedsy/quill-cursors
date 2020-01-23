@@ -181,6 +181,17 @@ clearCursors(): void;
 
 Removes all the cursors from the DOM.
 
+#### `toggleFlag`
+
+```typescript
+toggleFlag(id: string, shouldShow?: boolean): void;
+```
+
+Toggles display of the flag for the cursor with the given `id`.
+
+- `id` _string_: the ID of the cursor whose flag should be toggled
+- `shouldShow` _boolean_ (optional): if set to `true`, will display the flag. If set to `false`, will hide it. If omitted, the flag's display state will be toggled.
+
 #### `cursors`
 
 ```typescript
