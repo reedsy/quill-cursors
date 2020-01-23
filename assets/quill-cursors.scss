@@ -114,6 +114,10 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
     transition: none;
   }
 
+  .ql-cursor-flag.no-delay[style] {
+    transition-delay: unset !important;
+  }
+
   .ql-cursor-caret-container {
     margin-left: -$spacing-sm;
     padding: 0 $spacing-sm;

@@ -15,6 +15,7 @@ export default class Cursor {
   public static readonly FLAG_FLAP_CLASS = 'ql-cursor-flag-flap';
   public static readonly NAME_CLASS = 'ql-cursor-name';
   public static readonly HIDDEN_CLASS = 'hidden';
+  public static readonly NO_DELAY_CLASS = 'no-delay';
 
   public readonly id: string;
   public readonly name: string;
@@ -25,6 +26,8 @@ export default class Cursor {
   private _selectionEl: HTMLElement;
   private _caretEl: HTMLElement;
   private _flagEl: HTMLElement;
+  private _hideDelay: string;
+  private _hideSpeedMs: number;
 
   public constructor(id: string, name: string, color: string) {
     this.id = id;
@@ -47,8 +50,10 @@ export default class Cursor {
 
     element.getElementsByClassName(Cursor.NAME_CLASS)[0].textContent = this.name;
 
-    flagElement.style.transitionDelay = `${options.hideDelayMs}ms`;
-    flagElement.style.transitionDuration = `${options.hideSpeedMs}ms`;
+    this._hideDelay = `${options.hideDelayMs}ms`;
+    this._hideSpeedMs = options.hideSpeedMs;
+    flagElement.style.transitionDelay = this._hideDelay;
+    flagElement.style.transitionDuration = `${this._hideSpeedMs}ms`;
 
     this._el = element;
     this._selectionEl = selectionElement;
@@ -71,7 +76,11 @@ export default class Cursor {
   }
 
   public toggleFlag(shouldShow?: boolean): void {
-    this._flagEl.classList.toggle(Cursor.SHOW_FLAG_CLASS, shouldShow);
+    const isShown = this._flagEl.classList.toggle(Cursor.SHOW_FLAG_CLASS, shouldShow);
+    if (isShown) return;
+    this._flagEl.classList.add(Cursor.NO_DELAY_CLASS);
+    // We have to wait for the animation before we can put the delay back
+    setTimeout(() => this._flagEl.classList.remove(Cursor.NO_DELAY_CLASS), this._hideSpeedMs);
   }
 
   public updateCaret(rectangle: ClientRect): void {
