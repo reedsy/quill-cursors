@@ -101,6 +101,20 @@ describe('Cursor', () => {
     expect(flag).toHaveStyle('left: 200px');
   });
 
+  it('toggles the flag display', () => {
+    const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+    const element = cursor.build(options);
+    const flag = element.getElementsByClassName(Cursor.FLAG_CLASS)[0];
+
+    expect(flag).not.toHaveClass(Cursor.SHOW_FLAG_CLASS);
+    cursor.toggleFlag(true);
+    expect(flag).toHaveClass(Cursor.SHOW_FLAG_CLASS);
+    cursor.toggleFlag(false);
+    expect(flag).not.toHaveClass(Cursor.SHOW_FLAG_CLASS);
+    cursor.toggleFlag();
+    expect(flag).toHaveClass(Cursor.SHOW_FLAG_CLASS);
+  });
+
   describe('with some selections', () => {
     let cursor: Cursor;
     let element: HTMLElement;

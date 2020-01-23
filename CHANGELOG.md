@@ -1,3 +1,7 @@
+# Unreleased
+
+- Feature: manually toggle cursor flag
+
 # 2.2.2
 
 - Fix 'null' being rendered in IE

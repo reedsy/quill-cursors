@@ -484,6 +484,23 @@ describe('QuillCursors', () => {
     });
   });
 
+  describe('flag', () => {
+    it('toggles the flag of a cursor', () => {
+      const cursors = new QuillCursors(quill);
+      cursors.createCursor('abc', 'Joe Bloggs', 'red');
+
+      const flag = quill.container.getElementsByClassName(Cursor.FLAG_CLASS)[0];
+      expect(flag).not.toHaveClass(Cursor.SHOW_FLAG_CLASS);
+      cursors.toggleFlag('abc', true);
+      expect(flag).toHaveClass(Cursor.SHOW_FLAG_CLASS);
+    });
+
+    it('does not throw if the cursor does not exist', () => {
+      const cursors = new QuillCursors(quill);
+      expect(() => cursors.toggleFlag('abc')).not.toThrow();
+    });
+  });
+
   function createLeaf(): any[] {
     return [
       {domNode: document.createElement('DIV')},
