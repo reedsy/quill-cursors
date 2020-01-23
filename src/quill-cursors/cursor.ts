@@ -83,13 +83,16 @@ export default class Cursor {
     setTimeout(() => this._flagEl.classList.remove(Cursor.NO_DELAY_CLASS), this._hideSpeedMs);
   }
 
-  public updateCaret(rectangle: ClientRect): void {
+  public updateCaret(rectangle: ClientRect, container: ClientRect): void {
+    const flagRect = this._flagEl.getBoundingClientRect();
+
     this._caretEl.style.top = `${rectangle.top}px`;
     this._caretEl.style.left = `${rectangle.left}px`;
     this._caretEl.style.height = `${rectangle.height}px`;
 
+    const flagLeft = Math.min(container.width - flagRect.width, rectangle.left);
+    this._flagEl.style.left = `${flagLeft}px`;
     this._flagEl.style.top = `${rectangle.top}px`;
-    this._flagEl.style.left = `${rectangle.left}px`;
   }
 
   public updateSelection(selections: ClientRect[], container: ClientRect): void {
