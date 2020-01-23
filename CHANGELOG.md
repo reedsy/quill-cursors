@@ -1,5 +1,7 @@
 # Unreleased
 
+# 2.3.0
+
 - Feature: manually toggle cursor flag
 
 # 2.2.2
