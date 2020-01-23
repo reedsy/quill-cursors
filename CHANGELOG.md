@@ -1,5 +1,7 @@
 # Unreleased
 
+# 2.3.1
+
 - Hide flag immediately when actively toggled
 
 # 2.3.0
