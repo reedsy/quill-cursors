@@ -23,6 +23,8 @@ describe('Cursor', () => {
       hideDelayMs: 100,
       hideSpeedMs: 200,
     };
+
+    jest.useFakeTimers();
   });
 
   it('stores constructor parameters', () => {
@@ -113,6 +115,18 @@ describe('Cursor', () => {
     expect(flag).not.toHaveClass(Cursor.SHOW_FLAG_CLASS);
     cursor.toggleFlag();
     expect(flag).toHaveClass(Cursor.SHOW_FLAG_CLASS);
+  });
+
+  it('removes the delay when actively hiding the flag', () => {
+    const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+    const element = cursor.build(options);
+    const flag = element.getElementsByClassName(Cursor.FLAG_CLASS)[0];
+
+    cursor.toggleFlag(true);
+    cursor.toggleFlag(false);
+    expect(flag).toHaveClass(Cursor.NO_DELAY_CLASS);
+    jest.advanceTimersByTime(options.hideSpeedMs);
+    expect(flag).not.toHaveClass(Cursor.NO_DELAY_CLASS);
   });
 
   describe('with some selections', () => {

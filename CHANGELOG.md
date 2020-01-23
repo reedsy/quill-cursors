@@ -1,5 +1,7 @@
 # Unreleased
 
+- Hide flag immediately when actively toggled
+
 # 2.3.0
 
 - Feature: manually toggle cursor flag
