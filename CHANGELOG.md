@@ -1,5 +1,7 @@
 # Unreleased
 
+- **BREAKING**: Remove most of the styling we'd previously applied to "core" Quill elements in order to stay as unopinionated as possible
+
 # 2.3.1
 
 - Hide flag immediately when actively toggled
