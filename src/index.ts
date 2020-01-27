@@ -4,4 +4,4 @@ import Cursor from './quill-cursors/cursor';
 
 export default QuillCursors;
 
-export { Cursor };
+export {Cursor};
