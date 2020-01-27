@@ -2,6 +2,7 @@
 
 - Add typescript declaration files
 - **BREAKING**: Remove most of the styling we'd previously applied to "core" Quill elements in order to stay as unopinionated as possible
+- Use `.npmignore` to decrease the size of the package we publish
 
 # 2.3.1
 
