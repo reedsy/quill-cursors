@@ -18,7 +18,7 @@ export default class QuillCursors {
     this._quill = quill;
     this._options = this._setDefaults(options);
     this._container = this._quill.addContainer(this._options.containerClass);
-    this._boundsContainer = this._options.boundsContainer || this._container;
+    this._boundsContainer = this._options.boundsContainer || this._quill.container;
     this._currentSelection = this._quill.getSelection();
 
     this._registerSelectionChangeListeners();
