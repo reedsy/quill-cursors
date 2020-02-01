@@ -7,7 +7,6 @@ const template = `
   </span>
   <div class="${ Cursor.FLAG_CLASS }">
     <small class="${ Cursor.NAME_CLASS }"></small>
-    <span class="${ Cursor.FLAG_FLAP_CLASS }"></span>
   </div>
 `;
 

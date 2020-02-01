@@ -12,7 +12,7 @@ export default class Cursor {
   public static readonly CARET_CONTAINER_CLASS = 'ql-cursor-caret-container';
   public static readonly FLAG_CLASS = 'ql-cursor-flag';
   public static readonly SHOW_FLAG_CLASS = 'show-flag';
-  public static readonly FLAG_FLAP_CLASS = 'ql-cursor-flag-flap';
+  public static readonly FLAG_FLIPPED_CLASS = 'flag-flipped';
   public static readonly NAME_CLASS = 'ql-cursor-name';
   public static readonly HIDDEN_CLASS = 'hidden';
   public static readonly NO_DELAY_CLASS = 'no-delay';
@@ -90,8 +90,11 @@ export default class Cursor {
     this._caretEl.style.left = `${rectangle.left}px`;
     this._caretEl.style.height = `${rectangle.height}px`;
 
-    const flagLeft = Math.min(container.width - flagRect.width, rectangle.left);
-    this._flagEl.style.left = `${flagLeft}px`;
+    this._flagEl.classList.remove(Cursor.FLAG_FLIPPED_CLASS);
+    if (rectangle.left > container.width - flagRect.width) {
+      this._flagEl.classList.add(Cursor.FLAG_FLIPPED_CLASS);
+    }
+    this._flagEl.style.left = `${rectangle.left}px`;
     this._flagEl.style.top = `${rectangle.top}px`;
   }
 
