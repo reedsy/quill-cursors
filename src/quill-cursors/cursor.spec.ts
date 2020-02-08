@@ -22,6 +22,7 @@ describe('Cursor', () => {
       template: template,
       hideDelayMs: 100,
       hideSpeedMs: 200,
+      positionFlag: null,
     };
 
     jest.useFakeTimers();
@@ -110,7 +111,7 @@ describe('Cursor', () => {
     expect(flag).toHaveStyle('left: 200px');
   });
 
-  it('updates the caret position fitting flag', () => {
+  it('updates the caret position flipping flag', () => {
     const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
     const element = cursor.build(options);
 
@@ -136,7 +137,31 @@ describe('Cursor', () => {
 
     const flag = element.getElementsByClassName(Cursor.FLAG_CLASS)[0];
     expect(flag).toHaveStyle('top: 100px');
-    expect(flag).toHaveStyle('left: 550px');
+    expect(flag).toHaveStyle('left: 700px');
+    expect(flag).toHaveClass(Cursor.FLAG_FLIPPED_CLASS);
+  });
+
+  it('updates flag with custom position method', () => {
+    const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+    options.positionFlag = jest.fn();
+    cursor.build(options);
+
+    const rectangle: any = {
+      top: 100,
+      left: 200,
+      height: 50,
+    };
+
+    const boundRectangle: any = {
+      top: 0,
+      left: 0,
+      height: 50000,
+      width: 50000,
+    };
+
+    cursor.updateCaret(rectangle, boundRectangle);
+
+    expect(options.positionFlag).toHaveBeenCalled();
   });
 
   it('toggles the flag display', () => {
