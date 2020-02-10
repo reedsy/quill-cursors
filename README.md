@@ -68,12 +68,14 @@ The `quill-cursors` module has the following optional configuration:
 
   - `template` _string_: override the default HTML template used for a cursor
   - `containerClass` _string_ (default: `ql-cursors`): the CSS class to add to the cursors container
-  - `hideDelayMs`: _number_ (default: `3000`): number of milliseconds to show the username flag before hiding it
-  - `hideSpeedMs`: _number_ (default: `400`): the duration of the flag hiding animation in milliseconds
+  - `hideDelayMs` _number_ (default: `3000`): number of milliseconds to show the username flag before hiding it
+  - `hideSpeedMs` _number_ (default: `400`): the duration of the flag hiding animation in milliseconds
   - `selectionChangeSource` _string_ | _null_ (default: `api`): the event source to use when emitting `selection-change`
-  - `transformOnTextChange`: _boolean_ (default: `false`): attempt to locally infer cursor positions whenever the editor
+  - `transformOnTextChange` _boolean_ (default: `false`): attempt to locally infer cursor positions whenever the editor
     contents change, without receiving an update from the other client. This can be useful for smoother performance on
     high-latency connections.
+  - `boundsContainer` _HTMLElement_ (default: Quill's bounds container): the element container used to determine flag positioning
+  - `positionFlag` _`(flag: HTMLElement, caretRectangle: ClientRect, container: ClientRect) => void`_ (default: flip horizontally): an optional function for positioning the caret flag according to its position relative to the bounds container. By default, the flag will flip horizontally when it reaches the right-hand edge of the bounds
 
 Provide these options when setting up the Quill editor:
 
