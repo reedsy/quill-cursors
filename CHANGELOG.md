@@ -1,5 +1,7 @@
 # Unreleased
 
+# 3.0.0
+
 - **BREAKING**: Remove most of the styling we'd previously applied to "core" Quill elements in order to stay as unopinionated as possible
 - Use `.npmignore` to decrease the size of the package we publish
 - Flip cursor flag horizontally when it is outside the bounds container
