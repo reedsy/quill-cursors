@@ -5,4 +5,6 @@ export default interface IQuillCursorsOptions {
   hideDelayMs?: number;
   hideSpeedMs?: number;
   transformOnTextChange?: boolean;
+  boundsContainer?: HTMLElement;
+  positionFlag?: (flag: HTMLElement, caretRectangle: ClientRect, container: ClientRect) => void;
 }

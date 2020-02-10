@@ -12,7 +12,7 @@ export default class Cursor {
   public static readonly CARET_CONTAINER_CLASS = 'ql-cursor-caret-container';
   public static readonly FLAG_CLASS = 'ql-cursor-flag';
   public static readonly SHOW_FLAG_CLASS = 'show-flag';
-  public static readonly FLAG_FLAP_CLASS = 'ql-cursor-flag-flap';
+  public static readonly FLAG_FLIPPED_CLASS = 'flag-flipped';
   public static readonly NAME_CLASS = 'ql-cursor-name';
   public static readonly HIDDEN_CLASS = 'hidden';
   public static readonly NO_DELAY_CLASS = 'no-delay';
@@ -28,6 +28,7 @@ export default class Cursor {
   private _flagEl: HTMLElement;
   private _hideDelay: string;
   private _hideSpeedMs: number;
+  private _positionFlag: (flag: HTMLElement, caretRectangle: ClientRect, container: ClientRect) => void;
 
   public constructor(id: string, name: string, color: string) {
     this.id = id;
@@ -52,6 +53,7 @@ export default class Cursor {
 
     this._hideDelay = `${options.hideDelayMs}ms`;
     this._hideSpeedMs = options.hideSpeedMs;
+    this._positionFlag = options.positionFlag;
     flagElement.style.transitionDelay = this._hideDelay;
     flagElement.style.transitionDuration = `${this._hideSpeedMs}ms`;
 
@@ -83,13 +85,16 @@ export default class Cursor {
     setTimeout(() => this._flagEl.classList.remove(Cursor.NO_DELAY_CLASS), this._hideSpeedMs);
   }
 
-  public updateCaret(rectangle: ClientRect): void {
+  public updateCaret(rectangle: ClientRect, container: ClientRect): void {
     this._caretEl.style.top = `${rectangle.top}px`;
     this._caretEl.style.left = `${rectangle.left}px`;
     this._caretEl.style.height = `${rectangle.height}px`;
 
-    this._flagEl.style.top = `${rectangle.top}px`;
-    this._flagEl.style.left = `${rectangle.left}px`;
+    if (this._positionFlag) {
+      this._positionFlag(this._flagEl, rectangle, container);
+    } else {
+      this._updateCaretFlag(rectangle, container);
+    }
   }
 
   public updateSelection(selections: ClientRect[], container: ClientRect): void {
@@ -99,6 +104,20 @@ export default class Cursor {
     selections = this._sanitize(selections);
     selections = this._sortByDomPosition(selections);
     selections.forEach((selection: ClientRect) => this._addSelection(selection, container));
+  }
+
+  private _updateCaretFlag(caretRectangle: ClientRect, container: ClientRect): void {
+    this._flagEl.style.width = '';
+    const flagRect = this._flagEl.getBoundingClientRect();
+
+    this._flagEl.classList.remove(Cursor.FLAG_FLIPPED_CLASS);
+    if (caretRectangle.left > container.width - flagRect.width) {
+      this._flagEl.classList.add(Cursor.FLAG_FLIPPED_CLASS);
+    }
+    this._flagEl.style.left = `${caretRectangle.left}px`;
+    this._flagEl.style.top = `${caretRectangle.top}px`;
+    // Chrome has an issue when doing translate3D with non integer width, this ceil is to overcome it.
+    this._flagEl.style.width = `${Math.ceil(flagRect.width)}px`;
   }
 
   private _clearSelection(): void {

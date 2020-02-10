@@ -22,6 +22,7 @@ describe('Cursor', () => {
       template: template,
       hideDelayMs: 100,
       hideSpeedMs: 200,
+      positionFlag: null,
     };
 
     jest.useFakeTimers();
@@ -91,7 +92,14 @@ describe('Cursor', () => {
       height: 50,
     };
 
-    cursor.updateCaret(rectangle);
+    const boundRectangle: any = {
+      top: 0,
+      left: 0,
+      height: 50000,
+      width: 50000,
+    };
+
+    cursor.updateCaret(rectangle, boundRectangle);
 
     const caretContainer = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
     expect(caretContainer).toHaveStyle('top: 100px');
@@ -101,6 +109,59 @@ describe('Cursor', () => {
     const flag = element.getElementsByClassName(Cursor.FLAG_CLASS)[0];
     expect(flag).toHaveStyle('top: 100px');
     expect(flag).toHaveStyle('left: 200px');
+  });
+
+  it('updates the caret position flipping flag', () => {
+    const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+    const element = cursor.build(options);
+
+    const rectangle: any = {
+      top: 100,
+      left: 700,
+      height: 50,
+    };
+
+    const boundRectangle: any = {
+      top: 0,
+      left: 0,
+      height: 50000,
+      width: 550,
+    };
+
+    cursor.updateCaret(rectangle, boundRectangle);
+
+    const caretContainer = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
+    expect(caretContainer).toHaveStyle('top: 100px');
+    expect(caretContainer).toHaveStyle('left: 700px');
+    expect(caretContainer).toHaveStyle('height: 50px');
+
+    const flag = element.getElementsByClassName(Cursor.FLAG_CLASS)[0];
+    expect(flag).toHaveStyle('top: 100px');
+    expect(flag).toHaveStyle('left: 700px');
+    expect(flag).toHaveClass(Cursor.FLAG_FLIPPED_CLASS);
+  });
+
+  it('updates flag with custom position method', () => {
+    const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+    options.positionFlag = jest.fn();
+    cursor.build(options);
+
+    const rectangle: any = {
+      top: 100,
+      left: 200,
+      height: 50,
+    };
+
+    const boundRectangle: any = {
+      top: 0,
+      left: 0,
+      height: 50000,
+      width: 50000,
+    };
+
+    cursor.updateCaret(rectangle, boundRectangle);
+
+    expect(options.positionFlag).toHaveBeenCalled();
   });
 
   it('toggles the flag display', () => {

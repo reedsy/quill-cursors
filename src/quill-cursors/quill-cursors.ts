@@ -10,6 +10,7 @@ export default class QuillCursors {
   private readonly _cursors: { [id: string]: Cursor } = {};
   private readonly _quill: any;
   private readonly _container: HTMLElement;
+  private readonly _boundsContainer: HTMLElement;
   private readonly _options: IQuillCursorsOptions;
   private _currentSelection: IQuillRange;
 
@@ -17,6 +18,7 @@ export default class QuillCursors {
     this._quill = quill;
     this._options = this._setDefaults(options);
     this._container = this._quill.addContainer(this._options.containerClass);
+    this._boundsContainer = this._options.boundsContainer || this._quill.container;
     this._currentSelection = this._quill.getSelection();
 
     this._registerSelectionChangeListeners();
@@ -119,14 +121,15 @@ export default class QuillCursors {
 
     cursor.show();
 
+    const containerRectangle = this._boundsContainer.getBoundingClientRect();
+
     const endBounds = this._quill.getBounds(endIndex);
-    cursor.updateCaret(endBounds);
+    cursor.updateCaret(endBounds, containerRectangle);
 
     const ranges = this._lineRanges(cursor, startLeaf, endLeaf);
     const selectionRectangles = ranges
       .reduce((rectangles, range) => rectangles.concat(Array.from(RangeFix.getClientRects(range))), []);
 
-    const containerRectangle = this._quill.container.getBoundingClientRect();
     cursor.updateSelection(selectionRectangles, containerRectangle);
   }
 
