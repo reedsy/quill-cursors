@@ -1,5 +1,7 @@
 # Unreleased
 
+# 3.0.1
+
 - Fix inline image selection
 
 # 3.0.0
