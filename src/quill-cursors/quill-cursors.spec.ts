@@ -335,7 +335,9 @@ describe('QuillCursors', () => {
 
       mockRange = {
         setStart: () => { },
+        setStartBefore: () => { },
         setEnd: () => { },
+        setEndAfter: () => { },
         getClientRects: () => {
           const rectangles: any[] = [];
           return rectangles;
@@ -482,6 +484,25 @@ describe('QuillCursors', () => {
       expect(mockRange.setStart).toHaveBeenCalledWith(line2Leaf[0].domNode, line2Leaf[1]);
       expect(mockRange.setEnd).toHaveBeenCalledWith(line1Leaf[0].domNode, line1Leaf[1]);
     });
+
+    it('sets the range on either side of an image', () => {
+      const startIndex = 0;
+      const endIndex = 1;
+      const leaf = createLeaf('img');
+      jest.spyOn(quill, 'getLeaf').mockImplementation(() => leaf);
+      jest.spyOn(quill, 'getLines').mockReturnValue([{
+        children: [],
+      }]);
+      jest.spyOn(mockRange, 'setStartBefore');
+      jest.spyOn(mockRange, 'setEndAfter');
+
+      const range = {index: startIndex, length: endIndex - startIndex};
+
+      cursors.moveCursor(cursor.id, range);
+
+      expect(mockRange.setStartBefore).toHaveBeenCalledWith(leaf[0].domNode);
+      expect(mockRange.setEndAfter).toHaveBeenCalledWith(leaf[0].domNode);
+    });
   });
 
   describe('flag', () => {
@@ -501,10 +522,8 @@ describe('QuillCursors', () => {
     });
   });
 
-  function createLeaf(): any[] {
-    return [
-      {domNode: document.createElement('DIV')},
-      0,
-    ];
+  function createLeaf(tag?: string): any[] {
+    const domNode = tag ? document.createElement(tag) : document.createTextNode('');
+    return [{domNode}, 0];
   }
 });
