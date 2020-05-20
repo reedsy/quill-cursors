@@ -210,8 +210,18 @@ export default class QuillCursors {
         line.path(line.length() - 1).pop();
 
       const range = document.createRange();
-      range.setStart(rangeStart.domNode, startOffset);
-      range.setEnd(rangeEnd.domNode, endOffset);
+
+      if (rangeStart.domNode.nodeType === Node.TEXT_NODE) {
+        range.setStart(rangeStart.domNode, startOffset);
+      } else {
+        range.setStartBefore(rangeStart.domNode);
+      }
+
+      if (rangeEnd.domNode.nodeType === Node.TEXT_NODE) {
+        range.setEnd(rangeEnd.domNode, endOffset);
+      } else {
+        range.setEndAfter(rangeEnd.domNode);
+      }
 
       return ranges.concat(range);
     }, []);

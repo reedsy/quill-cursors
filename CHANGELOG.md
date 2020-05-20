@@ -1,5 +1,7 @@
 # Unreleased
 
+- Fix inline image selection
+
 # 3.0.0
 
 - **BREAKING**: Remove most of the styling we'd previously applied to "core" Quill elements in order to stay as unopinionated as possible
