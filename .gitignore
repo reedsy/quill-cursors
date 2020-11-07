@@ -1,5 +1,4 @@
 node_modules/
-dist/
 coverage/
 
 # Consumers will override this anyway, so don't bother committing
