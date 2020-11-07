@@ -8,35 +8,6 @@ $spacing-sm: 9px;
 $border-width-base: 2px;
 $border-width-lg:   3px;
 
-$transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
-
-
-/**********
- * MIXINS *
- **********/
-
-
-@mixin whenScreen   { @media screen { @content; } }
-
-//
-@function buildTransition($properties, $speed, $delay) {
-  $transitions: ();
-
-  @each $property in $properties {
-    $transitions: append($transitions
-      , $property $speed $transition-func $delay, comma);
-  }
-
-  @return $transitions;
-}
-
-//
-@mixin transition($properties, $speed: 0ms, $delay: 0ms) {
-  @include whenScreen {
-    transition: buildTransition($properties, $speed, $delay);
-  }
-}
-
 
 /***********
  * CURSORS *
@@ -58,39 +29,8 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
     display: none;
   }
 
-  .ql-cursor-caret-container,
-  .ql-cursor-flag {
+  .ql-cursor-caret-container {
     position: absolute;
-  }
-
-  .ql-cursor-flag {
-    z-index: 1;
-    transform: translate3d(-$border-width-base / 2, -100%, 0);
-    color: white;
-    padding-bottom: 2px;
-    border-radius: 0 $border-width-lg $border-width-lg 0;
-
-    &.flag-flipped {
-      border-radius: $border-width-lg 0 0 $border-width-lg;
-      transform: translate3d(calc(-100% + #{$border-width-base / 2} ), -100%, 0);
-    }
-
-    @include transition((
-      opacity,
-      visibility
-    ));
-
-    .ql-cursor-name {
-      margin-left: $spacing-xs;
-      margin-right: $spacing-xs;
-      display: inline-block;
-      margin-top: -2px;
-      white-space: nowrap;
-    }
-  }
-
-  .ql-cursor-flag.no-delay[style] {
-    transition-delay: unset !important;
   }
 
   .ql-cursor-caret-container {

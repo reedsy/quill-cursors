@@ -14,6 +14,8 @@ export default class Cursor {
   public static readonly SHOW_FLAG_CLASS = 'show-flag';
   public static readonly FLAG_FLIPPED_CLASS = 'flag-flipped';
   public static readonly NAME_CLASS = 'ql-cursor-name';
+  public static readonly IMAGE_CLASS = 'cursor-image';
+  public static readonly IMAGE_PLACEHOLDER_CLASS = 'cursor-no-image';
   public static readonly HIDDEN_CLASS = 'hidden';
   public static readonly NO_DELAY_CLASS = 'no-delay';
 
@@ -52,7 +54,18 @@ export default class Cursor {
     caretElement.style.backgroundColor = this.color;
 
     element.getElementsByClassName(Cursor.NAME_CLASS)[0].textContent = this.name;
+    let cursorImage;
+    if (this.image) {
+      cursorImage = document.createElement('img');
+      cursorImage.src = this.image;
+      cursorImage.classList.add(Cursor.IMAGE_CLASS);
+    } else {
+      cursorImage = document.createElement('span');
+      cursorImage.classList.add(Cursor.IMAGE_PLACEHOLDER_CLASS);
+      cursorImage.innerText = this.name.charAt(0);
+    }
 
+    flagElement.prepend(cursorImage);
     this._positionFlag = options.positionFlag;
 
     this._el = element;
@@ -76,7 +89,6 @@ export default class Cursor {
   }
 
   public toggleFlag(shouldShow?: boolean): void {
-    console.log('hmm...');
     const isShown = this._flagEl.classList.toggle(Cursor.SHOW_FLAG_CLASS, shouldShow);
     if (isShown) return;
     this._flagEl.classList.add(Cursor.NO_DELAY_CLASS);
@@ -113,10 +125,8 @@ export default class Cursor {
     if (caretRectangle.left > container.width - flagRect.width) {
       this._flagEl.classList.add(Cursor.FLAG_FLIPPED_CLASS);
     }
-    this._flagEl.style.left = `${caretRectangle.left}px`;
-    this._flagEl.style.top = `${caretRectangle.top}px`;
-    // Chrome has an issue when doing translate3D with non integer width, this ceil is to overcome it.
-    this._flagEl.style.width = `${Math.ceil(flagRect.width)}px`;
+    this._flagEl.style.left = `${caretRectangle.left - 9}px`;
+    this._flagEl.style.top = `${caretRectangle.top - 20}px`;
   }
 
   private _clearSelection(): void {

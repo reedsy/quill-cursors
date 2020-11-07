@@ -12,6 +12,8 @@ export default class Cursor {
     static readonly SHOW_FLAG_CLASS = "show-flag";
     static readonly FLAG_FLIPPED_CLASS = "flag-flipped";
     static readonly NAME_CLASS = "ql-cursor-name";
+    static readonly IMAGE_CLASS = "cursor-image";
+    static readonly IMAGE_PLACEHOLDER_CLASS = "cursor-no-image";
     static readonly HIDDEN_CLASS = "hidden";
     static readonly NO_DELAY_CLASS = "no-delay";
     readonly id: string;
