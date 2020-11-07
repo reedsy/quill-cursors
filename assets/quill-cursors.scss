@@ -66,8 +66,6 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
   .ql-cursor-flag {
     z-index: 1;
     transform: translate3d(-$border-width-base / 2, -100%, 0);
-    opacity: 0;
-    visibility: hidden;
     color: white;
     padding-bottom: 2px;
     border-radius: 0 $border-width-lg $border-width-lg 0;
@@ -89,14 +87,6 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
       margin-top: -2px;
       white-space: nowrap;
     }
-  }
-
-  .ql-cursor-flag:hover,
-  .ql-cursor-flag.show-flag,
-  .ql-cursor-caret-container:hover + .ql-cursor-flag {
-    opacity: 1;
-    visibility: visible;
-    transition: none;
   }
 
   .ql-cursor-flag.no-delay[style] {

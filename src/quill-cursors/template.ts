@@ -6,7 +6,7 @@ const template = `
     <span class="${ Cursor.CARET_CLASS }"></span>
   </span>
   <div class="${ Cursor.FLAG_CLASS }">
-    <small class="${ Cursor.NAME_CLASS }"></small>
+    <span class="${ Cursor.NAME_CLASS }"></span>
   </div>
 `;
 

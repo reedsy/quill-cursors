@@ -20,6 +20,7 @@ export default class Cursor {
   public readonly id: string;
   public readonly name: string;
   public readonly color: string;
+  public readonly image: string;
   public range: IQuillRange;
 
   private _el: HTMLElement;
@@ -30,10 +31,11 @@ export default class Cursor {
   private _hideSpeedMs: number;
   private _positionFlag: (flag: HTMLElement, caretRectangle: ClientRect, container: ClientRect) => void;
 
-  public constructor(id: string, name: string, color: string) {
+  public constructor(id: string, name: string, color: string, image: string) {
     this.id = id;
     this.name = name;
     this.color = color;
+    this.image = image;
   }
 
   public build(options: IQuillCursorsOptions): HTMLElement {
@@ -51,11 +53,7 @@ export default class Cursor {
 
     element.getElementsByClassName(Cursor.NAME_CLASS)[0].textContent = this.name;
 
-    this._hideDelay = `${options.hideDelayMs}ms`;
-    this._hideSpeedMs = options.hideSpeedMs;
     this._positionFlag = options.positionFlag;
-    flagElement.style.transitionDelay = this._hideDelay;
-    flagElement.style.transitionDuration = `${this._hideSpeedMs}ms`;
 
     this._el = element;
     this._selectionEl = selectionElement;
@@ -78,6 +76,7 @@ export default class Cursor {
   }
 
   public toggleFlag(shouldShow?: boolean): void {
+    console.log('hmm...');
     const isShown = this._flagEl.classList.toggle(Cursor.SHOW_FLAG_CLASS, shouldShow);
     if (isShown) return;
     this._flagEl.classList.add(Cursor.NO_DELAY_CLASS);

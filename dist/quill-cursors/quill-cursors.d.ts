@@ -9,7 +9,7 @@ export default class QuillCursors {
     private readonly _options;
     private _currentSelection;
     constructor(quill: any, options?: IQuillCursorsOptions);
-    createCursor(id: string, name: string, color: string): Cursor;
+    createCursor(id: string, name: string, color: string, image: string): Cursor;
     moveCursor(id: string, range: IQuillRange): void;
     removeCursor(id: string): void;
     update(): void;

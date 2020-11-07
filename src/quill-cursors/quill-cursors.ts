@@ -26,11 +26,11 @@ export default class QuillCursors {
     this._registerDomListeners();
   }
 
-  public createCursor(id: string, name: string, color: string): Cursor {
+  public createCursor(id: string, name: string, color: string, image: string): Cursor {
     let cursor = this._cursors[id];
 
     if (!cursor) {
-      cursor = new Cursor(id, name, color);
+      cursor = new Cursor(id, name, color, image);
       this._cursors[id] = cursor;
       const element = cursor.build(this._options);
       this._container.appendChild(element);
@@ -68,6 +68,7 @@ export default class QuillCursors {
   }
 
   public toggleFlag(id: string, shouldShow?: boolean): void {
+    console.log('toggling flag...');
     const cursor = this._cursors[id];
     if (!cursor) {
       return;

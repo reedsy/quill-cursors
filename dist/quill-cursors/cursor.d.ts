@@ -17,6 +17,7 @@ export default class Cursor {
     readonly id: string;
     readonly name: string;
     readonly color: string;
+    readonly image: string;
     range: IQuillRange;
     private _el;
     private _selectionEl;
@@ -25,7 +26,7 @@ export default class Cursor {
     private _hideDelay;
     private _hideSpeedMs;
     private _positionFlag;
-    constructor(id: string, name: string, color: string);
+    constructor(id: string, name: string, color: string, image: string);
     build(options: IQuillCursorsOptions): HTMLElement;
     show(): void;
     hide(): void;
