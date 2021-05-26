@@ -12,3 +12,4 @@ assets
 **/*.md
 **/*.txt
 **/*.sh
+**/*.yaml
