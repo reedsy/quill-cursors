@@ -1,5 +1,7 @@
 # Unreleased
 
+- Fix `ResizeObserver` memory leak
+
 # 3.0.1
 
 - Fix inline image selection
