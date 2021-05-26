@@ -65,7 +65,7 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
 
   .ql-cursor-flag {
     z-index: 1;
-    transform: translate3d(-$border-width-base / 2, -100%, 0);
+    transform: translate3d(-$border-width-base * 0.5, -100%, 0);
     opacity: 0;
     visibility: hidden;
     color: white;
@@ -74,7 +74,7 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
 
     &.flag-flipped {
       border-radius: $border-width-lg 0 0 $border-width-lg;
-      transform: translate3d(calc(-100% + #{$border-width-base / 2} ), -100%, 0);
+      transform: translate3d(calc(-100% + #{$border-width-base * 0.5} ), -100%, 0);
     }
 
     @include transition((
@@ -113,7 +113,7 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
       top: 0;
       bottom: 0;
       width: $border-width-base;
-      margin-left: -($border-width-base / 2);
+      margin-left: -($border-width-base * 0.5);
 
       background-color: attr(data-color);
     }
