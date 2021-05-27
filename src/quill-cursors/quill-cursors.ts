@@ -13,6 +13,7 @@ export default class QuillCursors {
   private readonly _boundsContainer: HTMLElement;
   private readonly _options: IQuillCursorsOptions;
   private _currentSelection: IQuillRange;
+  private _isObserving = false;
 
   public constructor(quill: any, options: IQuillCursorsOptions = {}) {
     this._quill = quill;
@@ -100,11 +101,27 @@ export default class QuillCursors {
   private _registerDomListeners(): void {
     const editor = this._quill.container.getElementsByClassName('ql-editor')[0];
     editor.addEventListener('scroll', () => this.update());
-    const resizeObserver = new ResizeObserver(() => this.update());
+  }
+
+  private _registerResizeObserver(): void {
+    if (this._isObserving) return;
+    const editor = this._quill.container.getElementsByClassName('ql-editor')[0];
+
+    const resizeObserver = new ResizeObserver(([entry]: ResizeObserverEntry[]) => {
+      if (!entry.target.isConnected) {
+        resizeObserver.disconnect();
+        this._isObserving = false;
+      }
+      this.update();
+    });
+
     resizeObserver.observe(editor);
+    this._isObserving = true;
   }
 
   private _updateCursor(cursor: Cursor): void {
+    this._registerResizeObserver();
+
     if (!cursor.range) {
       return cursor.hide();
     }

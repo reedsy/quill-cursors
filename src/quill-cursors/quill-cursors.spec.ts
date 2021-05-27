@@ -4,9 +4,13 @@ import '@testing-library/jest-dom/extend-expect';
 import ResizeObserver from 'resize-observer-polyfill';
 
 const mockObserver = jest.fn();
+const mockDisconnect = jest.fn();
 jest.mock('resize-observer-polyfill', () => {
   return jest.fn().mockImplementation(() => {
-    return {observe: mockObserver};
+    return {
+      observe: mockObserver,
+      disconnect: mockDisconnect,
+    };
   });
 });
 
@@ -52,6 +56,7 @@ describe('QuillCursors', () => {
 
     (ResizeObserver as any).mockClear();
     mockObserver.mockClear();
+    mockDisconnect.mockClear();
   });
 
   describe('initialisation', () => {
@@ -59,20 +64,6 @@ describe('QuillCursors', () => {
       jest.spyOn(quill, 'addContainer');
       new QuillCursors(quill);
       expect(quill.addContainer).toHaveBeenCalledTimes(1);
-    });
-
-    it('registers a resize observer', () => {
-      const cursors = new QuillCursors(quill);
-      const editor = quill.container.getElementsByClassName('ql-editor')[0];
-
-      expect(mockObserver).toHaveBeenCalledTimes(1);
-      expect(mockObserver).toHaveBeenCalledWith(editor);
-
-      expect(ResizeObserver).toHaveBeenCalledTimes(1);
-      const callback = (ResizeObserver as any).mock.calls[0][0];
-      jest.spyOn(cursors, 'update');
-      callback();
-      expect(cursors.update).toHaveBeenCalledTimes(1);
     });
 
     it('registers a scroll listener', () => {
@@ -88,15 +79,54 @@ describe('QuillCursors', () => {
     });
   });
 
+  describe('ResizeObserver', () => {
+    let cursors: QuillCursors;
+    let editor: HTMLElement;
+
+    beforeEach(() => {
+      cursors = new QuillCursors(quill);
+      cursors.createCursor('abc', 'Jane Bloggs', 'red');
+      cursors.moveCursor('abc', {index: 0, length: 0});
+      editor = quill.container.getElementsByClassName('ql-editor')[0];
+    });
+
+    it('registers a ResizeObserver', () => {
+      expect(mockObserver).toHaveBeenCalledTimes(1);
+      expect(mockObserver).toHaveBeenCalledWith(editor);
+
+      expect(ResizeObserver).toHaveBeenCalledTimes(1);
+      const callback = (ResizeObserver as any).mock.calls[0][0];
+      jest.spyOn(cursors, 'update');
+      callback([{target: {}}]);
+      expect(cursors.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('disconnects and reconnects the observer if the cursors are updated again', () => {
+      mockObserver.mockReset();
+      const callback = (ResizeObserver as any).mock.calls[0][0];
+      callback([{target: {isConnected: false}}]);
+      expect(mockDisconnect).toHaveBeenCalledTimes(1);
+
+      cursors.moveCursor('abc', {index: 1, length: 0});
+      expect(mockObserver).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not disconnect if the node is still connected', () => {
+      const callback = (ResizeObserver as any).mock.calls[0][0];
+      callback([{target: {isConnected: true}}]);
+      expect(mockDisconnect).toHaveBeenCalledTimes(0);
+    });
+  });
+
   describe('text change listener', () => {
     let listeners: any;
 
     beforeEach(() => {
       listeners = {};
 
-      jest.spyOn(quill, 'on').mockImplementation((event: string, callback: Function) => {
+      jest.spyOn(quill, 'on').mockImplementation(((event: string, callback: Function) => {
         listeners[event] = callback;
-      });
+      }) as any);
 
       jest.spyOn(quill.emitter, 'emit');
 
@@ -175,14 +205,14 @@ describe('QuillCursors', () => {
     beforeEach(() => {
       listeners = {};
 
-      jest.spyOn(quill, 'on').mockImplementation((event: string, callback: Function) => {
+      jest.spyOn(quill, 'on').mockImplementation(((event: string, callback: Function) => {
         listeners[event] = callback;
-      });
+      }) as any);
 
-      jest.spyOn(quill.emitter, 'emit').mockImplementation((event: string, ...args: any[]) => {
+      jest.spyOn(quill.emitter, 'emit').mockImplementation(((event: string, ...args: any[]) => {
         const callback = listeners[event];
         callback(...args);
-      });
+      }) as any);
 
       jest.spyOn(quill, 'getSelection').mockReturnValue({index: 0, length: 0});
     });
@@ -418,7 +448,7 @@ describe('QuillCursors', () => {
       const endIndex = 2;
       const startLeaf = createLeaf();
       const endLeaf = createLeaf();
-      jest.spyOn(quill, 'getLeaf').mockImplementation((index: number) => {
+      jest.spyOn(quill, 'getLeaf').mockImplementation(((index: number) => {
         switch (index) {
           case startIndex:
             return startLeaf;
@@ -427,7 +457,7 @@ describe('QuillCursors', () => {
           default:
             return null;
         }
-      });
+      }) as any);
       jest.spyOn(quill, 'getLines').mockReturnValue([{
         children: [],
       }]);
@@ -447,7 +477,7 @@ describe('QuillCursors', () => {
       const endIndex = 2;
       const startLeaf = createLeaf();
       const endLeaf = createLeaf();
-      jest.spyOn(quill, 'getLeaf').mockImplementation((index: number) => {
+      jest.spyOn(quill, 'getLeaf').mockImplementation(((index: number) => {
         switch (index) {
           case startIndex:
             return startLeaf;
@@ -456,7 +486,7 @@ describe('QuillCursors', () => {
           default:
             return null;
         }
-      });
+      }) as any);
       const line1Leaf = createLeaf();
       const line2Leaf = createLeaf();
       jest.spyOn(quill, 'getLines').mockReturnValue([
