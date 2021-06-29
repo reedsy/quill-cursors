@@ -1,4 +1,4 @@
-# Unreleased
+# 3.1.0
 
 - Align interface with Quill's Module class
 
