@@ -7,19 +7,29 @@ import ResizeObserver from 'resize-observer-polyfill';
 import Delta = require('quill-delta');
 
 export default class QuillCursors {
+  public static DEFAULTS: IQuillCursorsOptions = {
+    template,
+    containerClass: 'ql-cursors',
+    selectionChangeSource: 'api',
+    hideDelayMs: 3000,
+    hideSpeedMs: 400,
+  };
+
+  public readonly quill: any;
+  public readonly options: IQuillCursorsOptions;
+
   private readonly _cursors: { [id: string]: Cursor } = {};
-  private readonly _quill: any;
   private readonly _container: HTMLElement;
   private readonly _boundsContainer: HTMLElement;
-  private readonly _options: IQuillCursorsOptions;
   private _currentSelection: IQuillRange;
+  private _isObserving = false;
 
   public constructor(quill: any, options: IQuillCursorsOptions = {}) {
-    this._quill = quill;
-    this._options = this._setDefaults(options);
-    this._container = this._quill.addContainer(this._options.containerClass);
-    this._boundsContainer = this._options.boundsContainer || this._quill.container;
-    this._currentSelection = this._quill.getSelection();
+    this.quill = quill;
+    this.options = this._setDefaults(options);
+    this._container = this.quill.addContainer(this.options.containerClass);
+    this._boundsContainer = this.options.boundsContainer || this.quill.container;
+    this._currentSelection = this.quill.getSelection();
 
     this._registerSelectionChangeListeners();
     this._registerTextChangeListener();
@@ -32,7 +42,7 @@ export default class QuillCursors {
     if (!cursor) {
       cursor = new Cursor(id, name, color, image);
       this._cursors[id] = cursor;
-      const element = cursor.build(this._options);
+      const element = cursor.build(this.options);
       this._container.appendChild(element);
     }
 
@@ -83,8 +93,8 @@ export default class QuillCursors {
   }
 
   private _registerSelectionChangeListeners(): void {
-    this._quill.on(
-      this._quill.constructor.events.SELECTION_CHANGE,
+    this.quill.on(
+      this.quill.constructor.events.SELECTION_CHANGE,
       (selection: IQuillRange) => {
         this._currentSelection = selection;
       },
@@ -92,20 +102,36 @@ export default class QuillCursors {
   }
 
   private _registerTextChangeListener(): void {
-    this._quill.on(
-      this._quill.constructor.events.TEXT_CHANGE,
+    this.quill.on(
+      this.quill.constructor.events.TEXT_CHANGE,
       (delta: any) => this._handleTextChange(delta),
     );
   }
 
   private _registerDomListeners(): void {
-    const editor = this._quill.container.getElementsByClassName('ql-editor')[0];
+    const editor = this.quill.container.getElementsByClassName('ql-editor')[0];
     editor.addEventListener('scroll', () => this.update());
-    const resizeObserver = new ResizeObserver(() => this.update());
+  }
+
+  private _registerResizeObserver(): void {
+    if (this._isObserving) return;
+    const editor = this.quill.container.getElementsByClassName('ql-editor')[0];
+
+    const resizeObserver = new ResizeObserver(([entry]: ResizeObserverEntry[]) => {
+      if (!entry.target.isConnected) {
+        resizeObserver.disconnect();
+        this._isObserving = false;
+      }
+      this.update();
+    });
+
     resizeObserver.observe(editor);
+    this._isObserving = true;
   }
 
   private _updateCursor(cursor: Cursor): void {
+    this._registerResizeObserver();
+
     if (!cursor.range) {
       return cursor.hide();
     }
@@ -113,8 +139,8 @@ export default class QuillCursors {
     const startIndex = this._indexWithinQuillBounds(cursor.range.index);
     const endIndex = this._indexWithinQuillBounds(cursor.range.index + cursor.range.length);
 
-    const startLeaf = this._quill.getLeaf(startIndex);
-    const endLeaf = this._quill.getLeaf(endIndex);
+    const startLeaf = this.quill.getLeaf(startIndex);
+    const endLeaf = this.quill.getLeaf(endIndex);
 
     if (!this._leafIsValid(startLeaf) || !this._leafIsValid(endLeaf)) {
       return cursor.hide();
@@ -124,7 +150,7 @@ export default class QuillCursors {
 
     const containerRectangle = this._boundsContainer.getBoundingClientRect();
 
-    const endBounds = this._quill.getBounds(endIndex);
+    const endBounds = this.quill.getBounds(endIndex);
     cursor.updateCaret(endBounds, containerRectangle);
 
     const ranges = this._lineRanges(cursor, startLeaf, endLeaf);
@@ -135,7 +161,7 @@ export default class QuillCursors {
   }
 
   private _indexWithinQuillBounds(index: number): number {
-    const quillLength = this._quill.getLength();
+    const quillLength = this.quill.getLength();
     const maxQuillIndex = quillLength ? quillLength - 1 : 0;
     index = Math.max(index, 0);
     index = Math.min(index, maxQuillIndex);
@@ -150,11 +176,11 @@ export default class QuillCursors {
     // Wrap in a timeout to give the text change an opportunity to finish
     // before checking for the current selection
     window.setTimeout(() => {
-      if (this._options.transformOnTextChange) {
+      if (this.options.transformOnTextChange) {
         this._transformCursors(delta);
       }
 
-      if (this._options.selectionChangeSource) {
+      if (this.options.selectionChangeSource) {
         this._emitSelection();
         this.update();
       }
@@ -162,26 +188,32 @@ export default class QuillCursors {
   }
 
   private _emitSelection(): void {
-    this._quill.emitter.emit(
-      this._quill.constructor.events.SELECTION_CHANGE,
-      this._quill.getSelection(),
+    this.quill.emitter.emit(
+      this.quill.constructor.events.SELECTION_CHANGE,
+      this.quill.getSelection(),
       this._currentSelection,
-      this._options.selectionChangeSource,
+      this.options.selectionChangeSource,
     );
   }
 
   private _setDefaults(options: IQuillCursorsOptions): IQuillCursorsOptions {
     options = Object.assign({}, options);
 
-    options.template = options.template || template;
-    options.containerClass = options.containerClass || 'ql-cursors';
+    options.template ||= QuillCursors.DEFAULTS.template;
+    options.containerClass ||= QuillCursors.DEFAULTS.containerClass;
 
     if (options.selectionChangeSource !== null) {
-      options.selectionChangeSource = options.selectionChangeSource || this._quill.constructor.sources.API;
+      options.selectionChangeSource ||= QuillCursors.DEFAULTS.selectionChangeSource;
     }
 
-    options.hideDelayMs = Number.isInteger(options.hideDelayMs) ? options.hideDelayMs : 3000;
-    options.hideSpeedMs = Number.isInteger(options.hideSpeedMs) ? options.hideSpeedMs : 400;
+    options.hideDelayMs = Number.isInteger(options.hideDelayMs) ?
+      options.hideDelayMs :
+      QuillCursors.DEFAULTS.hideDelayMs;
+
+    options.hideSpeedMs = Number.isInteger(options.hideSpeedMs) ?
+      options.hideSpeedMs :
+      QuillCursors.DEFAULTS.hideSpeedMs;
+
     options.transformOnTextChange = !!options.transformOnTextChange;
 
     return options;
@@ -194,7 +226,7 @@ export default class QuillCursors {
   // constituent text nodes, which is more consistent with the existing browser selection
   // behaviour.
   private _lineRanges(cursor: Cursor, startLeaf: any[], endLeaf: any[]): Range[] {
-    const lines = this._quill.getLines(cursor.range);
+    const lines = this.quill.getLines(cursor.range);
     return lines.reduce((ranges: Range[], line: any, index: number) => {
       if (!line.children) {
         const singleElementRange = document.createRange();

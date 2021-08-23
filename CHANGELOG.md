@@ -1,4 +1,10 @@
-# Unreleased
+# 3.1.0
+
+- Align interface with Quill's Module class
+
+# 3.0.2
+
+- Fix `ResizeObserver` memory leak
 
 # 3.0.1
 

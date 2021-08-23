@@ -43,7 +43,7 @@ $border-width-lg:   3px;
       top: 0;
       bottom: 0;
       width: $border-width-base;
-      margin-left: -($border-width-base / 2);
+      margin-left: -($border-width-base * 0.5);
 
       background-color: attr(data-color);
     }
