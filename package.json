@@ -12,6 +12,9 @@
     "Pedro Machado Santa <pedro.santa@gmail.com>",
     "Alec Gibson <alec@reedsy.com>"
   ],
+  "engines": {
+    "node": "14.x"
+  },
   "license": "MIT",
   "main": "dist/quill-cursors.js",
   "types": "dist/index.d.ts",
