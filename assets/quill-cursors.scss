@@ -106,6 +106,7 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
   .ql-cursor-caret-container {
     margin-left: -$spacing-sm;
     padding: 0 $spacing-sm;
+    pointer-events: none;
     z-index: 1;
 
     .ql-cursor-caret {
