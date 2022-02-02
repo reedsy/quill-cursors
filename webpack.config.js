@@ -37,11 +37,10 @@ const moduleBundle = {
   mode: environment,
   devtool: 'inline-source-map',
   devServer: {
-    contentBase: [
+    static: [
       path.join(__dirname, 'example'),
       path.join(__dirname, 'node_modules/quill/dist'),
     ],
-    injectClient: false, // https://github.com/webpack/webpack-dev-server/issues/2484#issuecomment-655211893
   },
   plugins: [
     new CleanWebpackPlugin(),
