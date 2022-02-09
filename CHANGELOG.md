@@ -1,3 +1,7 @@
+# 3.1.1
+
+- Fix clicking near another user's cursor on non-touch devices
+
 # 3.1.0
 
 - Align interface with Quill's Module class
