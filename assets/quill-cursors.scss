@@ -108,6 +108,12 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
     padding: 0 $spacing-sm;
     z-index: 1;
 
+    cursor: text;
+
+    &:hover {
+      pointer-events: none;
+    }
+
     .ql-cursor-caret {
       position: absolute;
       top: 0;
