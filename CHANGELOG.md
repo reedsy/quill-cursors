@@ -1,3 +1,7 @@
+# 3.1.2
+
+- Relax `package.json` `engines`
+
 # 3.1.1
 
 - Fix clicking near another user's cursor on non-touch devices
