@@ -45,14 +45,15 @@ describe('QuillCursors', () => {
       getSelection: (): void => {},
       getLines: (): any[] => [],
       on: (): void => {},
+      off: (): void => {},
     };
 
     quill.container = document.createElement('DIV');
     document.body.appendChild(quill.container);
 
-    const editor = document.createElement('DIV');
-    editor.classList.add('ql-editor');
-    quill.container.appendChild(editor);
+    quill.root = document.createElement('DIV');
+    quill.root.classList.add('ql-editor');
+    quill.container.appendChild(quill.root);
 
     (ResizeObserver as any).mockClear();
     mockObserver.mockClear();
@@ -66,16 +67,24 @@ describe('QuillCursors', () => {
       expect(quill.addContainer).toHaveBeenCalledTimes(1);
     });
 
-    it('registers a scroll listener', () => {
+    it('registers/unregister a scroll listener', () => {
       const editor = quill.container.getElementsByClassName('ql-editor')[0];
       jest.spyOn(editor, 'addEventListener');
+      jest.spyOn(editor, 'removeEventListener');
       const cursors = new QuillCursors(quill);
       expect(editor.addEventListener).toHaveBeenCalledWith('scroll', expect.anything());
 
       jest.spyOn(cursors, 'update');
-      const scroll = new Event('scroll');
-      editor.dispatchEvent(scroll);
-      expect(cursors.update).toHaveBeenCalled();
+      const scroll1 = new Event('scroll');
+      editor.dispatchEvent(scroll1);
+      expect(cursors.update).toBeCalledTimes(1);
+
+      cursors.destroy();
+      expect(editor.removeEventListener).toHaveBeenCalledWith('scroll', expect.anything());
+
+      const scroll2 = new Event('scroll');
+      editor.dispatchEvent(scroll2);
+      expect(cursors.update).toBeCalledTimes(1);
     });
   });
 

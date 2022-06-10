@@ -91,30 +91,40 @@ export default class QuillCursors {
       .map((key) => this._cursors[key]);
   }
 
+  public destroy(): void {
+    this.quill.off(
+      this.quill.constructor.events.TEXT_CHANGE,
+      this._handleTextChangeBinded,
+    );
+
+    this.quill.off(
+      this.quill.constructor.events.SELECTION_CHANGE,
+      this._setSelectionBinded,
+    );
+
+    this.quill.root.removeEventListener('scroll', this._updateBinded);
+  }
+
   private _registerSelectionChangeListeners(): void {
     this.quill.on(
       this.quill.constructor.events.SELECTION_CHANGE,
-      (selection: IQuillRange) => {
-        this._currentSelection = selection;
-      },
+      this._setSelectionBinded,
     );
   }
 
   private _registerTextChangeListener(): void {
     this.quill.on(
       this.quill.constructor.events.TEXT_CHANGE,
-      (delta: any) => this._handleTextChange(delta),
+      this._handleTextChangeBinded,
     );
   }
 
   private _registerDomListeners(): void {
-    const editor = this.quill.container.getElementsByClassName('ql-editor')[0];
-    editor.addEventListener('scroll', () => this.update());
+    this.quill.root.addEventListener('scroll', this._updateBinded);
   }
 
   private _registerResizeObserver(): void {
     if (this._isObserving) return;
-    const editor = this.quill.container.getElementsByClassName('ql-editor')[0];
 
     const resizeObserver = new ResizeObserver(([entry]: ResizeObserverEntry[]) => {
       if (!entry.target.isConnected) {
@@ -124,7 +134,7 @@ export default class QuillCursors {
       this.update();
     });
 
-    resizeObserver.observe(editor);
+    resizeObserver.observe(this.quill.root);
     this._isObserving = true;
   }
 
@@ -171,7 +181,7 @@ export default class QuillCursors {
     return leaf && leaf[0] && leaf[0].domNode && leaf[1] >= 0;
   }
 
-  private _handleTextChange(delta: any): void {
+  private _handleTextChangeBinded = (delta: any): void => {
     // Wrap in a timeout to give the text change an opportunity to finish
     // before checking for the current selection
     window.setTimeout(() => {
@@ -184,7 +194,15 @@ export default class QuillCursors {
         this.update();
       }
     });
-  }
+  };
+
+  private _setSelectionBinded = (selection: IQuillRange): void => {
+    this._currentSelection = selection;
+  };
+
+  private _updateBinded = (): void => {
+    this.update();
+  };
 
   private _emitSelection(): void {
     this.quill.emitter.emit(
