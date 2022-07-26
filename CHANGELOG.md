@@ -1,3 +1,12 @@
+# 4.0.0
+
+### ⚠ BREAKING CHANGES
+* Moved opening/closing flag logic from CSS to JS with `touchstart`, `mouseover` and `mousemove` events
+  * Get rid of using `.show-flag` class and `:hover` selector for `.ql-cursor-flag`
+  * Added extra `.hover` and `.no-pointer` classes to `.ql-cursor-caret-container` to help with toggling visibility state
+  * `.ql-cursor-caret-container` has `z-index: -1` on touch devices
+  * The «active» area on touch devices depends on `.ql-cursor-caret-container` paddings 
+
 # 3.1.2
 
 - Relax `package.json` `engines`

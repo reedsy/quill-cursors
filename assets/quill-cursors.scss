@@ -52,6 +52,12 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
   overflow: hidden;
 }
 
+@media (pointer: coarse) {
+  .ql-cursor-caret-container {
+    z-index: -1;
+  }
+}
+
 .ql-cursor {
 
   &.hidden {
@@ -91,26 +97,24 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
     }
   }
 
-  .ql-cursor-flag:hover,
-  .ql-cursor-flag.show-flag,
-  .ql-cursor-caret-container:hover + .ql-cursor-flag {
-    opacity: 1;
-    visibility: visible;
-    transition: none;
-  }
-
   .ql-cursor-flag.no-delay[style] {
     transition-delay: unset !important;
   }
 
   .ql-cursor-caret-container {
+    cursor: text;
     margin-left: -$spacing-sm;
     padding: 0 $spacing-sm;
-    z-index: 1;
 
-    cursor: text;
+    &.hover {
+      + .ql-cursor-flag {
+        opacity: 1;
+        visibility: visible;
+        transition: none;
+      }
+    }
 
-    &:hover {
+    &.no-pointer {
       pointer-events: none;
     }
 

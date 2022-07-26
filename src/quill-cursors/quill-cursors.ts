@@ -25,6 +25,7 @@ export default class QuillCursors {
   private _isObserving = false;
 
   public constructor(quill: any, options: IQuillCursorsOptions = {}) {
+    this._handleCursorTouch = this._handleCursorTouch.bind(this);
     this.quill = quill;
     this.options = this._setDefaults(options);
     this._container = this.quill.addContainer(this.options.containerClass);
@@ -110,6 +111,14 @@ export default class QuillCursors {
   private _registerDomListeners(): void {
     const editor = this.quill.container.getElementsByClassName('ql-editor')[0];
     editor.addEventListener('scroll', () => this.update());
+    editor.addEventListener('touchstart', this._handleCursorTouch);
+  }
+
+  private _handleCursorTouch(e: MouseEvent): void {
+    this.cursors().forEach((cursor) => {
+      cursor.toggleNearCursor(e.pageX, e.pageY);
+      setTimeout(() => cursor.toggleFlag(false), this.options.hideDelayMs);
+    });
   }
 
   private _registerResizeObserver(): void {

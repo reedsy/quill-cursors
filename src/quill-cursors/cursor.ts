@@ -1,6 +1,7 @@
 import IQuillCursorsOptions from './i-quill-cursors-options';
 import IQuillRange from './i-range';
 import tinycolor = require('tinycolor2');
+import {ICoordinates} from './i-coordinates';
 
 export default class Cursor {
   public static readonly CONTAINER_ELEMENT_TAG = 'SPAN';
@@ -10,8 +11,9 @@ export default class Cursor {
   public static readonly SELECTION_BLOCK_CLASS = 'ql-cursor-selection-block';
   public static readonly CARET_CLASS = 'ql-cursor-caret';
   public static readonly CARET_CONTAINER_CLASS = 'ql-cursor-caret-container';
+  public static readonly CONTAINER_HOVER_CLASS = 'hover';
+  public static readonly CONTAINER_NO_POINTER_CLASS = 'no-pointer';
   public static readonly FLAG_CLASS = 'ql-cursor-flag';
-  public static readonly SHOW_FLAG_CLASS = 'show-flag';
   public static readonly FLAG_FLIPPED_CLASS = 'flag-flipped';
   public static readonly NAME_CLASS = 'ql-cursor-name';
   public static readonly HIDDEN_CLASS = 'hidden';
@@ -34,6 +36,9 @@ export default class Cursor {
     this.id = id;
     this.name = name;
     this.color = color;
+    this.toggleNearCursor = this.toggleNearCursor.bind(this);
+    this._toggleOpenedCursor = this._toggleOpenedCursor.bind(this);
+    this._setHoverState = this._setHoverState.bind(this);
   }
 
   public build(options: IQuillCursorsOptions): HTMLElement {
@@ -62,6 +67,8 @@ export default class Cursor {
     this._caretEl = caretContainerElement;
     this._flagEl = flagElement;
 
+    caretContainerElement.addEventListener('mouseover', this._setHoverState);
+
     return this._el;
   }
 
@@ -77,9 +84,22 @@ export default class Cursor {
     this._el.parentNode.removeChild(this._el);
   }
 
+  public toggleNearCursor(pointX: number, pointY: number): boolean {
+    const {left, right, top, bottom} = this._getCoordinates();
+
+    const isXNear = pointX >= left && pointX <= right;
+    const isYNear = pointY >= top && pointY <= bottom;
+    const shouldShow = isXNear && isYNear;
+
+    this._caretEl.classList.toggle(Cursor.CONTAINER_HOVER_CLASS, shouldShow);
+
+    return shouldShow;
+  }
+
   public toggleFlag(shouldShow?: boolean): void {
-    const isShown = this._flagEl.classList.toggle(Cursor.SHOW_FLAG_CLASS, shouldShow);
+    const isShown = this._caretEl.classList.toggle(Cursor.CONTAINER_HOVER_CLASS, shouldShow);
     if (isShown) return;
+
     this._flagEl.classList.add(Cursor.NO_DELAY_CLASS);
     // We have to wait for the animation before we can put the delay back
     setTimeout(() => this._flagEl.classList.remove(Cursor.NO_DELAY_CLASS), this._hideSpeedMs);
@@ -104,6 +124,20 @@ export default class Cursor {
     selections = this._sanitize(selections);
     selections = this._sortByDomPosition(selections);
     selections.forEach((selection: ClientRect) => this._addSelection(selection, container));
+  }
+
+  private _setHoverState(): void {
+    document.addEventListener('mousemove', this._toggleOpenedCursor);
+  }
+
+  private _toggleOpenedCursor(e: MouseEvent): void {
+    const shouldShow = this.toggleNearCursor(e.clientX, e.clientY);
+    this._caretEl.classList.toggle(Cursor.CONTAINER_NO_POINTER_CLASS, shouldShow);
+    if (!shouldShow) document.removeEventListener('mousemove', this._toggleOpenedCursor);
+  }
+
+  private _getCoordinates(): ICoordinates {
+    return this._caretEl.getBoundingClientRect();
   }
 
   private _updateCaretFlag(caretRectangle: ClientRect, container: ClientRect): void {
