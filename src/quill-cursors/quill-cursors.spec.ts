@@ -97,7 +97,7 @@ describe('QuillCursors', () => {
       expect(ResizeObserver).toHaveBeenCalledTimes(1);
       const callback = (ResizeObserver as any).mock.calls[0][0];
       jest.spyOn(cursors, 'update');
-      callback([{target: {}}]);
+      callback([{target: {isConnected: true}}]);
       expect(cursors.update).toHaveBeenCalledTimes(1);
     });
 
