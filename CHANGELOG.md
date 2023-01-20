@@ -1,3 +1,7 @@
+# 4.0.1
+- Fix `ResizeObserver loop limit` error
+- Pin `@typescript-eslint` to v5.41.0
+
 # 4.0.0
 
 ### ⚠ BREAKING CHANGES

@@ -129,6 +129,7 @@ export default class QuillCursors {
       if (!entry.target.isConnected) {
         resizeObserver.disconnect();
         this._isObserving = false;
+        return;
       }
       this.update();
     });
