@@ -20,7 +20,14 @@ jobs:
         node-version: '18.x'
         registry-url: 'https://npm.pkg.github.com'
     - name: Install
-      run: npm install
+      # Skip post-install to avoid malicious scripts stealing PAT
+      run: npm install --ignore-script
+      env:
+        # GITHUB_TOKEN can't access packages hosted in private repos,
+        # even within the same organisation
+        NODE_AUTH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+    - name: Post-install
+      run: npm rebuild && npm run prepare --if-present
     - name: Build
       run: npm run build
     - name: Test
