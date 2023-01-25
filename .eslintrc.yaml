@@ -1,6 +1,5 @@
 extends:
-  - 'plugin:@reedsy/recommended'
-parserOptions:
-  project: './tsconfig.base.json'
+  - '@reedsy/eslint-config-reedsy'
 env:
   node: true
+  es6: true
