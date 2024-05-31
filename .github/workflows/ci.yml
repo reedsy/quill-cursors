@@ -29,29 +29,3 @@ jobs:
       run: npm run build
     - name: Test
       run: npm test
-
-  release:
-    needs:
-      - build
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          registry-url: 'https://npm.pkg.github.com'
-      - name: Install
-        # Skip post-install to avoid malicious scripts stealing PAT
-        run: npm install --ignore-script
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Post-install
-        run: npm rebuild && npm run prepare --if-present
-      - name: Build
-        run: npm run build
-      - name: Release
-        run: ./deploy.sh
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
