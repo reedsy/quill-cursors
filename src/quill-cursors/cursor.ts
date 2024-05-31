@@ -67,7 +67,7 @@ export default class Cursor {
     this._caretEl = caretContainerElement;
     this._flagEl = flagElement;
 
-    caretContainerElement.addEventListener('mouseover', this._setHoverState);
+    caretContainerElement.addEventListener('mouseover', this._setHoverState, {passive: true});
 
     return this._el;
   }
@@ -127,7 +127,7 @@ export default class Cursor {
   }
 
   private _setHoverState(): void {
-    document.addEventListener('mousemove', this._toggleOpenedCursor);
+    document.addEventListener('mousemove', this._toggleOpenedCursor, {passive: true});
   }
 
   private _toggleOpenedCursor(e: MouseEvent): void {
