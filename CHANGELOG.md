@@ -1,3 +1,6 @@
+# 4.0.3
+- Make event listeners passive
+
 # 4.0.2
 - Fix `ResizeObserver loop limit` error
 - Pin `@typescript-eslint` to v5.41.0
