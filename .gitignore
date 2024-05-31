@@ -5,3 +5,4 @@ coverage/
 # Consumers will override this anyway, so don't bother committing
 package-lock.json
 yarn.lock
+!/dist
