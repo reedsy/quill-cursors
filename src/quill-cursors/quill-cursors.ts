@@ -109,9 +109,9 @@ export default class QuillCursors {
   }
 
   private _registerDomListeners(): void {
-    const editor = this.quill.container.getElementsByClassName('ql-editor')[0];
-    editor.addEventListener('scroll', () => this.update());
-    editor.addEventListener('touchstart', this._handleCursorTouch);
+    const editor = this.quill.container.getElementsByClassName('ql-editor')[0] as HTMLElement;
+    editor.addEventListener('scroll', () => this.update(), {passive: true});
+    editor.addEventListener('touchstart', this._handleCursorTouch, {passive: true});
   }
 
   private _handleCursorTouch(e: MouseEvent): void {

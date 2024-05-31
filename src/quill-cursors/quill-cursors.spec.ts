@@ -70,7 +70,7 @@ describe('QuillCursors', () => {
       const editor = quill.container.getElementsByClassName('ql-editor')[0];
       jest.spyOn(editor, 'addEventListener');
       const cursors = new QuillCursors(quill);
-      expect(editor.addEventListener).toHaveBeenCalledWith('scroll', expect.anything());
+      expect(editor.addEventListener).toHaveBeenCalledWith('scroll', expect.anything(), {passive: true});
 
       jest.spyOn(cursors, 'update');
       const scroll = new Event('scroll');
