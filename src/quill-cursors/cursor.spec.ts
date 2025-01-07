@@ -234,13 +234,15 @@ describe('Cursor', () => {
       expect(selections.children[0]).toHaveStyle('left: 50px');
       expect(selections.children[0]).toHaveStyle('width: 100px');
       expect(selections.children[0]).toHaveStyle('height: 200px');
-      expect(selections.children[0]).toHaveStyle('background-color: rgba(255, 0, 0, 0.3)');
+      expect(selections.children[0]).toHaveStyle('background-color: red');
+      expect(selections.children[0]).toHaveStyle('opacity: 0.3');
 
       expect(selections.children[1]).toHaveStyle('top: 1000px');
       expect(selections.children[1]).toHaveStyle('left: 1050px');
       expect(selections.children[1]).toHaveStyle('width: 200px');
       expect(selections.children[1]).toHaveStyle('height: 300px');
-      expect(selections.children[1]).toHaveStyle('background-color: rgba(255, 0, 0, 0.3)');
+      expect(selections.children[1]).toHaveStyle('background-color: red');
+      expect(selections.children[1]).toHaveStyle('opacity: 0.3');
     });
 
     it('clears the selection if nothing is passed in', () => {

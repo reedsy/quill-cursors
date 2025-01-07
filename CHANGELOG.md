@@ -1,3 +1,6 @@
+# 4.0.4
+- Support CSS custom properties as input for the `createCursor` method by applying fade via `opacity` instead of modifying the alpha channel.
+
 # 4.0.3
 - Make event listeners passive
 
