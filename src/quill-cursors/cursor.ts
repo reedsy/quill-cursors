@@ -1,6 +1,5 @@
 import IQuillCursorsOptions from './i-quill-cursors-options';
 import IQuillRange from './i-range';
-import tinycolor = require('tinycolor2');
 import {ICoordinates} from './i-coordinates';
 
 export default class Cursor {
@@ -171,7 +170,8 @@ export default class Cursor {
     element.style.left = `${selection.left - container.left}px`;
     element.style.width = `${selection.width}px`;
     element.style.height = `${selection.height}px`;
-    element.style.backgroundColor = tinycolor(this.color).setAlpha(0.3).toString();
+    element.style.backgroundColor = this.color;
+    element.style.opacity = '0.3';
 
     return element;
   }
