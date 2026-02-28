@@ -202,6 +202,10 @@ cursors(): Cursor[];
 
 Returns an array of all the `Cursor` objects in the DOM in no particular order.
 
+## RTL Support
+
+`quill-cursors` automatically detects right-to-left text direction (e.g. Hebrew, Arabic) and positions cursors and flags at the correct character edge. No additional configuration is required.
+
 ## License
 
 This code is available under the [MIT license](LICENSE-MIT.txt).
