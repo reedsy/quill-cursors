@@ -1,13 +1,27 @@
-import IQuillCursorsOptions from './i-quill-cursors-options';
-import IQuillRange from './i-range';
-import {ICoordinates} from './i-coordinates';
+import { CursorOptions, HighlightSet, QuillRange } from '../types';
+
+// Use any-cast accessors for CSS Highlight API since DOM lib typings vary by TS version
+const cssHighlights = (): Map<string, HighlightSet> => (CSS as any).highlights;
+const createHighlight = (): HighlightSet => new (globalThis as any).Highlight();
+
+function toRgba(color: string, alpha: number): string {
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return color;
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, 1, 1);
+    const { data } = ctx.getImageData(0, 0, 1, 1);
+    return `rgba(${data[0]},${data[1]},${data[2]},${alpha})`;
+  } catch {
+    return color;
+  }
+}
 
 export default class Cursor {
   public static readonly CONTAINER_ELEMENT_TAG = 'SPAN';
-  public static readonly SELECTION_ELEMENT_TAG = 'SPAN';
   public static readonly CURSOR_CLASS = 'ql-cursor';
-  public static readonly SELECTION_CLASS = 'ql-cursor-selections';
-  public static readonly SELECTION_BLOCK_CLASS = 'ql-cursor-selection-block';
   public static readonly CARET_CLASS = 'ql-cursor-caret';
   public static readonly CARET_CONTAINER_CLASS = 'ql-cursor-caret-container';
   public static readonly CONTAINER_HOVER_CLASS = 'hover';
@@ -21,15 +35,15 @@ export default class Cursor {
   public readonly id: string;
   public readonly name: string;
   public readonly color: string;
-  public range: IQuillRange;
+  public range: QuillRange;
 
   private _el: HTMLElement;
-  private _selectionEl: HTMLElement;
   private _caretEl: HTMLElement;
   private _flagEl: HTMLElement;
-  private _hideDelay: string;
   private _hideSpeedMs: number;
-  private _positionFlag: (flag: HTMLElement, caretRectangle: ClientRect, container: ClientRect) => void;
+  private _positionFlag: (flag: HTMLElement, caretRectangle: DOMRect, container: DOMRect) => void;
+  private _highlight: HighlightSet;
+  private _styleEl: HTMLStyleElement;
 
   public constructor(id: string, name: string, color: string) {
     this.id = id;
@@ -40,33 +54,47 @@ export default class Cursor {
     this._setHoverState = this._setHoverState.bind(this);
   }
 
-  public build(options: IQuillCursorsOptions): HTMLElement {
+  public build(options: CursorOptions): HTMLElement {
     const element = document.createElement(Cursor.CONTAINER_ELEMENT_TAG);
     element.classList.add(Cursor.CURSOR_CLASS);
-    element.id = `ql-cursor-${ this.id }`;
-    element.innerHTML = options.template;
-    const selectionElement = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0] as HTMLElement;
+    element.id = `ql-cursor-${this.id}`;
+    element.innerHTML = `
+      <span class="${Cursor.CARET_CONTAINER_CLASS}">
+        <span class="${Cursor.CARET_CLASS}"></span>
+      </span>
+      <div class="${Cursor.FLAG_CLASS}">
+        <small class="${Cursor.NAME_CLASS}"></small>
+      </div>
+    `;
+
     const caretContainerElement = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0] as HTMLElement;
     const caretElement = caretContainerElement.getElementsByClassName(Cursor.CARET_CLASS)[0] as HTMLElement;
     const flagElement = element.getElementsByClassName(Cursor.FLAG_CLASS)[0] as HTMLElement;
 
     flagElement.style.backgroundColor = this.color;
     caretElement.style.backgroundColor = this.color;
-
     element.getElementsByClassName(Cursor.NAME_CLASS)[0].textContent = this.name;
 
-    this._hideDelay = `${options.hideDelayMs}ms`;
     this._hideSpeedMs = options.hideSpeedMs;
     this._positionFlag = options.positionFlag;
-    flagElement.style.transitionDelay = this._hideDelay;
-    flagElement.style.transitionDuration = `${this._hideSpeedMs}ms`;
+    flagElement.style.transitionDelay = `${options.hideDelayMs}ms`;
+    flagElement.style.transitionDuration = `${options.hideSpeedMs}ms`;
 
     this._el = element;
-    this._selectionEl = selectionElement;
     this._caretEl = caretContainerElement;
     this._flagEl = flagElement;
 
-    caretContainerElement.addEventListener('mouseover', this._setHoverState, {passive: true});
+    caretContainerElement.addEventListener('mouseover', this._setHoverState, { passive: true });
+
+    // Register CSS Custom Highlight for selection rendering
+    const highlightName = `quill-cursor-${this.id}`;
+    this._highlight = createHighlight();
+    cssHighlights().set(highlightName, this._highlight);
+
+    this._styleEl = document.createElement('style');
+    this._styleEl.textContent =
+      `::highlight(${highlightName}) { background-color: ${toRgba(this.color, 0.3)}; color: inherit; }`;
+    document.head.appendChild(this._styleEl);
 
     return this._el;
   }
@@ -77,14 +105,17 @@ export default class Cursor {
 
   public hide(): void {
     this._el.classList.add(Cursor.HIDDEN_CLASS);
+    if (this._highlight) this._highlight.clear();
   }
 
   public remove(): void {
-    this._el.parentNode.removeChild(this._el);
+    cssHighlights().delete(`quill-cursor-${this.id}`);
+    this._styleEl.remove();
+    this._el.parentNode?.removeChild(this._el);
   }
 
   public toggleNearCursor(pointX: number, pointY: number): boolean {
-    const {left, right, top, bottom} = this._getCoordinates();
+    const { left, right, top, bottom } = this._getCoordinates();
 
     const isXNear = pointX >= left && pointX <= right;
     const isYNear = pointY >= top && pointY <= bottom;
@@ -100,11 +131,11 @@ export default class Cursor {
     if (isShown) return;
 
     this._flagEl.classList.add(Cursor.NO_DELAY_CLASS);
-    // We have to wait for the animation before we can put the delay back
+    // Wait for the animation before removing the delay class
     setTimeout(() => this._flagEl.classList.remove(Cursor.NO_DELAY_CLASS), this._hideSpeedMs);
   }
 
-  public updateCaret(rectangle: ClientRect, container: ClientRect): void {
+  public updateCaret(rectangle: DOMRect, container: DOMRect): void {
     this._caretEl.style.top = `${rectangle.top}px`;
     this._caretEl.style.left = `${rectangle.left}px`;
     this._caretEl.style.height = `${rectangle.height}px`;
@@ -116,17 +147,13 @@ export default class Cursor {
     }
   }
 
-  public updateSelection(selections: ClientRect[], container: ClientRect): void {
-    this._clearSelection();
-    selections = selections || [];
-    selections = Array.from(selections);
-    selections = this._sanitize(selections);
-    selections = this._sortByDomPosition(selections);
-    selections.forEach((selection: ClientRect) => this._addSelection(selection, container));
+  public updateHighlight(ranges: Range[]): void {
+    this._highlight.clear();
+    ranges.forEach((r) => this._highlight.add(r));
   }
 
   private _setHoverState(): void {
-    document.addEventListener('mousemove', this._toggleOpenedCursor, {passive: true});
+    document.addEventListener('mousemove', this._toggleOpenedCursor, { passive: true });
   }
 
   private _toggleOpenedCursor(e: MouseEvent): void {
@@ -135,11 +162,11 @@ export default class Cursor {
     if (!shouldShow) document.removeEventListener('mousemove', this._toggleOpenedCursor);
   }
 
-  private _getCoordinates(): ICoordinates {
+  private _getCoordinates(): DOMRect {
     return this._caretEl.getBoundingClientRect();
   }
 
-  private _updateCaretFlag(caretRectangle: ClientRect, container: ClientRect): void {
+  private _updateCaretFlag(caretRectangle: DOMRect, container: DOMRect): void {
     this._flagEl.style.width = '';
     const flagRect = this._flagEl.getBoundingClientRect();
 
@@ -149,67 +176,7 @@ export default class Cursor {
     }
     this._flagEl.style.left = `${caretRectangle.left}px`;
     this._flagEl.style.top = `${caretRectangle.top}px`;
-    // Chrome has an issue when doing translate3D with non integer width, this ceil is to overcome it.
+    // Chrome has an issue when doing translate3D with non-integer width
     this._flagEl.style.width = `${Math.ceil(flagRect.width)}px`;
-  }
-
-  private _clearSelection(): void {
-    this._selectionEl.innerHTML = '';
-  }
-
-  private _addSelection(selection: ClientRect, container: ClientRect): void {
-    const selectionBlock = this._selectionBlock(selection, container);
-    this._selectionEl.appendChild(selectionBlock);
-  }
-
-  private _selectionBlock(selection: ClientRect, container: ClientRect): HTMLElement {
-    const element = document.createElement(Cursor.SELECTION_ELEMENT_TAG);
-
-    element.classList.add(Cursor.SELECTION_BLOCK_CLASS);
-    element.style.top = `${selection.top - container.top}px`;
-    element.style.left = `${selection.left - container.left}px`;
-    element.style.width = `${selection.width}px`;
-    element.style.height = `${selection.height}px`;
-    element.style.backgroundColor = this.color;
-    element.style.opacity = '0.3';
-
-    return element;
-  }
-
-  private _sortByDomPosition(selections: ClientRect[]): ClientRect[] {
-    return selections.sort((a, b) => {
-      if (a.top === b.top) {
-        return a.left - b.left;
-      }
-
-      return a.top - b.top;
-    });
-  }
-
-  private _sanitize(selections: ClientRect[]): ClientRect[] {
-    const serializedSelections = new Set();
-
-    return selections.filter((selection: ClientRect) => {
-      if (!selection.width || !selection.height) {
-        return false;
-      }
-
-      const serialized = this._serialize(selection);
-      if (serializedSelections.has(serialized)) {
-        return false;
-      }
-
-      serializedSelections.add(serialized);
-      return true;
-    });
-  }
-
-  private _serialize(selection: ClientRect): string {
-    return [
-      `top:${ selection.top }`,
-      `right:${ selection.right }`,
-      `bottom:${ selection.bottom }`,
-      `left:${ selection.left }`,
-    ].join(';');
   }
 }

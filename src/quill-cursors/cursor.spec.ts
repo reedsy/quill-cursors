@@ -1,31 +1,21 @@
 import Cursor from './cursor';
-import IQuillCursorsOptions from './i-quill-cursors-options';
-import '@testing-library/jest-dom/extend-expect';
+import { CursorOptions } from '../types';
 
 describe('Cursor', () => {
-  let template: string;
-  let options: IQuillCursorsOptions;
+  let options: CursorOptions;
 
   beforeEach(() => {
-    template = `
-      <span class="ql-cursor-selections"></span>
-      <span class="ql-cursor-caret-container">
-        <span class="ql-cursor-caret"></span>
-      </span>
-      <div class="ql-cursor-flag">
-        <small class="ql-cursor-name"></small>
-        <span class="ql-cursor-flag-flap"></span>
-      </div>
-    `;
-
     options = {
-      template: template,
       hideDelayMs: 100,
       hideSpeedMs: 200,
       positionFlag: null,
     };
 
-    jest.useFakeTimers();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('stores constructor parameters', () => {
@@ -36,24 +26,37 @@ describe('Cursor', () => {
     expect(cursor.color).toBe('red');
   });
 
-  it('builds the cursor element', () => {
-    const element = new Cursor('abc', 'Jane Bloggs', 'red').build(options);
+  it('builds the cursor element with caret and flag', () => {
+    const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+    const element = cursor.build(options);
 
-    expect(element).toContainHTML(`
-      <span class="ql-cursor-selections"></span>
-      <span class="ql-cursor-caret-container">
-        <span class="ql-cursor-caret" style="background-color: red;"></span>
-      </span>
-      <div class="ql-cursor-flag" style="background-color: red; transition-delay: 100ms; transition-duration: 200ms;">
-        <small class="ql-cursor-name">Jane Bloggs</small>
-        <span class="ql-cursor-flag-flap"></span>
-      </div>
-    `);
+    const caretEl = element.querySelector(`.${Cursor.CARET_CLASS}`) as HTMLElement;
+    expect(caretEl.style.backgroundColor).toBe('red');
+
+    const flagEl = element.querySelector(`.${Cursor.FLAG_CLASS}`) as HTMLElement;
+    expect(flagEl.style.backgroundColor).toBe('red');
+    expect(flagEl.style.transitionDelay).toBe('100ms');
+    expect(flagEl.style.transitionDuration).toBe('200ms');
+
+    expect(element.querySelector(`.${Cursor.NAME_CLASS}`).textContent).toBe('Jane Bloggs');
   });
 
   it('adds the ID to the element', () => {
     const element = new Cursor('abc', 'Jane Bloggs', 'red').build(options);
     expect(element.id).toBe('ql-cursor-abc');
+  });
+
+  it('registers a CSS highlight on build', () => {
+    const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+    cursor.build(options);
+    expect((CSS as any).highlights.has('quill-cursor-abc')).toBe(true);
+  });
+
+  it('adds a style element to document.head on build', () => {
+    const before = document.head.querySelectorAll('style').length;
+    const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+    cursor.build(options);
+    expect(document.head.querySelectorAll('style').length).toBe(before + 1);
   });
 
   it('toggles element visibility', () => {
@@ -80,6 +83,30 @@ describe('Cursor', () => {
 
     cursor.remove();
     expect(element).not.toBeInTheDocument();
+  });
+
+  it('removes the CSS highlight on remove', () => {
+    const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+    const element = cursor.build(options);
+    const parent = document.createElement('DIV');
+    parent.appendChild(element);
+    document.body.appendChild(parent);
+
+    expect((CSS as any).highlights.has('quill-cursor-abc')).toBe(true);
+    cursor.remove();
+    expect((CSS as any).highlights.has('quill-cursor-abc')).toBe(false);
+  });
+
+  it('removes the style element on remove', () => {
+    const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+    const element = cursor.build(options);
+    const parent = document.createElement('DIV');
+    parent.appendChild(element);
+    document.body.appendChild(parent);
+
+    const before = document.head.querySelectorAll('style').length;
+    cursor.remove();
+    expect(document.head.querySelectorAll('style').length).toBe(before - 1);
   });
 
   it('updates the caret position', () => {
@@ -143,7 +170,7 @@ describe('Cursor', () => {
 
   it('updates flag with custom position method', () => {
     const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
-    options.positionFlag = jest.fn();
+    options.positionFlag = vi.fn();
     cursor.build(options);
 
     const rectangle: any = {
@@ -186,153 +213,53 @@ describe('Cursor', () => {
     cursor.toggleFlag(true);
     cursor.toggleFlag(false);
     expect(flag).toHaveClass(Cursor.NO_DELAY_CLASS);
-    jest.advanceTimersByTime(options.hideSpeedMs);
+    vi.advanceTimersByTime(options.hideSpeedMs);
     expect(flag).not.toHaveClass(Cursor.NO_DELAY_CLASS);
   });
 
-  describe('with some selections', () => {
+  describe('updateHighlight', () => {
     let cursor: Cursor;
-    let element: HTMLElement;
-    let container: any;
-    let selection1: any;
-    let selection2: any;
 
     beforeEach(() => {
       cursor = new Cursor('abc', 'Jane Bloggs', 'red');
-      element = cursor.build(options);
-
-      selection1 = {
-        top: 0,
-        left: 50,
-        width: 100,
-        height: 200,
-      };
-
-      selection2 = {
-        top: 1000,
-        left: 1050,
-        width: 200,
-        height: 300,
-      };
-
-      container = {
-        top: 0,
-        left: 0,
-        width: 2000,
-        height: 2000,
-      };
-
-      cursor.updateSelection([selection1, selection2], container);
+      cursor.build(options);
     });
 
-    it('adds selections', () => {
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
+    it('adds ranges to the highlight', () => {
+      const range1 = document.createRange();
+      const range2 = document.createRange();
+      cursor.updateHighlight([range1, range2]);
 
-      expect(selections.children.length).toBe(2);
-
-      expect(selections.children[0]).toHaveStyle('top: 0px');
-      expect(selections.children[0]).toHaveStyle('left: 50px');
-      expect(selections.children[0]).toHaveStyle('width: 100px');
-      expect(selections.children[0]).toHaveStyle('height: 200px');
-      expect(selections.children[0]).toHaveStyle('background-color: red');
-      expect(selections.children[0]).toHaveStyle('opacity: 0.3');
-
-      expect(selections.children[1]).toHaveStyle('top: 1000px');
-      expect(selections.children[1]).toHaveStyle('left: 1050px');
-      expect(selections.children[1]).toHaveStyle('width: 200px');
-      expect(selections.children[1]).toHaveStyle('height: 300px');
-      expect(selections.children[1]).toHaveStyle('background-color: red');
-      expect(selections.children[1]).toHaveStyle('opacity: 0.3');
+      const highlight: any = (CSS as any).highlights.get('quill-cursor-abc');
+      expect([...highlight]).toContain(range1);
+      expect([...highlight]).toContain(range2);
     });
 
-    it('clears the selection if nothing is passed in', () => {
-      cursor.updateSelection(null, container);
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-      expect(selections.children).toHaveLength(0);
+    it('clears previous ranges on update', () => {
+      const range1 = document.createRange();
+      cursor.updateHighlight([range1]);
+
+      const range2 = document.createRange();
+      cursor.updateHighlight([range2]);
+
+      const highlight: any = (CSS as any).highlights.get('quill-cursor-abc');
+      expect([...highlight]).not.toContain(range1);
+      expect([...highlight]).toContain(range2);
     });
 
-    it('sorts the selections by DOM position', () => {
-      cursor.updateSelection([selection2, selection1], container);
+    it('accepts an empty array', () => {
+      const range1 = document.createRange();
+      cursor.updateHighlight([range1]);
+      cursor.updateHighlight([]);
 
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-
-      expect(selections.children[0]).toHaveStyle('top: 0px');
-      expect(selections.children[0]).toHaveStyle('left: 50px');
-
-      expect(selections.children[1]).toHaveStyle('top: 1000px');
-      expect(selections.children[1]).toHaveStyle('left: 1050px');
-    });
-
-    it('sorts by left-to-right if the selection tops are the same', () => {
-      const selection3 = {
-        top: 0,
-        left: 150,
-        width: 100,
-        height: 200,
-      };
-
-      cursor.updateSelection([selection3, selection1], container);
-
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-
-      expect(selections.children[0]).toHaveStyle('top: 0px');
-      expect(selections.children[0]).toHaveStyle('left: 50px');
-
-      expect(selections.children[1]).toHaveStyle('top: 0px');
-      expect(selections.children[1]).toHaveStyle('left: 150px');
-    });
-
-    it('deduplicates selections', () => {
-      cursor.updateSelection([selection1, selection1], container);
-
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-
-      expect(selections.children).toHaveLength(1);
-
-      expect(selections.children[0]).toHaveStyle('top: 0px');
-      expect(selections.children[0]).toHaveStyle('left: 50px');
-    });
-
-    it('ignores selections with no width', () => {
-      const noWidthSelection = {
-        top: 0,
-        left: 0,
-        width: 0,
-        height: 100,
-      };
-
-      cursor.updateSelection([selection1, noWidthSelection], container);
-
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-
-      expect(selections.children).toHaveLength(1);
-
-      expect(selections.children[0]).toHaveStyle('top: 0px');
-      expect(selections.children[0]).toHaveStyle('left: 50px');
-    });
-
-    it('ignores selections with no height', () => {
-      const noHeightSelection = {
-        top: 0,
-        left: 0,
-        width: 100,
-        height: 0,
-      };
-
-      cursor.updateSelection([selection1, noHeightSelection], container);
-
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-
-      expect(selections.children).toHaveLength(1);
-
-      expect(selections.children[0]).toHaveStyle('top: 0px');
-      expect(selections.children[0]).toHaveStyle('left: 50px');
+      const highlight: any = (CSS as any).highlights.get('quill-cursor-abc');
+      expect([...highlight]).toHaveLength(0);
     });
   });
 
   describe('mouse move handlers', () => {
     it('add listener to document by mouse over', () => {
-      jest.spyOn(document, 'addEventListener');
+      vi.spyOn(document, 'addEventListener');
       const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
       const element = cursor.build(options);
       const container = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
@@ -342,19 +269,19 @@ describe('Cursor', () => {
     });
 
     it('add listeners to document by mouse over', () => {
-      jest.spyOn(document, 'addEventListener');
+      vi.spyOn(document, 'addEventListener');
       const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
       const element = cursor.build(options);
       const container = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
       const mouseEvent = new MouseEvent('mouseover');
       container.dispatchEvent(mouseEvent);
       expect(document.addEventListener).toHaveBeenCalled();
-      jest.runAllTimers();
+      vi.runAllTimers();
       expect(document.addEventListener).toHaveBeenCalledTimes(2);
     });
 
     it('keep flag opened if the pointer is near cursor', () => {
-      jest.spyOn(document, 'addEventListener');
+      vi.spyOn(document, 'addEventListener');
       const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
       const element = cursor.build(options);
       const container = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
@@ -372,7 +299,7 @@ describe('Cursor', () => {
     });
 
     it('hide flag if the pointer is not near cursor', () => {
-      jest.spyOn(document, 'addEventListener');
+      vi.spyOn(document, 'addEventListener');
       const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
       const element = cursor.build(options);
       const container = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];

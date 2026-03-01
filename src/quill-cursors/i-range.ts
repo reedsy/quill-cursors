@@ -1,4 +1,2 @@
-export default interface IQuillRange {
-  index: number;
-  length: number;
-}
+// Removed: merged into src/types.ts as QuillRange
+export {};

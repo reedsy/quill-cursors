@@ -1,5 +1,5 @@
 import QuillCursors from './quill-cursors/quill-cursors';
 import Cursor from './quill-cursors/cursor';
-import '../assets/quill-cursors.scss';
+import './styles.css';
 
-export {QuillCursors as default, Cursor};
+export { QuillCursors as default, Cursor };

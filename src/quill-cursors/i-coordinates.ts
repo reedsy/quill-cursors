@@ -1,6 +1,2 @@
-export interface ICoordinates {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
-}
+// Removed: coordinates are now handled by native DOMRect
+export {};

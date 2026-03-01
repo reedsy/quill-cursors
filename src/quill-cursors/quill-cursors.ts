@@ -1,30 +1,25 @@
-import IQuillCursorsOptions from './i-quill-cursors-options';
 import Cursor from './cursor';
-import IQuillRange from './i-range';
-import * as RangeFix from 'rangefix';
-import template from './template';
-import ResizeObserver from 'resize-observer-polyfill';
-import Delta = require('quill-delta');
+import { QuillRange, CursorOptions, QuillInstance } from '../types';
+import Delta from 'quill-delta';
 
 export default class QuillCursors {
-  public static DEFAULTS: IQuillCursorsOptions = {
-    template,
+  public static DEFAULTS: CursorOptions = {
     containerClass: 'ql-cursors',
     selectionChangeSource: 'api',
     hideDelayMs: 3000,
     hideSpeedMs: 400,
   };
 
-  public readonly quill: any;
-  public readonly options: IQuillCursorsOptions;
+  public readonly quill: QuillInstance;
+  public readonly options: CursorOptions;
 
   private readonly _cursors: { [id: string]: Cursor } = {};
   private readonly _container: HTMLElement;
   private readonly _boundsContainer: HTMLElement;
-  private _currentSelection: IQuillRange;
+  private _currentSelection: QuillRange;
   private _isObserving = false;
 
-  public constructor(quill: any, options: IQuillCursorsOptions = {}) {
+  public constructor(quill: QuillInstance, options: CursorOptions = {}) {
     this._handleCursorTouch = this._handleCursorTouch.bind(this);
     this.quill = quill;
     this.options = this._setDefaults(options);
@@ -50,7 +45,7 @@ export default class QuillCursors {
     return cursor;
   }
 
-  public moveCursor(id: string, range: IQuillRange): void {
+  public moveCursor(id: string, range: QuillRange): void {
     const cursor = this._cursors[id];
     if (!cursor) {
       return;
@@ -95,7 +90,7 @@ export default class QuillCursors {
   private _registerSelectionChangeListeners(): void {
     this.quill.on(
       this.quill.constructor.events.SELECTION_CHANGE,
-      (selection: IQuillRange) => {
+      (selection: QuillRange) => {
         this._currentSelection = selection;
       },
     );
@@ -110,8 +105,8 @@ export default class QuillCursors {
 
   private _registerDomListeners(): void {
     const editor = this.quill.container.getElementsByClassName('ql-editor')[0] as HTMLElement;
-    editor.addEventListener('scroll', () => this.update(), {passive: true});
-    editor.addEventListener('touchstart', this._handleCursorTouch, {passive: true});
+    editor.addEventListener('scroll', () => this.update(), { passive: true });
+    editor.addEventListener('touchstart', this._handleCursorTouch, { passive: true });
   }
 
   private _handleCursorTouch(e: MouseEvent): void {
@@ -134,7 +129,7 @@ export default class QuillCursors {
       this.update();
     });
 
-    resizeObserver.observe(editor);
+    resizeObserver.observe(editor as Element);
     this._isObserving = true;
   }
 
@@ -163,10 +158,7 @@ export default class QuillCursors {
     cursor.updateCaret(endBounds, containerRectangle);
 
     const ranges = this._lineRanges(cursor, startLeaf, endLeaf);
-    const selectionRectangles = ranges
-      .reduce((rectangles, range) => rectangles.concat(Array.from(RangeFix.getClientRects(range))), []);
-
-    cursor.updateSelection(selectionRectangles, containerRectangle);
+    cursor.updateHighlight(ranges);
   }
 
   private _indexWithinQuillBounds(index: number): number {
@@ -205,10 +197,9 @@ export default class QuillCursors {
     );
   }
 
-  private _setDefaults(options: IQuillCursorsOptions): IQuillCursorsOptions {
+  private _setDefaults(options: CursorOptions): CursorOptions {
     options = Object.assign({}, options);
 
-    options.template ||= QuillCursors.DEFAULTS.template;
     options.containerClass ||= QuillCursors.DEFAULTS.containerClass;
 
     if (options.selectionChangeSource !== null) {
