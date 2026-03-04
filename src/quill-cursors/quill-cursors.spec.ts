@@ -537,7 +537,7 @@ describe('QuillCursors', () => {
     describe('RTL positioning', () => {
       it('adjusts caret to right edge of character for RTL at start/middle position', () => {
         const parentElement = document.createElement('span');
-        parentElement.dir = 'rtl';
+        parentElement.style.direction = 'rtl';
         const textNode = document.createTextNode('שלום');
         parentElement.appendChild(textNode);
 
@@ -573,7 +573,7 @@ describe('QuillCursors', () => {
 
       it('adjusts caret to left edge of character for RTL at end-of-text position', () => {
         const parentElement = document.createElement('span');
-        parentElement.dir = 'rtl';
+        parentElement.style.direction = 'rtl';
         const textNode = document.createTextNode('שלום');
         parentElement.appendChild(textNode);
 
@@ -682,7 +682,7 @@ describe('QuillCursors', () => {
 
       it('does not adjust bounds for RTL non-text leaf nodes', () => {
         const parentElement = document.createElement('span');
-        parentElement.dir = 'rtl';
+        parentElement.style.direction = 'rtl';
         const img = document.createElement('img');
         parentElement.appendChild(img);
 
@@ -697,6 +697,111 @@ describe('QuillCursors', () => {
 
         expect(cursor.updateCaret).toHaveBeenCalledWith(
           expect.objectContaining({left: 100}),
+          expect.anything(),
+        );
+      });
+
+      it('detects RTL via inherited direction from ancestor', () => {
+        const container = document.createElement('div');
+        const parentElement = document.createElement('span');
+        container.appendChild(parentElement);
+        const textNode = document.createTextNode('שלום');
+        parentElement.appendChild(textNode);
+
+        const originalGetComputedStyle = window.getComputedStyle;
+        jest.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
+          const style = originalGetComputedStyle(el);
+          if (el === parentElement) {
+            return {...style, direction: 'rtl'} as CSSStyleDeclaration;
+          }
+          return style;
+        });
+
+        jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
+        jest.spyOn(quill, 'getLines').mockReturnValue([]);
+        jest.spyOn(quill, 'getBounds').mockReturnValue({
+          top: 10, left: 100, width: 0, height: 20,
+        });
+        jest.spyOn(quill.container, 'getBoundingClientRect').mockReturnValue({
+          left: 50, top: 0, width: 600, height: 400, right: 650, bottom: 400,
+        });
+
+        const charRange = {
+          setStart: jest.fn(), setEnd: jest.fn(),
+          getBoundingClientRect: () => ({
+            left: 250, right: 260, width: 10, top: 10, height: 20, bottom: 30,
+          }),
+          getClientRects: (): any[] => [],
+          cloneRange: () => charRange,
+          selectNode: () => {},
+          setStartBefore: () => {}, setEndAfter: () => {},
+        };
+        document.createRange = () => charRange as any;
+
+        jest.spyOn(cursor, 'updateCaret');
+        cursors.moveCursor(cursor.id, {index: 0, length: 0});
+
+        expect(cursor.updateCaret).toHaveBeenCalledWith(
+          expect.objectContaining({left: 210}),
+          expect.anything(),
+        );
+      });
+
+      it('respects LTR override inside RTL ancestor', () => {
+        const container = document.createElement('div');
+        const parentElement = document.createElement('span');
+        parentElement.style.direction = 'ltr';
+        container.appendChild(parentElement);
+        const textNode = document.createTextNode('hello');
+        parentElement.appendChild(textNode);
+
+        jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
+        jest.spyOn(quill, 'getLines').mockReturnValue([]);
+        jest.spyOn(quill, 'getBounds').mockReturnValue({
+          top: 10, left: 100, width: 0, height: 20,
+        });
+        jest.spyOn(cursor, 'updateCaret');
+
+        cursors.moveCursor(cursor.id, {index: 0, length: 0});
+
+        expect(cursor.updateCaret).toHaveBeenCalledWith(
+          expect.objectContaining({left: 100}),
+          expect.anything(),
+        );
+      });
+
+      it('respects RTL override inside LTR ancestor', () => {
+        const parentElement = document.createElement('span');
+        parentElement.style.direction = 'rtl';
+        const textNode = document.createTextNode('שלום');
+        parentElement.appendChild(textNode);
+
+        jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
+        jest.spyOn(quill, 'getLines').mockReturnValue([]);
+        jest.spyOn(quill, 'getBounds').mockReturnValue({
+          top: 10, left: 100, width: 0, height: 20,
+        });
+        jest.spyOn(quill.container, 'getBoundingClientRect').mockReturnValue({
+          left: 50, top: 0, width: 600, height: 400, right: 650, bottom: 400,
+        });
+
+        const charRange = {
+          setStart: jest.fn(), setEnd: jest.fn(),
+          getBoundingClientRect: () => ({
+            left: 250, right: 260, width: 10, top: 10, height: 20, bottom: 30,
+          }),
+          getClientRects: (): any[] => [],
+          cloneRange: () => charRange,
+          selectNode: () => {},
+          setStartBefore: () => {}, setEndAfter: () => {},
+        };
+        document.createRange = () => charRange as any;
+
+        jest.spyOn(cursor, 'updateCaret');
+        cursors.moveCursor(cursor.id, {index: 0, length: 0});
+
+        expect(cursor.updateCaret).toHaveBeenCalledWith(
+          expect.objectContaining({left: 210}),
           expect.anything(),
         );
       });

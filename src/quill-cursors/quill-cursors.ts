@@ -184,16 +184,7 @@ export default class QuillCursors {
       return bounds;
     }
 
-    const range = document.createRange();
-    if (offset < node.data.length) {
-      range.setStart(node, offset);
-      range.setEnd(node, offset + 1);
-    } else {
-      range.setStart(node, offset - 1);
-      range.setEnd(node, offset);
-    }
-
-    const charRect = range.getBoundingClientRect();
+    const charRect = this._getCharacterRectAtCursor(node, offset);
     const containerRect = this.quill.container.getBoundingClientRect();
 
     // For RTL: at start/middle positions, cursor goes at right edge of character;
@@ -206,10 +197,20 @@ export default class QuillCursors {
     };
   }
 
+  private _getCharacterRectAtCursor(node: Text, offset: number): DOMRect {
+    const range = document.createRange();
+    if (offset < node.data.length) {
+      range.setStart(node, offset);
+      range.setEnd(node, offset + 1);
+    } else {
+      range.setStart(node, offset - 1);
+      range.setEnd(node, offset);
+    }
+    return range.getBoundingClientRect();
+  }
+
   private _isRtl(element: Element | null): boolean {
     if (!element) return false;
-    const dirEl = element.closest('[dir]');
-    if (dirEl) return (dirEl as HTMLElement).dir === 'rtl';
     return window.getComputedStyle(element).direction === 'rtl';
   }
 
