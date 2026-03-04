@@ -1,3 +1,6 @@
+# 4.1.0
+- Add RTL support: automatically detect right-to-left text direction and position cursors at the correct character edge
+
 # 4.0.4
 - Support CSS custom properties as input for the `createCursor` method by applying fade via `opacity` instead of modifying the alpha channel.
 
