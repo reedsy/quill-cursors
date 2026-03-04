@@ -159,7 +159,11 @@ export default class QuillCursors {
 
     const containerRectangle = this._boundsContainer.getBoundingClientRect();
 
-    const endBounds = this.quill.getBounds(endIndex);
+    let endBounds = this.quill.getBounds(endIndex);
+    const isRtl = this._isRtl(endLeaf[0].domNode.parentElement);
+    if (isRtl) {
+      endBounds = this._adjustBoundsForRtl(endBounds, endLeaf);
+    }
     cursor.updateCaret(endBounds, containerRectangle);
 
     const ranges = this._lineRanges(cursor, startLeaf, endLeaf);
@@ -167,6 +171,47 @@ export default class QuillCursors {
       .reduce((rectangles, range) => rectangles.concat(Array.from(RangeFix.getClientRects(range))), []);
 
     cursor.updateSelection(selectionRectangles, containerRectangle);
+  }
+
+  // Quill's getBounds() returns width:0 for cursor positions, losing the
+  // character width needed to compute the correct RTL caret position.
+  // This method computes the correct position directly from the DOM.
+  private _adjustBoundsForRtl(bounds: any, leaf: any[]): any {
+    const node = leaf[0].domNode;
+    const offset = leaf[1];
+
+    if (!(node instanceof Text) || node.data.length === 0) {
+      return bounds;
+    }
+
+    const charRect = this._getCharacterRectAtCursor(node, offset);
+    const containerRect = this.quill.container.getBoundingClientRect();
+
+    // For RTL: at start/middle positions, cursor goes at right edge of character;
+    // at end of text node, cursor goes at left edge of last character.
+    const caretX = offset < node.data.length ? charRect.right : charRect.left;
+
+    return {
+      ...bounds,
+      left: caretX - containerRect.left,
+    };
+  }
+
+  private _getCharacterRectAtCursor(node: Text, offset: number): DOMRect {
+    const range = document.createRange();
+    if (offset < node.data.length) {
+      range.setStart(node, offset);
+      range.setEnd(node, offset + 1);
+    } else {
+      range.setStart(node, offset - 1);
+      range.setEnd(node, offset);
+    }
+    return range.getBoundingClientRect();
+  }
+
+  private _isRtl(element: Element | null): boolean {
+    if (!element) return false;
+    return window.getComputedStyle(element).direction === 'rtl';
   }
 
   private _indexWithinQuillBounds(index: number): number {
