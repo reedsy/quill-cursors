@@ -206,6 +206,57 @@ Returns an array of all the `Cursor` objects in the DOM in no particular order.
 
 `quill-cursors` automatically detects right-to-left text direction (e.g. Hebrew, Arabic) and positions cursors and flags at the correct character edge. No additional configuration is required.
 
+## CSP / Shadow DOM
+
+The default bundle (`quill-cursors`) injects CSS via inline `<style>` tags at runtime. This violates
+[Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) rules that forbid
+`unsafe-inline` styles, and can cause issues in Shadow DOM environments where global style injection
+doesn't reach the shadow root.
+
+To support these use cases, `quill-cursors` provides separate builds:
+
+### Dist files
+
+| File | Description |
+|---|---|
+| `dist/quill-cursors.js` | Full bundle with inline style injection (default, backwards-compatible) |
+| `dist/quill-cursors.core.js` | JS-only bundle, no style injection |
+| `dist/quill-cursors.min.css` | Standalone CSS file with all cursor styles |
+
+### Import examples
+
+**Full bundle** (existing behavior, unchanged):
+
+```javascript
+import QuillCursors from 'quill-cursors';
+```
+
+**CSP-safe: JS only + separate CSS** (load styles via `<link>` tag or your bundler):
+
+```javascript
+import QuillCursors from 'quill-cursors/core';
+import 'quill-cursors/css';
+```
+
+**CSP-safe usage via script tags:**
+
+```html
+<link rel="stylesheet" href="quill-cursors.min.css">
+<script src="quill-cursors.core.js"></script>
+```
+
+**Shadow DOM: JS only, inject CSS into shadow root manually:**
+
+```javascript
+import QuillCursors from 'quill-cursors/core';
+
+// Load the CSS file and inject it into your shadow root
+const link = document.createElement('link');
+link.rel = 'stylesheet';
+link.href = 'path/to/quill-cursors.min.css';
+shadowRoot.appendChild(link);
+```
+
 ## License
 
 This code is available under the [MIT license](LICENSE-MIT.txt).
