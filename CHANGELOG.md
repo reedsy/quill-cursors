@@ -1,3 +1,8 @@
+# 4.2.0
+- Add CSP-compatible core bundle (`dist/quill-cursors.core.js`) that does not inject inline styles, solving CSP violations for Shadow DOM users (#97)
+- Extract standalone CSS file (`dist/quill-cursors.min.css`) for use with `<link>` tags or manual injection
+- Add `package.json` exports map with `"./core"` and `"./css"` subpath exports
+
 # 4.1.0
 - Add RTL support: automatically detect right-to-left text direction and position cursors at the correct character edge
 

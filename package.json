@@ -1,6 +1,6 @@
 {
   "name": "quill-cursors",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "A multi cursor module for Quill.",
   "keywords": [
     "quill",
@@ -16,8 +16,24 @@
   "license": "MIT",
   "main": "dist/quill-cursors.js",
   "types": "dist/index.d.ts",
+  "style": "dist/quill-cursors.min.css",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/quill-cursors.js"
+    },
+    "./core": {
+      "types": "./dist/index.core.d.ts",
+      "default": "./dist/quill-cursors.core.js"
+    },
+    "./css": "./dist/quill-cursors.min.css"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "npm run lint && NODE_ENV=production ./node_modules/.bin/webpack",
+    "prebuild": "rm -rf dist",
+    "build": "npm run lint && NODE_ENV=production webpack && sass assets/quill-cursors.scss dist/quill-cursors.min.css --style=compressed --no-source-map",
     "lint": "eslint '**/*'",
     "start": "webpack serve --open",
     "test": "NODE_ENV=test jest --coverage"
@@ -32,7 +48,6 @@
     "@types/jest": "^27.4.0",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "@typescript-eslint/parser": "^5.49.0",
-    "clean-webpack-plugin": "^4.0.0",
     "css-loader": "^6.6.0",
     "eslint": "^8.8.0",
     "jest": "^27.4.7",
