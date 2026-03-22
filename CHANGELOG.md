@@ -1,3 +1,6 @@
+# 4.3.0
+- Add `destroy()` method for proper cleanup: removes event listeners, disconnects ResizeObserver, clears pending timers, and removes the cursor container from the DOM
+
 # 4.2.0
 - Add CSP-compatible core bundle (`dist/quill-cursors.core.js`) that does not inject inline styles, solving CSP violations for Shadow DOM users (#97)
 - Extract standalone CSS file (`dist/quill-cursors.min.css`) for use with `<link>` tags or manual injection

@@ -17,6 +17,12 @@ jest.mock('resize-observer-polyfill', () => {
 describe('QuillCursors', () => {
   let quill: any;
 
+  afterEach(() => {
+    if (quill.container.parentNode) {
+      quill.container.parentNode.removeChild(quill.container);
+    }
+  });
+
   beforeEach(() => {
     quill = {
       constructor: {
@@ -45,6 +51,7 @@ describe('QuillCursors', () => {
       getSelection: (): void => {},
       getLines: (): any[] => [],
       on: (): void => {},
+      off: (): void => {},
     };
 
     quill.container = document.createElement('DIV');
@@ -53,6 +60,7 @@ describe('QuillCursors', () => {
     const editor = document.createElement('DIV');
     editor.classList.add('ql-editor');
     quill.container.appendChild(editor);
+    quill.root = editor;
 
     (ResizeObserver as any).mockClear();
     mockObserver.mockClear();
@@ -67,7 +75,7 @@ describe('QuillCursors', () => {
     });
 
     it('registers a scroll listener', () => {
-      const editor = quill.container.getElementsByClassName('ql-editor')[0];
+      const editor = quill.root;
       jest.spyOn(editor, 'addEventListener');
       const cursors = new QuillCursors(quill);
       expect(editor.addEventListener).toHaveBeenCalledWith('scroll', expect.anything(), {passive: true});
@@ -87,7 +95,7 @@ describe('QuillCursors', () => {
       cursors = new QuillCursors(quill);
       cursors.createCursor('abc', 'Jane Bloggs', 'red');
       cursors.moveCursor('abc', {index: 0, length: 0});
-      editor = quill.container.getElementsByClassName('ql-editor')[0];
+      editor = quill.root;
     });
 
     it('registers a ResizeObserver', () => {
@@ -833,7 +841,7 @@ describe('QuillCursors', () => {
         jest.spyOn(cursor, 'toggleNearCursor');
 
         const touch = new TouchEvent('touchstart');
-        const editor = quill.container.getElementsByClassName('ql-editor')[0];
+        const editor = quill.root;
         editor.dispatchEvent(touch);
         expect(cursor.toggleNearCursor).toBeCalled();
       });
@@ -848,7 +856,7 @@ describe('QuillCursors', () => {
         jest.spyOn(cursor, 'toggleFlag');
 
         const touch = new TouchEvent('touchstart');
-        const editor = quill.container.getElementsByClassName('ql-editor')[0];
+        const editor = quill.root;
         editor.dispatchEvent(touch);
         expect(cursor.toggleNearCursor).toBeCalled();
 
@@ -856,6 +864,160 @@ describe('QuillCursors', () => {
 
         expect(cursor.toggleFlag).toBeCalled();
       });
+    });
+  });
+
+  describe('destroy', () => {
+    let cursors: QuillCursors;
+    let editor: HTMLElement;
+
+    beforeEach(() => {
+      cursors = new QuillCursors(quill);
+      editor = quill.root;
+    });
+
+    it('removes the container from the DOM', () => {
+      cursors.destroy();
+      expect(quill.container.querySelector('.ql-cursors')).toBeNull();
+    });
+
+    it('removes the scroll listener', () => {
+      jest.spyOn(editor, 'removeEventListener');
+      cursors.destroy();
+      expect(editor.removeEventListener).toHaveBeenCalledWith('scroll', expect.anything());
+    });
+
+    it('removes the touchstart listener', () => {
+      jest.spyOn(editor, 'removeEventListener');
+      cursors.destroy();
+      expect(editor.removeEventListener).toHaveBeenCalledWith('touchstart', expect.anything());
+    });
+
+    it('does not toggle cursor flags when touchstart fires after destroy', () => {
+      jest.useFakeTimers();
+      const cursor = cursors.createCursor('abc', 'Jane', 'red');
+      jest.spyOn(cursor, 'toggleNearCursor');
+      cursors.destroy();
+      editor.dispatchEvent(new MouseEvent('touchstart'));
+      jest.runAllTimers();
+      expect(cursor.toggleNearCursor).not.toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it('disconnects ResizeObserver when one exists', () => {
+      cursors.createCursor('abc', 'Jane', 'red');
+      cursors.moveCursor('abc', {index: 0, length: 0});
+      mockDisconnect.mockClear();
+      cursors.destroy();
+      expect(mockDisconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not throw when no ResizeObserver exists', () => {
+      expect(() => cursors.destroy()).not.toThrow();
+    });
+
+    it('calls quill.off for TEXT_CHANGE', () => {
+      jest.spyOn(quill, 'off');
+      cursors.destroy();
+      expect(quill.off).toHaveBeenCalledWith('text-change', expect.anything());
+    });
+
+    it('calls quill.off for SELECTION_CHANGE', () => {
+      jest.spyOn(quill, 'off');
+      cursors.destroy();
+      expect(quill.off).toHaveBeenCalledWith('selection-change', expect.anything());
+    });
+
+    it('removes all cursors', () => {
+      cursors.createCursor('abc', 'Jane', 'red');
+      cursors.createCursor('def', 'John', 'blue');
+      expect(cursors.cursors()).toHaveLength(2);
+      cursors.destroy();
+      expect(cursors.cursors()).toHaveLength(0);
+    });
+
+    it('does not emit selection change when destroyed before pending text-change timer fires', () => {
+      jest.useFakeTimers();
+      const listeners: any = {};
+      jest.spyOn(quill, 'on').mockImplementation(((event: string, callback: Function) => {
+        listeners[event] = callback;
+      }) as any);
+      jest.spyOn(quill.emitter, 'emit');
+
+      const localCursors = new QuillCursors(quill);
+      listeners['text-change']({});
+      localCursors.destroy();
+      jest.runAllTimers();
+
+      expect(quill.emitter.emit).not.toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it('does not transform cursors when destroyed before pending text-change timer fires', () => {
+      jest.useFakeTimers();
+      const listeners: any = {};
+      jest.spyOn(quill, 'on').mockImplementation(((event: string, callback: Function) => {
+        listeners[event] = callback;
+      }) as any);
+
+      const localCursors = new QuillCursors(quill, {transformOnTextChange: true, selectionChangeSource: null});
+      const cursor = localCursors.createCursor('abc', 'Jane', 'red');
+      cursor.range = {index: 5, length: 0};
+      listeners['text-change']({ops: [{retain: 3}, {insert: 'x'}]});
+      localCursors.destroy();
+      jest.runAllTimers();
+
+      expect(cursor.range.index).toBe(5);
+      jest.useRealTimers();
+    });
+
+    it('is idempotent — calling destroy twice does not throw or repeat cleanup', () => {
+      jest.spyOn(quill, 'off');
+      cursors.destroy();
+      const callsAfterFirst = (quill.off as jest.Mock).mock.calls.length;
+      expect(() => cursors.destroy()).not.toThrow();
+      expect((quill.off as jest.Mock).mock.calls.length).toBe(callsAfterFirst);
+    });
+
+    it('cancels pending touchstart timers', () => {
+      jest.useFakeTimers();
+      const cursor = cursors.createCursor('abc', 'Jane', 'red');
+      jest.spyOn(cursor, 'toggleFlag');
+      editor.dispatchEvent(new MouseEvent('touchstart'));
+      cursors.destroy();
+      jest.runAllTimers();
+      expect(cursor.toggleFlag).not.toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it('ignores moveCursor calls after destroy', () => {
+      cursors.createCursor('abc', 'Jane', 'red');
+      cursors.destroy();
+      expect(() => cursors.moveCursor('abc', {index: 0, length: 0})).not.toThrow();
+    });
+
+    it('ignores update calls after destroy', () => {
+      cursors.createCursor('abc', 'Jane', 'red');
+      cursors.destroy();
+      expect(() => cursors.update()).not.toThrow();
+    });
+
+    it('ignores toggleFlag calls after destroy', () => {
+      cursors.createCursor('abc', 'Jane', 'red');
+      cursors.destroy();
+      expect(() => cursors.toggleFlag('abc', true)).not.toThrow();
+    });
+
+    it('ignores removeCursor calls after destroy', () => {
+      cursors.createCursor('abc', 'Jane', 'red');
+      cursors.destroy();
+      expect(() => cursors.removeCursor('abc')).not.toThrow();
+    });
+
+    it('ignores clearCursors calls after destroy', () => {
+      cursors.createCursor('abc', 'Jane', 'red');
+      cursors.destroy();
+      expect(() => cursors.clearCursors()).not.toThrow();
     });
   });
 
