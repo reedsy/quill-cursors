@@ -20,7 +20,7 @@ jobs:
         registry-url: 'https://npm.pkg.github.com'
     - name: Install
       # Skip post-install to avoid malicious scripts stealing PAT
-      run: npm install --ignore-script
+      run: npm install --ignore-scripts
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Post-install
