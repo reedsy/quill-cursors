@@ -104,11 +104,11 @@ or direct method references.
 `_onScroll` and `_handleCursorTouch` must remain as arrow properties — they are DOM events
 that require stable references for `removeEventListener`.
 
-- [ ] Delete `private readonly _onSelectionChange` arrow property; pass inline arrow to `_addQuillListener` in `_registerSelectionChangeListeners()`
-- [ ] Delete `private readonly _onTextChange` arrow property; pass `(delta) => this._handleTextChange(delta)` (or direct bound ref) to `_addQuillListener` in `_registerTextChangeListener()`
-- [ ] Verify `_onScroll` and `_handleCursorTouch` arrow properties are untouched
-- [ ] Update any spec references that spy on `_onSelectionChange` / `_onTextChange` directly
-- [ ] Run tests — must pass before Task 5
+- [x] Delete `private readonly _onSelectionChange` arrow property; pass inline arrow to `_addQuillListener` in `_registerSelectionChangeListeners()`
+- [x] Delete `private readonly _onTextChange` arrow property; pass `(delta) => this._handleTextChange(delta)` (or direct bound ref) to `_addQuillListener` in `_registerTextChangeListener()`
+- [x] Verify `_onScroll` and `_handleCursorTouch` arrow properties are untouched
+- [x] Update any spec references that spy on `_onSelectionChange` / `_onTextChange` directly (none found)
+- [x] Run tests — must pass before Task 5
 
 ---
 
