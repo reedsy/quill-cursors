@@ -99,8 +99,8 @@ export default class QuillCursors {
 
   public destroy(): void {
     if (this._destroyed) return;
-    this.clearCursors();
     this._destroyed = true;
+    this.clearCursors();
     this._touchTimerIds.forEach((id) => clearTimeout(id));
     this._touchTimerIds = [];
     this._quillListeners.forEach(({ event, wrapped }) => this.quill.off(event, wrapped));
@@ -132,7 +132,7 @@ export default class QuillCursors {
   private _addQuillListener(event: string, handler: (...args: any[]) => void): void {
     const wrapped = (...args: any[]): void => {
       if (this.quill.constructor.find(this.quill.container)) {
-        handler.apply(this, args);
+        handler(...args);
         return;
       }
       this.quill.off(event, wrapped);
@@ -152,7 +152,7 @@ export default class QuillCursors {
   private _registerTextChangeListener(): void {
     this._addQuillListener(
       this.quill.constructor.events.TEXT_CHANGE,
-      (delta: any) => { this._handleTextChange(delta); },
+      (delta: Delta) => { this._handleTextChange(delta); },
     );
   }
 
@@ -269,7 +269,7 @@ export default class QuillCursors {
     return leaf && leaf[0] && leaf[0].domNode && leaf[1] >= 0;
   }
 
-  private _handleTextChange(delta: any): void {
+  private _handleTextChange(delta: Delta): void {
     // Wrap in a timeout to give the text change an opportunity to finish
     // before checking for the current selection
     window.setTimeout(() => {
@@ -358,7 +358,7 @@ export default class QuillCursors {
     }, []);
   }
 
-  private _transformCursors(delta: any): void {
+  private _transformCursors(delta: Delta): void {
     delta = new Delta(delta);
 
     this.cursors()

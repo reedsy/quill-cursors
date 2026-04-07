@@ -1,5 +1,6 @@
 # 4.3.0
 - Add `destroy()` method for proper cleanup: removes event listeners, disconnects ResizeObserver, clears pending timers, and removes the cursor container from the DOM
+- Auto-teardown: when the Quill container is removed from the DOM, the module detects this on the next Quill event and calls `destroy()` automatically
 
 # 4.2.0
 - Add CSP-compatible core bundle (`dist/quill-cursors.core.js`) that does not inject inline styles, solving CSP violations for Shadow DOM users (#97)
