@@ -33,6 +33,7 @@ describe('QuillCursors', () => {
         sources: {
           API: 'api',
         },
+        find: jest.fn(),
       },
       addContainer: (className: string): HTMLElement => {
         const cursorsContainer = document.createElement('DIV');
@@ -61,6 +62,8 @@ describe('QuillCursors', () => {
     editor.classList.add('ql-editor');
     quill.container.appendChild(editor);
     quill.root = editor;
+
+    quill.constructor.find.mockReturnValue(quill);
 
     (ResizeObserver as any).mockClear();
     mockObserver.mockClear();
@@ -1024,6 +1027,68 @@ describe('QuillCursors', () => {
       cursors.createCursor('abc', 'Jane', 'red');
       cursors.destroy();
       expect(() => cursors.clearCursors()).not.toThrow();
+    });
+
+    describe('auto-teardown via Quill.find', () => {
+      it('forwards events to handler when Quill.find returns the instance', () => {
+        const listeners: any = {};
+        jest.spyOn(quill, 'on').mockImplementation(((event: string, cb: Function) => {
+          listeners[event] = cb;
+        }) as any);
+        quill.constructor.find.mockReturnValue(quill);
+
+        const localCursors = new QuillCursors(quill);
+        jest.spyOn(localCursors as any, '_handleTextChange');
+        listeners['text-change']({ops: []});
+
+        expect((localCursors as any)._handleTextChange).toHaveBeenCalledWith({ops: []});
+      });
+
+      it('calls destroy and removes listener when Quill.find returns null', () => {
+        const listeners: any = {};
+        jest.spyOn(quill, 'on').mockImplementation(((event: string, cb: Function) => {
+          listeners[event] = cb;
+        }) as any);
+        jest.spyOn(quill, 'off');
+        quill.constructor.find.mockReturnValue(null);
+
+        const localCursors = new QuillCursors(quill);
+        jest.spyOn(localCursors, 'destroy');
+        listeners['text-change']({ops: []});
+
+        expect(quill.off).toHaveBeenCalledWith('text-change', expect.anything());
+        expect(localCursors.destroy).toHaveBeenCalled();
+      });
+
+      it('does not forward events after Quill.find returns null', () => {
+        const listeners: any = {};
+        jest.spyOn(quill, 'on').mockImplementation(((event: string, cb: Function) => {
+          listeners[event] = cb;
+        }) as any);
+        quill.constructor.find.mockReturnValue(null);
+
+        const localCursors = new QuillCursors(quill);
+        jest.spyOn(localCursors as any, '_handleTextChange');
+        listeners['text-change']({ops: []});
+
+        expect((localCursors as any)._handleTextChange).not.toHaveBeenCalled();
+      });
+
+      it('explicit destroy removes all quill listeners via _quillListeners loop', () => {
+        jest.spyOn(quill, 'off');
+        const localCursors = new QuillCursors(quill);
+        localCursors.destroy();
+
+        expect(quill.off).toHaveBeenCalledWith('text-change', expect.anything());
+        expect(quill.off).toHaveBeenCalledWith('selection-change', expect.anything());
+      });
+
+      it('clears _quillListeners after explicit destroy', () => {
+        const localCursors = new QuillCursors(quill);
+        expect((localCursors as any)._quillListeners).toHaveLength(2);
+        localCursors.destroy();
+        expect((localCursors as any)._quillListeners).toHaveLength(0);
+      });
     });
   });
 

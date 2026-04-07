@@ -27,6 +27,7 @@ export default class QuillCursors {
   private _destroyed = false;
   private _resizeObserver: ResizeObserver | null = null;
   private _touchTimerIds: ReturnType<typeof setTimeout>[] = [];
+  private _quillListeners: Array<{ event: string; wrapped: (...args: any[]) => void }> = [];
 
   public constructor(quill: any, options: IQuillCursorsOptions = {}) {
     this.quill = quill;
@@ -102,8 +103,8 @@ export default class QuillCursors {
     this._destroyed = true;
     this._touchTimerIds.forEach((id) => clearTimeout(id));
     this._touchTimerIds = [];
-    this.quill.off(this.quill.constructor.events.TEXT_CHANGE, this._onTextChange);
-    this.quill.off(this.quill.constructor.events.SELECTION_CHANGE, this._onSelectionChange);
+    this._quillListeners.forEach(({ event, wrapped }) => this.quill.off(event, wrapped));
+    this._quillListeners = [];
     this._editor.removeEventListener('scroll', this._onScroll);
     this._editor.removeEventListener('touchstart', this._handleCursorTouch);
     this._resizeObserver?.disconnect();
@@ -111,14 +112,6 @@ export default class QuillCursors {
     this._isObserving = false;
     this._container.parentNode?.removeChild(this._container);
   }
-
-  private readonly _onSelectionChange = (selection: IQuillRange): void => {
-    this._currentSelection = selection;
-  };
-
-  private readonly _onTextChange = (delta: any): void => {
-    this._handleTextChange(delta);
-  };
 
   private readonly _onScroll = (): void => {
     this.update();
@@ -136,17 +129,30 @@ export default class QuillCursors {
     });
   };
 
+  private _addQuillListener(event: string, handler: (...args: any[]) => void): void {
+    const wrapped = (...args: any[]): void => {
+      if (this.quill.constructor.find(this.quill.container)) {
+        handler.apply(this, args);
+        return;
+      }
+      this.quill.off(event, wrapped);
+      this.destroy();
+    };
+    this.quill.on(event, wrapped);
+    this._quillListeners.push({ event, wrapped });
+  }
+
   private _registerSelectionChangeListeners(): void {
-    this.quill.on(
+    this._addQuillListener(
       this.quill.constructor.events.SELECTION_CHANGE,
-      this._onSelectionChange,
+      (selection: IQuillRange) => { this._currentSelection = selection; },
     );
   }
 
   private _registerTextChangeListener(): void {
-    this.quill.on(
+    this._addQuillListener(
       this.quill.constructor.events.TEXT_CHANGE,
-      this._onTextChange,
+      (delta: any) => { this._handleTextChange(delta); },
     );
   }
 

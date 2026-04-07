@@ -70,8 +70,8 @@ requiring the consumer to call `destroy()` manually.
 Store all wrapped references in a `_quillListeners` array so `destroy()` can still
 explicitly remove them when the *plugin* is destroyed before Quill.
 
-- [ ] Add `private _quillListeners: Array<{ event: string; wrapped: (...args: any[]) => void }> = [];` field
-- [ ] Implement the helper:
+- [x] Add `private _quillListeners: Array<{ event: string; wrapped: (...args: any[]) => void }> = [];` field
+- [x] Implement the helper:
   ```typescript
   private _addQuillListener(event: string, handler: (...args: any[]) => void): void {
     const wrapped = (...args: any[]): void => {
@@ -86,12 +86,12 @@ explicitly remove them when the *plugin* is destroyed before Quill.
     this._quillListeners.push({ event, wrapped });
   }
   ```
-- [ ] Replace `_registerSelectionChangeListeners()` to use `_addQuillListener` instead of `quill.on`
-- [ ] Replace `_registerTextChangeListener()` to use `_addQuillListener` instead of `quill.on`
-- [ ] Update `destroy()`: replace the two `quill.off()` calls with a loop over `_quillListeners`, then set `_quillListeners = []`
-- [ ] Write tests for auto-teardown: when `Quill.find(container)` returns null, the handler self-removes and calls `destroy()`
-- [ ] Write tests confirming explicit `destroy()` still cleans up the Quill listeners
-- [ ] Run tests — must pass before Task 4
+- [x] Replace `_registerSelectionChangeListeners()` to use `_addQuillListener` instead of `quill.on`
+- [x] Replace `_registerTextChangeListener()` to use `_addQuillListener` instead of `quill.on`
+- [x] Update `destroy()`: replace the two `quill.off()` calls with a loop over `_quillListeners`, then set `_quillListeners = []`
+- [x] Write tests for auto-teardown: when `Quill.find(container)` returns null, the handler self-removes and calls `destroy()`
+- [x] Write tests confirming explicit `destroy()` still cleans up the Quill listeners
+- [x] Run tests — must pass before Task 4
 
 ---
 
