@@ -881,6 +881,12 @@ describe('QuillCursors', () => {
       expect(quill.container.querySelector('.ql-cursors')).toBeNull();
     });
 
+    it('does not throw when container is already detached from the DOM', () => {
+      const container = quill.container.querySelector('.ql-cursors');
+      container.parentNode.removeChild(container);
+      expect(() => cursors.destroy()).not.toThrow();
+    });
+
     it('removes the scroll listener', () => {
       jest.spyOn(editor, 'removeEventListener');
       cursors.destroy();

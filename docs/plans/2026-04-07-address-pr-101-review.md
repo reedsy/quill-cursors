@@ -51,12 +51,12 @@ Keep `_destroyed` in:
 - `_registerResizeObserver` (defensive: prevents re-registration via any unforeseen path)
 
 Remove `_destroyed` guard from:
-- [ ] `moveCursor()`
-- [ ] `removeCursor()`
-- [ ] `update()`
-- [ ] `clearCursors()`
-- [ ] `toggleFlag()`
-- [ ] Run tests — must pass before Task 3
+- [x] `moveCursor()`
+- [x] `removeCursor()`
+- [x] `update()`
+- [x] `clearCursors()`
+- [x] `toggleFlag()`
+- [x] Run tests — must pass before Task 3
 
 ---
 

@@ -55,8 +55,6 @@ export default class QuillCursors {
   }
 
   public moveCursor(id: string, range: IQuillRange): void {
-    if (this._destroyed) return;
-
     const cursor = this._cursors[id];
     if (!cursor) {
       return;
@@ -67,8 +65,6 @@ export default class QuillCursors {
   }
 
   public removeCursor(id: string): void {
-    if (this._destroyed) return;
-
     const cursor = this._cursors[id];
     if (!cursor) {
       return;
@@ -79,18 +75,14 @@ export default class QuillCursors {
   }
 
   public update(): void {
-    if (this._destroyed) return;
     this.cursors().forEach((cursor: Cursor) => this._updateCursor(cursor));
   }
 
   public clearCursors(): void {
-    if (this._destroyed) return;
     this.cursors().forEach((cursor: Cursor) => this.removeCursor(cursor.id));
   }
 
   public toggleFlag(id: string, shouldShow?: boolean): void {
-    if (this._destroyed) return;
-
     const cursor = this._cursors[id];
     if (!cursor) {
       return;
