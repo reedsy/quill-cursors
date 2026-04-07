@@ -114,14 +114,10 @@ export default class QuillCursors {
     this.quill.off(this.quill.constructor.events.SELECTION_CHANGE, this._onSelectionChange);
     this._editor.removeEventListener('scroll', this._onScroll);
     this._editor.removeEventListener('touchstart', this._handleCursorTouch);
-    if (this._resizeObserver) {
-      this._resizeObserver.disconnect();
-      this._resizeObserver = null;
-    }
+    this._resizeObserver?.disconnect();
+    this._resizeObserver = null;
     this._isObserving = false;
-    if (this._container.parentNode) {
-      this._container.parentNode.removeChild(this._container);
-    }
+    this._container.parentNode?.removeChild(this._container);
   }
 
   private readonly _onSelectionChange = (selection: IQuillRange): void => {
