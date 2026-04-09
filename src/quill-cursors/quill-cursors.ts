@@ -103,7 +103,7 @@ export default class QuillCursors {
     this.clearCursors();
     this._touchTimerIds.forEach((id) => clearTimeout(id));
     this._touchTimerIds = [];
-    this._quillListeners.forEach(({ event, wrapped }) => this.quill.off(event, wrapped));
+    this._quillListeners.forEach(({event, wrapped}) => this.quill.off(event, wrapped));
     this._quillListeners = [];
     this._editor.removeEventListener('scroll', this._onScroll);
     this._editor.removeEventListener('touchstart', this._handleCursorTouch);
@@ -139,20 +139,24 @@ export default class QuillCursors {
       this.destroy();
     };
     this.quill.on(event, wrapped);
-    this._quillListeners.push({ event, wrapped });
+    this._quillListeners.push({event, wrapped});
   }
 
   private _registerSelectionChangeListeners(): void {
     this._addQuillListener(
       this.quill.constructor.events.SELECTION_CHANGE,
-      (selection: IQuillRange) => { this._currentSelection = selection; },
+      (selection: IQuillRange) => {
+        this._currentSelection = selection;
+      },
     );
   }
 
   private _registerTextChangeListener(): void {
     this._addQuillListener(
       this.quill.constructor.events.TEXT_CHANGE,
-      (delta: Delta) => { this._handleTextChange(delta); },
+      (delta: Delta) => {
+        this._handleTextChange(delta);
+      },
     );
   }
 

@@ -1053,8 +1053,12 @@ describe('QuillCursors', () => {
 
         const localCursors = new QuillCursors(quill);
         const callOrder: string[] = [];
-        jest.spyOn(quill, 'off').mockImplementation(() => { callOrder.push('off'); });
-        jest.spyOn(localCursors, 'destroy').mockImplementation(() => { callOrder.push('destroy'); });
+        jest.spyOn(quill, 'off').mockImplementation(() => {
+          callOrder.push('off');
+        });
+        jest.spyOn(localCursors, 'destroy').mockImplementation(() => {
+          callOrder.push('destroy');
+        });
         listeners['text-change']({ops: []});
 
         expect(quill.off).toHaveBeenCalledWith('text-change', expect.anything());
