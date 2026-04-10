@@ -1125,6 +1125,42 @@ describe('QuillCursors', () => {
         expect((localCursors as any)._quillListeners).toHaveLength(0);
       });
     });
+
+    describe('_addDomListener', () => {
+      it('does not fire scroll handler when quill.constructor.find returns null', () => {
+        quill.constructor.find.mockReturnValue(null);
+        const localCursors = new QuillCursors(quill);
+        jest.spyOn(localCursors, 'update');
+        editor.dispatchEvent(new Event('scroll'));
+        expect(localCursors.update).not.toHaveBeenCalled();
+      });
+
+      it('calls destroy and removes the DOM listener when quill.constructor.find returns null on scroll', () => {
+        quill.constructor.find.mockReturnValue(null);
+        const localCursors = new QuillCursors(quill);
+        jest.spyOn(localCursors, 'destroy');
+        const removeListenerSpy = jest.spyOn(editor, 'removeEventListener');
+        editor.dispatchEvent(new Event('scroll'));
+        expect(localCursors.destroy).toHaveBeenCalled();
+        expect(removeListenerSpy).toHaveBeenCalledWith('scroll', expect.anything());
+      });
+
+      it('does not fire touchstart handler when quill.constructor.find returns null', () => {
+        quill.constructor.find.mockReturnValue(null);
+        const localCursors = new QuillCursors(quill);
+        const cursor = localCursors.createCursor('abc', 'Jane', 'red');
+        jest.spyOn(cursor, 'toggleNearCursor');
+        editor.dispatchEvent(new TouchEvent('touchstart'));
+        expect(cursor.toggleNearCursor).not.toHaveBeenCalled();
+      });
+
+      it('clears _domListeners after explicit destroy', () => {
+        const localCursors = new QuillCursors(quill);
+        expect((localCursors as any)._domListeners.length).toBeGreaterThan(0);
+        localCursors.destroy();
+        expect((localCursors as any)._domListeners).toHaveLength(0);
+      });
+    });
   });
 
   function createLeaf(tag?: string): any[] {

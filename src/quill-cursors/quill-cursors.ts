@@ -28,6 +28,7 @@ export default class QuillCursors {
   private _resizeObserver: ResizeObserver | null = null;
   private _touchTimerIds: ReturnType<typeof setTimeout>[] = [];
   private _quillListeners: Array<{ event: string; wrapped: (...args: any[]) => void }> = [];
+  private _domListeners: Array<{target: HTMLElement; event: string; wrapped: EventListener}> = [];
 
   public constructor(quill: any, options: IQuillCursorsOptions = {}) {
     this.quill = quill;
@@ -105,8 +106,8 @@ export default class QuillCursors {
     this._touchTimerIds = [];
     this._quillListeners.forEach(({event, wrapped}) => this.quill.off(event, wrapped));
     this._quillListeners = [];
-    this._editor.removeEventListener('scroll', this._onScroll);
-    this._editor.removeEventListener('touchstart', this._handleCursorTouch);
+    this._domListeners.forEach(({target, event, wrapped}) => target.removeEventListener(event, wrapped));
+    this._domListeners = [];
     this._resizeObserver?.disconnect();
     this._resizeObserver = null;
     this._isObserving = false;
@@ -142,6 +143,25 @@ export default class QuillCursors {
     this._quillListeners.push({event, wrapped});
   }
 
+  private _addDomListener(
+    target: HTMLElement,
+    event: string,
+    handler: EventListener,
+    options?: AddEventListenerOptions,
+  ): void {
+    const wrapped: EventListener = (...args: Parameters<EventListener>): void => {
+      if (this.quill.constructor.find(this.quill.container)) {
+        handler(...args);
+        return;
+      }
+      target.removeEventListener(event, wrapped);
+      this._domListeners = this._domListeners.filter((l) => l.wrapped !== wrapped);
+      this.destroy();
+    };
+    target.addEventListener(event, wrapped, options);
+    this._domListeners.push({target, event, wrapped});
+  }
+
   private _registerSelectionChangeListeners(): void {
     this._addQuillListener(
       this.quill.constructor.events.SELECTION_CHANGE,
@@ -161,8 +181,8 @@ export default class QuillCursors {
   }
 
   private _registerDomListeners(): void {
-    this._editor.addEventListener('scroll', this._onScroll, {passive: true});
-    this._editor.addEventListener('touchstart', this._handleCursorTouch, {passive: true});
+    this._addDomListener(this._editor, 'scroll', this._onScroll, {passive: true});
+    this._addDomListener(this._editor, 'touchstart', this._handleCursorTouch as EventListener, {passive: true});
   }
 
   private _registerResizeObserver(): void {
