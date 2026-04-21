@@ -1044,7 +1044,7 @@ describe('QuillCursors', () => {
         expect((localCursors as any)._handleTextChange).toHaveBeenCalledWith({ops: []});
       });
 
-      it('calls destroy and removes listener when Quill.find returns null', () => {
+      it('calls destroy when Quill.find returns null', () => {
         const listeners: any = {};
         jest.spyOn(quill, 'on').mockImplementation(((event: string, cb: Function) => {
           listeners[event] = cb;
@@ -1052,18 +1052,10 @@ describe('QuillCursors', () => {
         quill.constructor.find.mockReturnValue(null);
 
         const localCursors = new QuillCursors(quill);
-        const callOrder: string[] = [];
-        jest.spyOn(quill, 'off').mockImplementation(() => {
-          callOrder.push('off');
-        });
-        jest.spyOn(localCursors, 'destroy').mockImplementation(() => {
-          callOrder.push('destroy');
-        });
+        jest.spyOn(localCursors, 'destroy');
         listeners['text-change']({ops: []});
 
-        expect(quill.off).toHaveBeenCalledWith('text-change', expect.anything());
         expect(localCursors.destroy).toHaveBeenCalled();
-        expect(callOrder).toEqual(['off', 'destroy']);
       });
 
       it('does not forward events after Quill.find returns null', () => {

@@ -136,7 +136,6 @@ export default class QuillCursors {
         handler(...args);
         return;
       }
-      this.quill.off(event, wrapped);
       this.destroy();
     };
     this.quill.on(event, wrapped);
@@ -154,8 +153,6 @@ export default class QuillCursors {
         handler(...args);
         return;
       }
-      target.removeEventListener(event, wrapped);
-      this._domListeners = this._domListeners.filter((l) => l.wrapped !== wrapped);
       this.destroy();
     };
     target.addEventListener(event, wrapped, options);
