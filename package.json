@@ -1,6 +1,6 @@
 {
   "name": "quill-cursors",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "A multi cursor module for Quill.",
   "keywords": [
     "quill",
@@ -11,7 +11,7 @@
   "contributors": [
     "Pedro Machado Santa <pedro.santa@gmail.com>",
     "Alec Gibson <alec@reedsy.com>",
-    "Oleg Petrov <oleg@reedsy.com>"
+    "Oleg Petrov <oleg@fyvfyv.com>"
   ],
   "license": "MIT",
   "main": "dist/quill-cursors.js",

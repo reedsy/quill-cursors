@@ -21,15 +21,21 @@ export default class QuillCursors {
   private readonly _cursors: { [id: string]: Cursor } = {};
   private readonly _container: HTMLElement;
   private readonly _boundsContainer: HTMLElement;
+  private readonly _editor: HTMLElement;
   private _currentSelection: IQuillRange;
   private _isObserving = false;
+  private _destroyed = false;
+  private _resizeObserver: ResizeObserver | null = null;
+  private _touchTimerIds: ReturnType<typeof setTimeout>[] = [];
+  private _quillListeners: Array<{ event: string; wrapped: (...args: any[]) => void }> = [];
+  private _domListeners: Array<{target: HTMLElement; event: string; wrapped: EventListener}> = [];
 
   public constructor(quill: any, options: IQuillCursorsOptions = {}) {
-    this._handleCursorTouch = this._handleCursorTouch.bind(this);
     this.quill = quill;
     this.options = this._setDefaults(options);
     this._container = this.quill.addContainer(this.options.containerClass);
     this._boundsContainer = this.options.boundsContainer || this.quill.container;
+    this._editor = this.quill.root;
     this._currentSelection = this.quill.getSelection();
 
     this._registerSelectionChangeListeners();
@@ -92,8 +98,69 @@ export default class QuillCursors {
       .map((key) => this._cursors[key]);
   }
 
+  public destroy(): void {
+    if (this._destroyed) return;
+    this._destroyed = true;
+    this.clearCursors();
+    this._touchTimerIds.forEach((id) => clearTimeout(id));
+    this._touchTimerIds = [];
+    this._quillListeners.forEach(({event, wrapped}) => this.quill.off(event, wrapped));
+    this._quillListeners = [];
+    this._domListeners.forEach(({target, event, wrapped}) => target.removeEventListener(event, wrapped));
+    this._domListeners = [];
+    this._resizeObserver?.disconnect();
+    this._resizeObserver = null;
+    this._isObserving = false;
+    this._container.parentNode?.removeChild(this._container);
+  }
+
+  private readonly _onScroll = (): void => {
+    this.update();
+  };
+
+  private readonly _handleCursorTouch = (e: MouseEvent): void => {
+    this.cursors().forEach((cursor) => {
+      cursor.toggleNearCursor(e.pageX, e.pageY);
+      const timerId = setTimeout(() => {
+        const index = this._touchTimerIds.indexOf(timerId);
+        if (index !== -1) this._touchTimerIds.splice(index, 1);
+        cursor.toggleFlag(false);
+      }, this.options.hideDelayMs);
+      this._touchTimerIds.push(timerId);
+    });
+  };
+
+  private _addQuillListener(event: string, handler: (...args: any[]) => void): void {
+    const wrapped = (...args: any[]): void => {
+      if (this.quill.constructor.find(this.quill.container)) {
+        handler(...args);
+        return;
+      }
+      this.destroy();
+    };
+    this.quill.on(event, wrapped);
+    this._quillListeners.push({event, wrapped});
+  }
+
+  private _addDomListener(
+    target: HTMLElement,
+    event: string,
+    handler: EventListener,
+    options?: AddEventListenerOptions,
+  ): void {
+    const wrapped: EventListener = (...args: Parameters<EventListener>): void => {
+      if (this.quill.constructor.find(this.quill.container)) {
+        handler(...args);
+        return;
+      }
+      this.destroy();
+    };
+    target.addEventListener(event, wrapped, options);
+    this._domListeners.push({target, event, wrapped});
+  }
+
   private _registerSelectionChangeListeners(): void {
-    this.quill.on(
+    this._addQuillListener(
       this.quill.constructor.events.SELECTION_CHANGE,
       (selection: IQuillRange) => {
         this._currentSelection = selection;
@@ -102,39 +169,36 @@ export default class QuillCursors {
   }
 
   private _registerTextChangeListener(): void {
-    this.quill.on(
+    this._addQuillListener(
       this.quill.constructor.events.TEXT_CHANGE,
-      (delta: any) => this._handleTextChange(delta),
+      (delta: Delta) => {
+        this._handleTextChange(delta);
+      },
     );
   }
 
   private _registerDomListeners(): void {
-    const editor = this.quill.container.getElementsByClassName('ql-editor')[0] as HTMLElement;
-    editor.addEventListener('scroll', () => this.update(), {passive: true});
-    editor.addEventListener('touchstart', this._handleCursorTouch, {passive: true});
-  }
-
-  private _handleCursorTouch(e: MouseEvent): void {
-    this.cursors().forEach((cursor) => {
-      cursor.toggleNearCursor(e.pageX, e.pageY);
-      setTimeout(() => cursor.toggleFlag(false), this.options.hideDelayMs);
-    });
+    this._addDomListener(this._editor, 'scroll', this._onScroll, {passive: true});
+    this._addDomListener(this._editor, 'touchstart', this._handleCursorTouch as EventListener, {passive: true});
   }
 
   private _registerResizeObserver(): void {
-    if (this._isObserving) return;
-    const editor = this.quill.container.getElementsByClassName('ql-editor')[0];
+    if (this._destroyed || this._isObserving) return;
+    const editor = this._editor;
 
-    const resizeObserver = new ResizeObserver(([entry]: ResizeObserverEntry[]) => {
+    this._resizeObserver = new ResizeObserver(([entry]: ResizeObserverEntry[]) => {
       if (!entry.target.isConnected) {
-        resizeObserver.disconnect();
+        if (this._resizeObserver) {
+          this._resizeObserver.disconnect();
+          this._resizeObserver = null;
+        }
         this._isObserving = false;
         return;
       }
       this.update();
     });
 
-    resizeObserver.observe(editor);
+    this._resizeObserver.observe(editor);
     this._isObserving = true;
   }
 
@@ -226,10 +290,11 @@ export default class QuillCursors {
     return leaf && leaf[0] && leaf[0].domNode && leaf[1] >= 0;
   }
 
-  private _handleTextChange(delta: any): void {
+  private _handleTextChange(delta: Delta): void {
     // Wrap in a timeout to give the text change an opportunity to finish
     // before checking for the current selection
     window.setTimeout(() => {
+      if (this._destroyed) return;
       if (this.options.transformOnTextChange) {
         this._transformCursors(delta);
       }
@@ -314,7 +379,7 @@ export default class QuillCursors {
     }, []);
   }
 
-  private _transformCursors(delta: any): void {
+  private _transformCursors(delta: Delta): void {
     delta = new Delta(delta);
 
     this.cursors()

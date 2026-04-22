@@ -202,6 +202,16 @@ cursors(): Cursor[];
 
 Returns an array of all the `Cursor` objects in the DOM in no particular order.
 
+#### `destroy`
+
+```typescript
+destroy(): void;
+```
+
+Cleans up the QuillCursors instance: removes all cursors from the DOM, unregisters all event listeners (scroll, touchstart, text-change, selection-change), disconnects the ResizeObserver, and removes the cursors container element. Call this when tearing down the editor to avoid memory leaks.
+
+Additionally, `QuillCursors` will detect when the Quill container has been removed from the DOM and call `destroy()` automatically. In most cases, explicit teardown is not needed.
+
 ## RTL Support
 
 `quill-cursors` automatically detects right-to-left text direction (e.g. Hebrew, Arabic) and positions cursors and flags at the correct character edge. No additional configuration is required.
