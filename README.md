@@ -14,6 +14,25 @@ A collaborative editing module for the [Quill](https://github.com/quilljs/quill)
 npm install quill-cursors --save
 ```
 
+## Browser support
+
+Since v5.0.0, selection ranges are painted by the browser using the native
+[CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API),
+which requires:
+
+| Chrome / Edge | Safari | Firefox |
+|---|---|---|
+| 111+ | 17.2+ | 140+ |
+
+In older browsers, `quill-cursors` degrades gracefully: carets and name flags
+still work (they are plain DOM elements), selection ranges are simply not
+drawn, and a single warning is logged to the console. If you need selection
+rendering in older browsers, stay on the 4.x release line.
+
+Cursor colors using CSS custom properties (e.g. `var(--user-color)`) resolve
+inside highlight rules in Chrome/Edge 122+; Safari and Firefox support them
+from the same versions as the API itself.
+
 ## Usage
 
 `quill-cursors` is a Quill module that exposes a number of methods to help display other users' cursors for
@@ -66,7 +85,7 @@ npm start
 
 The `quill-cursors` module has the following optional configuration:
 
-  - `template` _string_: override the default HTML template used for a cursor
+  - `template` _string_: override the default HTML template used for a cursor (since v5, a selections element is no longer used and may be omitted)
   - `containerClass` _string_ (default: `ql-cursors`): the CSS class to add to the cursors container
   - `hideDelayMs` _number_ (default: `3000`): number of milliseconds to show the username flag before hiding it
   - `hideSpeedMs` _number_ (default: `400`): the duration of the flag hiding animation in milliseconds
@@ -143,8 +162,21 @@ Returns a `Cursor` object:
   name: string;
   color: string;
   range: Range; // See https://quilljs.com/docs/api/#selection-change
+  highlightName: string; // The name registered in CSS.highlights for this cursor's selection
 }
 ```
+
+The selection is painted via [`::highlight(<highlightName>)`](https://developer.mozilla.org/en-US/docs/Web/CSS/::highlight).
+You can layer your own styling on top from your application CSS, e.g.:
+
+```css
+::highlight(ql-cursor-highlight-0) {
+  text-decoration: underline;
+}
+```
+
+The numeric suffix depends on cursor creation order — always read the actual
+name from `cursor.highlightName` rather than hard-coding it.
 
 #### `moveCursor`
 
@@ -266,6 +298,12 @@ link.rel = 'stylesheet';
 link.href = 'path/to/quill-cursors.min.css';
 shadowRoot.appendChild(link);
 ```
+
+Selection highlights are styled with
+[constructable stylesheets](https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet/CSSStyleSheet)
+adopted into the editor's document (or shadow root). These are not inline
+styles, so they work under strict CSP in **both** bundles, and automatically
+end up in the correct shadow root.
 
 ## License
 

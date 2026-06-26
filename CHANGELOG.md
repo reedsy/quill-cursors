@@ -1,3 +1,34 @@
+# 5.0.0
+
+### ⚠ BREAKING CHANGES
+
+Selections are now rendered with the native
+[CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API)
+instead of manually-positioned rectangles ([#98](https://github.com/reedsy/quill-cursors/issues/98)).
+
+* Browser support floor is now Chrome/Edge 111+, Safari 17.2+, Firefox 140+. Older
+  browsers still render carets and flags, but not selections (one console warning).
+* The default cursor template no longer contains `<span class="ql-cursor-selections">`;
+  custom templates may keep it, but it is ignored. `.ql-cursor-selection-block` spans are
+  no longer rendered at all — remove any application CSS targeting that class.
+* Removed `Cursor.SELECTION_CLASS`, `Cursor.SELECTION_BLOCK_CLASS` and
+  `Cursor.SELECTION_ELEMENT_TAG`; `cursor.updateSelection(rects, container)` is replaced
+  by `cursor.setSelectionRange(range: Range | null)`.
+* Block embeds (images, videos) within a remote selection are no longer covered by a
+  tinted rectangle — highlights paint text, matching native selection behaviour.
+* Dropped the `rangefix` and `resize-observer-polyfill` dependencies; the bundles are
+  significantly smaller, and scroll/resize now only reposition carets (the browser
+  repaints highlights natively).
+
+### Features
+
+* `cursor.highlightName` exposes the `CSS.highlights` registry name, so applications
+  can layer extra styling via `::highlight(<name>)`.
+* Selection highlight styles use constructable stylesheets: CSP-safe in both bundles,
+  Shadow-DOM-aware (the stylesheet is adopted into the editor's actual root).
+* Cursor colors validated via `CSS.supports()` before being written into highlight
+  rules; invalid values fall back to `transparent`.
+
 # 4.3.0
 - Add `destroy()` method for proper cleanup: removes event listeners, disconnects ResizeObserver, clears pending timers, and removes the cursor container from the DOM
 - Auto-teardown: when the Quill container is removed from the DOM, the module detects this on the next Quill event and calls `destroy()` automatically

@@ -1,6 +1,8 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/src/jest.setup.ts'],
+  coveragePathIgnorePatterns: ['/node_modules/', '<rootDir>/src/jest.setup.ts'],
   coverageThreshold: {
     global: {
       branches: 100,

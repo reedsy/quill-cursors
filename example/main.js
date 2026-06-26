@@ -30,7 +30,7 @@ const cursorsOne = quillOne.getModule('cursors');
 const cursorsTwo = quillTwo.getModule('cursors');
 
 cursorsOne.createCursor('cursor', 'User 2', 'blue');
-cursorsTwo.createCursor('cursor', 'User 1', 'red');
+cursorsTwo.createCursor('cursor', 'User 1', 'var(--demo-cursor-color)');
 
 function textChangeHandler(quill) {
   return function(delta, oldContents, source) {

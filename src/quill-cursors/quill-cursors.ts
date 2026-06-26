@@ -1,9 +1,8 @@
 import IQuillCursorsOptions from './i-quill-cursors-options';
 import Cursor from './cursor';
 import IQuillRange from './i-range';
-import * as RangeFix from 'rangefix';
+import CursorHighlight from './cursor-highlight';
 import template from './template';
-import ResizeObserver from 'resize-observer-polyfill';
 import Delta = require('quill-delta');
 
 export default class QuillCursors {
@@ -31,6 +30,7 @@ export default class QuillCursors {
   private _domListeners: Array<{target: HTMLElement; event: string; wrapped: EventListener}> = [];
 
   public constructor(quill: any, options: IQuillCursorsOptions = {}) {
+    CursorHighlight.warnIfUnsupported();
     this.quill = quill;
     this.options = this._setDefaults(options);
     this._container = this.quill.addContainer(this.options.containerClass);
@@ -115,8 +115,18 @@ export default class QuillCursors {
   }
 
   private readonly _onScroll = (): void => {
-    this.update();
+    this._updateCaretPositions();
   };
+
+  // Highlights are repainted natively by the browser on scroll/resize; only
+  // the absolutely-positioned caret and flag go stale. Skipping the range
+  // rebuild also avoids needless highlight repaints. Trade-off: if a cursor
+  // was hidden by a SILENT content change (no text-change event), this path
+  // re-shows its caret but its selection stays unpainted until the next full
+  // update — preferable to v4, which re-revealed stale, mispositioned rects.
+  private _updateCaretPositions(): void {
+    this.cursors().forEach((cursor: Cursor) => this._updateCursor(cursor, true));
+  }
 
   private readonly _handleCursorTouch = (e: MouseEvent): void => {
     this.cursors().forEach((cursor) => {
@@ -195,14 +205,14 @@ export default class QuillCursors {
         this._isObserving = false;
         return;
       }
-      this.update();
+      this._updateCaretPositions();
     });
 
     this._resizeObserver.observe(editor);
     this._isObserving = true;
   }
 
-  private _updateCursor(cursor: Cursor): void {
+  private _updateCursor(cursor: Cursor, caretOnly = false): void {
     this._registerResizeObserver();
 
     if (!cursor.range) {
@@ -230,11 +240,11 @@ export default class QuillCursors {
     }
     cursor.updateCaret(endBounds, containerRectangle);
 
-    const ranges = this._lineRanges(cursor, startLeaf, endLeaf);
-    const selectionRectangles = ranges
-      .reduce((rectangles, range) => rectangles.concat(Array.from(RangeFix.getClientRects(range))), []);
+    if (caretOnly) {
+      return;
+    }
 
-    cursor.updateSelection(selectionRectangles, containerRectangle);
+    cursor.setSelectionRange(this._selectionRange(cursor, startLeaf, endLeaf));
   }
 
   // Quill's getBounds() returns width:0 for cursor positions, losing the
@@ -338,45 +348,31 @@ export default class QuillCursors {
     return options;
   }
 
-  // Rather than just use the start leaf and end leaf directly to build a single range,
-  // we instead find all the lines in that single range and create a sub-range for each
-  // of these lines. This avoids the browser creating a range around an entire paragraph
-  // element, and instead forces the browser to draw rectangles around the paragraph's
-  // constituent text nodes, which is more consistent with the existing browser selection
-  // behaviour.
-  private _lineRanges(cursor: Cursor, startLeaf: any[], endLeaf: any[]): Range[] {
-    const lines = this.quill.getLines(cursor.range);
-    return lines.reduce((ranges: Range[], line: any, index: number) => {
-      if (!line.children) {
-        const singleElementRange = document.createRange();
-        singleElementRange.selectNode(line.domNode);
-        return ranges.concat(singleElementRange);
-      }
+  // Builds a single DOM Range spanning the cursor's selection. The CSS Custom
+  // Highlight API paints a multi-line range exactly like a native selection,
+  // so no per-line splitting or rectangle computation is needed.
+  private _selectionRange(cursor: Cursor, startLeaf: any[], endLeaf: any[]): Range | null {
+    if (!cursor.range.length) {
+      return null;
+    }
 
-      const [rangeStart, startOffset] = index === 0 ?
-        startLeaf :
-        line.path(0).pop();
+    const range = document.createRange();
+    const [startBlot, startOffset] = startLeaf;
+    const [endBlot, endOffset] = endLeaf;
 
-      const [rangeEnd, endOffset] = index === lines.length - 1 ?
-        endLeaf :
-        line.path(line.length() - 1).pop();
+    if (startBlot.domNode.nodeType === Node.TEXT_NODE) {
+      range.setStart(startBlot.domNode, startOffset);
+    } else {
+      range.setStartBefore(startBlot.domNode);
+    }
 
-      const range = document.createRange();
+    if (endBlot.domNode.nodeType === Node.TEXT_NODE) {
+      range.setEnd(endBlot.domNode, endOffset);
+    } else {
+      range.setEndAfter(endBlot.domNode);
+    }
 
-      if (rangeStart.domNode.nodeType === Node.TEXT_NODE) {
-        range.setStart(rangeStart.domNode, startOffset);
-      } else {
-        range.setStartBefore(rangeStart.domNode);
-      }
-
-      if (rangeEnd.domNode.nodeType === Node.TEXT_NODE) {
-        range.setEnd(rangeEnd.domNode, endOffset);
-      } else {
-        range.setEndAfter(rangeEnd.domNode);
-      }
-
-      return ranges.concat(range);
-    }, []);
+    return range.collapsed ? null : range;
   }
 
   private _transformCursors(delta: Delta): void {

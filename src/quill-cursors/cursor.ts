@@ -1,13 +1,11 @@
 import IQuillCursorsOptions from './i-quill-cursors-options';
 import IQuillRange from './i-range';
 import {ICoordinates} from './i-coordinates';
+import CursorHighlight from './cursor-highlight';
 
 export default class Cursor {
   public static readonly CONTAINER_ELEMENT_TAG = 'SPAN';
-  public static readonly SELECTION_ELEMENT_TAG = 'SPAN';
   public static readonly CURSOR_CLASS = 'ql-cursor';
-  public static readonly SELECTION_CLASS = 'ql-cursor-selections';
-  public static readonly SELECTION_BLOCK_CLASS = 'ql-cursor-selection-block';
   public static readonly CARET_CLASS = 'ql-cursor-caret';
   public static readonly CARET_CONTAINER_CLASS = 'ql-cursor-caret-container';
   public static readonly CONTAINER_HOVER_CLASS = 'hover';
@@ -22,19 +20,22 @@ export default class Cursor {
   public readonly name: string;
   public readonly color: string;
   public range: IQuillRange;
+  public readonly highlightName: string;
 
   private _el: HTMLElement;
-  private _selectionEl: HTMLElement;
   private _caretEl: HTMLElement;
   private _flagEl: HTMLElement;
   private _hideDelay: string;
   private _hideSpeedMs: number;
   private _positionFlag: (flag: HTMLElement, caretRectangle: ClientRect, container: ClientRect) => void;
+  private readonly _highlight: CursorHighlight;
 
   public constructor(id: string, name: string, color: string) {
     this.id = id;
     this.name = name;
     this.color = color;
+    this._highlight = new CursorHighlight(color);
+    this.highlightName = this._highlight.name;
     this.toggleNearCursor = this.toggleNearCursor.bind(this);
     this._toggleOpenedCursor = this._toggleOpenedCursor.bind(this);
     this._setHoverState = this._setHoverState.bind(this);
@@ -45,7 +46,6 @@ export default class Cursor {
     element.classList.add(Cursor.CURSOR_CLASS);
     element.id = `ql-cursor-${ this.id }`;
     element.innerHTML = options.template;
-    const selectionElement = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0] as HTMLElement;
     const caretContainerElement = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0] as HTMLElement;
     const caretElement = caretContainerElement.getElementsByClassName(Cursor.CARET_CLASS)[0] as HTMLElement;
     const flagElement = element.getElementsByClassName(Cursor.FLAG_CLASS)[0] as HTMLElement;
@@ -62,7 +62,6 @@ export default class Cursor {
     flagElement.style.transitionDuration = `${this._hideSpeedMs}ms`;
 
     this._el = element;
-    this._selectionEl = selectionElement;
     this._caretEl = caretContainerElement;
     this._flagEl = flagElement;
 
@@ -75,11 +74,17 @@ export default class Cursor {
     this._el.classList.remove(Cursor.HIDDEN_CLASS);
   }
 
+  // Also clears the highlight: it lives in the global registry, not in this
+  // cursor's hidden DOM container. No restore needed on show() — full updates
+  // always follow show() with a selection update, and caret-only updates
+  // (scroll/resize) intentionally leave the highlight untouched.
   public hide(): void {
     this._el.classList.add(Cursor.HIDDEN_CLASS);
+    this._highlight.clear();
   }
 
   public remove(): void {
+    this._highlight.detach();
     this._el.parentNode.removeChild(this._el);
   }
 
@@ -116,13 +121,8 @@ export default class Cursor {
     }
   }
 
-  public updateSelection(selections: ClientRect[], container: ClientRect): void {
-    this._clearSelection();
-    selections = selections || [];
-    selections = Array.from(selections);
-    selections = this._sanitize(selections);
-    selections = this._sortByDomPosition(selections);
-    selections.forEach((selection: ClientRect) => this._addSelection(selection, container));
+  public setSelectionRange(range: Range | null): void {
+    this._highlight.setRange(range, this._el.getRootNode());
   }
 
   private _setHoverState(): void {
@@ -151,65 +151,5 @@ export default class Cursor {
     this._flagEl.style.top = `${caretRectangle.top}px`;
     // Chrome has an issue when doing translate3D with non integer width, this ceil is to overcome it.
     this._flagEl.style.width = `${Math.ceil(flagRect.width)}px`;
-  }
-
-  private _clearSelection(): void {
-    this._selectionEl.innerHTML = '';
-  }
-
-  private _addSelection(selection: ClientRect, container: ClientRect): void {
-    const selectionBlock = this._selectionBlock(selection, container);
-    this._selectionEl.appendChild(selectionBlock);
-  }
-
-  private _selectionBlock(selection: ClientRect, container: ClientRect): HTMLElement {
-    const element = document.createElement(Cursor.SELECTION_ELEMENT_TAG);
-
-    element.classList.add(Cursor.SELECTION_BLOCK_CLASS);
-    element.style.top = `${selection.top - container.top}px`;
-    element.style.left = `${selection.left - container.left}px`;
-    element.style.width = `${selection.width}px`;
-    element.style.height = `${selection.height}px`;
-    element.style.backgroundColor = this.color;
-    element.style.opacity = '0.3';
-
-    return element;
-  }
-
-  private _sortByDomPosition(selections: ClientRect[]): ClientRect[] {
-    return selections.sort((a, b) => {
-      if (a.top === b.top) {
-        return a.left - b.left;
-      }
-
-      return a.top - b.top;
-    });
-  }
-
-  private _sanitize(selections: ClientRect[]): ClientRect[] {
-    const serializedSelections = new Set();
-
-    return selections.filter((selection: ClientRect) => {
-      if (!selection.width || !selection.height) {
-        return false;
-      }
-
-      const serialized = this._serialize(selection);
-      if (serializedSelections.has(serialized)) {
-        return false;
-      }
-
-      serializedSelections.add(serialized);
-      return true;
-    });
-  }
-
-  private _serialize(selection: ClientRect): string {
-    return [
-      `top:${ selection.top }`,
-      `right:${ selection.right }`,
-      `bottom:${ selection.bottom }`,
-      `left:${ selection.left }`,
-    ].join(';');
   }
 }
