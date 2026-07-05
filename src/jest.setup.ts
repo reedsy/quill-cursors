@@ -55,15 +55,27 @@ class ResizeObserverStub {
 }
 
 (globalThis as any).Highlight = HighlightStub;
-(globalThis as any).CSS = Object.assign((globalThis as any).CSS ?? {}, {highlights: new Map()});
+(globalThis as any).CSS = Object.assign((globalThis as any).CSS ?? {}, {
+  highlights: new Map(),
+  supports: (): boolean => true,
+});
 (globalThis as any).CSSStyleSheet = CSSStyleSheetStub;
 (globalThis as any).ResizeObserver = ResizeObserverStub;
 
+// Production code mutates adoptedStyleSheets in place (push/splice), so each
+// document or shadow root must get its OWN array on first access — a shared
+// prototype default would leak sheets between instances and tests.
 [Document.prototype, ShadowRoot.prototype].forEach((proto) => {
   Object.defineProperty(proto, 'adoptedStyleSheets', {
     configurable: true,
-    writable: true,
-    value: [],
+    get(): any[] {
+      const value: any[] = [];
+      Object.defineProperty(this, 'adoptedStyleSheets', {configurable: true, writable: true, value});
+      return value;
+    },
+    set(value: any[]) {
+      Object.defineProperty(this, 'adoptedStyleSheets', {configurable: true, writable: true, value});
+    },
   });
 });
 

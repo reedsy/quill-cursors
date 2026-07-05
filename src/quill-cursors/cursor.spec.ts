@@ -8,6 +8,7 @@ describe('Cursor', () => {
 
   beforeEach(() => {
     template = `
+      <span class="ql-cursor-selections"></span>
       <span class="ql-cursor-caret-container">
         <span class="ql-cursor-caret"></span>
       </span>
@@ -39,6 +40,7 @@ describe('Cursor', () => {
     const element = new Cursor('abc', 'Jane Bloggs', 'red').build(options);
 
     expect(element).toContainHTML(`
+      <span class="ql-cursor-selections"></span>
       <span class="ql-cursor-caret-container">
         <span class="ql-cursor-caret" style="background-color: red;"></span>
       </span>
@@ -49,13 +51,21 @@ describe('Cursor', () => {
     `);
   });
 
-  it('tolerates legacy templates containing a selections element', () => {
+  it('tolerates templates without a selections element', () => {
     options.template = `
-      <span class="ql-cursor-selections"></span>
-      ${ template }
+      <span class="ql-cursor-caret-container">
+        <span class="ql-cursor-caret"></span>
+      </span>
+      <div class="ql-cursor-flag">
+        <small class="ql-cursor-name"></small>
+      </div>
     `;
     const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
-    expect(() => cursor.build(options)).not.toThrow();
+    cursor.build(options);
+
+    const rectangle: any = {top: 10, left: 10, width: 100, height: 20};
+    const container: any = {top: 0, left: 0, width: 500, height: 500};
+    expect(() => cursor.updateEmbedSelections([rectangle], container)).not.toThrow();
   });
 
   it('adds the ID to the element', () => {
@@ -95,6 +105,65 @@ describe('Cursor', () => {
 
     expect(first.highlightName).toMatch(/^ql-cursor-highlight-\d+$/);
     expect(first.highlightName).not.toBe(second.highlightName);
+  });
+
+  it('uses a no-op highlight when the Highlight API is unsupported', () => {
+    const highlight = (globalThis as any).Highlight;
+    delete (globalThis as any).Highlight;
+    try {
+      const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+      cursor.build(options);
+
+      expect(cursor.highlightName).toBe('');
+      expect(() => cursor.setSelectionRange(document.createRange())).not.toThrow();
+      expect((CSS as any).highlights.size).toBe(0);
+    } finally {
+      (globalThis as any).Highlight = highlight;
+    }
+  });
+
+  describe('embed selections', () => {
+    let cursor: Cursor;
+    let element: HTMLElement;
+    let container: any;
+
+    beforeEach(() => {
+      cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+      element = cursor.build(options);
+      container = {top: 5, left: 5, width: 2000, height: 2000};
+    });
+
+    it('draws a tinted block over each rectangle', () => {
+      cursor.updateEmbedSelections([
+        {top: 10, left: 20, width: 100, height: 50},
+        {top: 100, left: 20, width: 200, height: 80},
+      ] as any, container);
+
+      const blocks = element.getElementsByClassName(Cursor.SELECTION_BLOCK_CLASS);
+      expect(blocks).toHaveLength(2);
+      expect(blocks[0]).toHaveStyle('top: 5px');
+      expect(blocks[0]).toHaveStyle('left: 15px');
+      expect(blocks[0]).toHaveStyle('width: 100px');
+      expect(blocks[0]).toHaveStyle('height: 50px');
+      expect(blocks[0]).toHaveStyle('background-color: red');
+      expect(blocks[0]).toHaveStyle('opacity: 0.3');
+    });
+
+    it('clears previous blocks on update', () => {
+      cursor.updateEmbedSelections([{top: 10, left: 20, width: 100, height: 50}] as any, container);
+      cursor.updateEmbedSelections([], container);
+
+      expect(element.getElementsByClassName(Cursor.SELECTION_BLOCK_CLASS)).toHaveLength(0);
+    });
+
+    it('skips rectangles without an area', () => {
+      cursor.updateEmbedSelections([
+        {top: 10, left: 20, width: 0, height: 50},
+        {top: 10, left: 20, width: 100, height: 0},
+      ] as any, container);
+
+      expect(element.getElementsByClassName(Cursor.SELECTION_BLOCK_CLASS)).toHaveLength(0);
+    });
   });
 
   describe('selection range highlight', () => {

@@ -46,6 +46,7 @@ describe('QuillCursors', () => {
       getLeaf: (): any => {},
       getLength: (): number => 0,
       getSelection: (): void => {},
+      getLines: (): any[] => [],
       on: (): void => {},
       off: (): void => {},
     };
@@ -73,7 +74,7 @@ describe('QuillCursors', () => {
       expect(quill.addContainer).toHaveBeenCalledTimes(1);
     });
 
-    it('repositions only carets on scroll', () => {
+    it('repositions carets and embed overlays on scroll, without rebuilding highlights', () => {
       const editor = quill.root;
       jest.spyOn(editor, 'addEventListener');
       const cursors = new QuillCursors(quill);
@@ -84,11 +85,13 @@ describe('QuillCursors', () => {
       jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: document.createTextNode('foo')}, 0]);
       jest.spyOn(quill, 'getBounds').mockReturnValue({top: 0, left: 0, width: 0, height: 0});
       jest.spyOn(cursor, 'updateCaret');
+      jest.spyOn(cursor, 'updateEmbedSelections');
       jest.spyOn(cursor, 'setSelectionRange');
 
       editor.dispatchEvent(new Event('scroll'));
 
       expect(cursor.updateCaret).toHaveBeenCalled();
+      expect(cursor.updateEmbedSelections).toHaveBeenCalled();
       expect(cursor.setSelectionRange).not.toHaveBeenCalled();
     });
 
@@ -524,6 +527,31 @@ describe('QuillCursors', () => {
       cursors.moveCursor(cursor.id, {index: 0, length: 1});
 
       expect(cursor.setSelectionRange).toHaveBeenCalledWith(null);
+    });
+
+    it('draws overlay blocks over block embeds in the selection', () => {
+      jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
+      const embedRectangle = {top: 10, left: 20, width: 100, height: 50};
+      const embedLine = {domNode: {getBoundingClientRect: (): any => embedRectangle}};
+      const textLine = {children: {}, domNode: {}};
+      jest.spyOn(quill, 'getLines').mockReturnValue([textLine, embedLine]);
+      jest.spyOn(cursor, 'updateEmbedSelections');
+
+      cursors.moveCursor(cursor.id, {index: 0, length: 5});
+
+      expect(quill.getLines).toHaveBeenCalledWith(cursor.range);
+      expect(cursor.updateEmbedSelections).toHaveBeenCalledWith([embedRectangle], expect.anything());
+    });
+
+    it('passes no embed rectangles for a collapsed cursor', () => {
+      jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
+      jest.spyOn(quill, 'getLines');
+      jest.spyOn(cursor, 'updateEmbedSelections');
+
+      cursors.moveCursor(cursor.id, {index: 0, length: 0});
+
+      expect(cursor.updateEmbedSelections).toHaveBeenCalledWith([], expect.anything());
+      expect(quill.getLines).not.toHaveBeenCalled();
     });
 
     describe('RTL positioning', () => {
@@ -1074,9 +1102,9 @@ describe('QuillCursors', () => {
       it('does not fire scroll handler when quill.constructor.find returns null', () => {
         quill.constructor.find.mockReturnValue(null);
         const localCursors = new QuillCursors(quill);
-        jest.spyOn(localCursors as any, '_updateCaretPositions');
+        jest.spyOn(localCursors as any, '_repositionCursors');
         editor.dispatchEvent(new Event('scroll'));
-        expect((localCursors as any)._updateCaretPositions).not.toHaveBeenCalled();
+        expect((localCursors as any)._repositionCursors).not.toHaveBeenCalled();
       });
 
       it('calls destroy and removes the DOM listener when quill.constructor.find returns null on scroll', () => {

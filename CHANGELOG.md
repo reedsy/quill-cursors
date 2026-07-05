@@ -7,18 +7,21 @@ Selections are now rendered with the native
 instead of manually-positioned rectangles ([#98](https://github.com/reedsy/quill-cursors/issues/98)).
 
 * Browser support floor is now Chrome/Edge 111+, Safari 17.2+, Firefox 140+. Older
-  browsers still render carets and flags, but not selections (one console warning).
-* The default cursor template no longer contains `<span class="ql-cursor-selections">`;
-  custom templates may keep it, but it is ignored. `.ql-cursor-selection-block` spans are
-  no longer rendered at all — remove any application CSS targeting that class.
-* Removed `Cursor.SELECTION_CLASS`, `Cursor.SELECTION_BLOCK_CLASS` and
-  `Cursor.SELECTION_ELEMENT_TAG`; `cursor.updateSelection(rects, container)` is replaced
-  by `cursor.setSelectionRange(range: Range | null)`.
-* Block embeds (images, videos) within a remote selection are no longer covered by a
-  tinted rectangle — highlights paint text, matching native selection behaviour.
+  browsers still render carets, flags and block-embed overlays, but not text
+  selections (one console warning).
+* The `<span class="ql-cursor-selections">` element in the cursor template is now only
+  used for tinted overlays over block embeds; text selections no longer create any DOM
+  elements. Templates without the element are tolerated (block embeds just won't be
+  tinted for those cursors).
+* `cursor.updateSelection(rects, container)` is replaced by
+  `cursor.setSelectionRange(range: Range | null)` for text and
+  `cursor.updateEmbedSelections(rects, container)` for block embeds.
+* Inline embeds (e.g. formula markers) within a remote selection are no longer tinted,
+  matching native selection painting; block embeds (e.g. video) still receive a tinted
+  overlay rectangle.
 * Dropped the `rangefix` and `resize-observer-polyfill` dependencies; the bundles are
-  significantly smaller, and scroll/resize now only reposition carets (the browser
-  repaints highlights natively).
+  significantly smaller, and scroll/resize now only reposition carets and embed
+  overlays (the browser repaints highlights natively).
 
 ### Features
 
@@ -28,6 +31,8 @@ instead of manually-positioned rectangles ([#98](https://github.com/reedsy/quill
   Shadow-DOM-aware (the stylesheet is adopted into the editor's actual root).
 * Cursor colors validated via `CSS.supports()` before being written into highlight
   rules; invalid values fall back to `transparent`.
+* Overlapping selections from different cursors stack deterministically
+  (later-created cursors paint on top) via `Highlight.priority`.
 
 # 4.3.0
 - Add `destroy()` method for proper cleanup: removes event listeners, disconnects ResizeObserver, clears pending timers, and removes the cursor container from the DOM

@@ -115,16 +115,17 @@ export default class QuillCursors {
   }
 
   private readonly _onScroll = (): void => {
-    this._updateCaretPositions();
+    this._repositionCursors();
   };
 
   // Highlights are repainted natively by the browser on scroll/resize; only
-  // the absolutely-positioned caret and flag go stale. Skipping the range
-  // rebuild also avoids needless highlight repaints. Trade-off: if a cursor
-  // was hidden by a SILENT content change (no text-change event), this path
-  // re-shows its caret but its selection stays unpainted until the next full
-  // update — preferable to v4, which re-revealed stale, mispositioned rects.
-  private _updateCaretPositions(): void {
+  // the absolutely-positioned elements (carets, flags and block-embed
+  // overlays) go stale. Skipping the range rebuild also avoids needless
+  // highlight repaints. Trade-off: if a cursor was hidden by a SILENT content
+  // change (no text-change event), this path re-shows its caret but its
+  // selection stays unpainted until the next full update — preferable to v4,
+  // which re-revealed stale, mispositioned rects.
+  private _repositionCursors(): void {
     this.cursors().forEach((cursor: Cursor) => this._updateCursor(cursor, true));
   }
 
@@ -205,14 +206,14 @@ export default class QuillCursors {
         this._isObserving = false;
         return;
       }
-      this._updateCaretPositions();
+      this._repositionCursors();
     });
 
     this._resizeObserver.observe(editor);
     this._isObserving = true;
   }
 
-  private _updateCursor(cursor: Cursor, caretOnly = false): void {
+  private _updateCursor(cursor: Cursor, positionsOnly = false): void {
     this._registerResizeObserver();
 
     if (!cursor.range) {
@@ -239,8 +240,9 @@ export default class QuillCursors {
       endBounds = this._adjustBoundsForRtl(endBounds, endLeaf);
     }
     cursor.updateCaret(endBounds, containerRectangle);
+    cursor.updateEmbedSelections(this._embedRectangles(cursor), containerRectangle);
 
-    if (caretOnly) {
+    if (positionsOnly) {
       return;
     }
 
@@ -373,6 +375,20 @@ export default class QuillCursors {
     }
 
     return range.collapsed ? null : range;
+  }
+
+  // Block embeds (lines without children, e.g. video) are not painted by the
+  // Highlight API, so they get tinted overlay rectangles instead. Inline
+  // embeds are skipped, matching native selection painting.
+  private _embedRectangles(cursor: Cursor): ClientRect[] {
+    if (!cursor.range.length) {
+      return [];
+    }
+
+    const lines = this.quill.getLines(cursor.range);
+    return lines
+      .filter((line: any) => !line.children)
+      .map((line: any) => line.domNode.getBoundingClientRect());
   }
 
   private _transformCursors(delta: Delta): void {

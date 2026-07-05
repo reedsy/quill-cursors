@@ -54,22 +54,30 @@ describe('CursorHighlight', () => {
       expect(next.name).not.toBe(takenName);
       expect(next.name).toMatch(/^ql-cursor-highlight-\d+$/);
     });
+  });
 
-    it('allocates names when the registry is unavailable', () => {
-      const css = (globalThis as any).CSS;
-      (globalThis as any).CSS = {};
-      try {
-        const highlight = new CursorHighlight('red');
-        expect(highlight.name).toMatch(/^ql-cursor-highlight-\d+$/);
-      } finally {
-        (globalThis as any).CSS = css;
-      }
+  describe('priority', () => {
+    it('paints later-created highlights above earlier ones', () => {
+      const first = new CursorHighlight('red');
+      const second = new CursorHighlight('blue');
+      first.setRange(document.createRange(), document);
+      second.setRange(document.createRange(), document);
+
+      const earlier: any = (CSS as any).highlights.get(first.name);
+      const later: any = (CSS as any).highlights.get(second.name);
+      expect(later.priority).toBeGreaterThan(earlier.priority);
     });
   });
 
   describe('color sanitisation', () => {
+    let originalSupports: any;
+
+    beforeEach(() => {
+      originalSupports = (CSS as any).supports;
+    });
+
     afterEach(() => {
-      delete (CSS as any).supports;
+      (CSS as any).supports = originalSupports;
     });
 
     it('keeps colors that pass CSS.supports validation', () => {
@@ -95,24 +103,6 @@ describe('CursorHighlight', () => {
       );
     });
 
-    it('trusts the color when CSS.supports is unavailable', () => {
-      const highlight = new CursorHighlight('red');
-
-      highlight.setRange(document.createRange(), document);
-
-      expect((document as any).adoptedStyleSheets[0].cssText).toContain('red');
-    });
-
-    it('trusts the color when the CSS global is unavailable', () => {
-      let highlight: CursorHighlight;
-      withoutGlobal('CSS', () => {
-        highlight = new CursorHighlight('red');
-      });
-
-      highlight.setRange(document.createRange(), document);
-
-      expect((document as any).adoptedStyleSheets[0].cssText).toContain('red');
-    });
   });
 
   describe('setRange', () => {
@@ -209,16 +199,6 @@ describe('CursorHighlight', () => {
       expect((document as any).adoptedStyleSheets).toHaveLength(0);
     });
 
-    it('does nothing when the Highlight API is unsupported', () => {
-      const highlight = new CursorHighlight('red');
-      withoutGlobal('Highlight', () => {
-        highlight.setRange(document.createRange(), document);
-      });
-
-      expect((CSS as any).highlights.size).toBe(0);
-      expect((document as any).adoptedStyleSheets).toHaveLength(0);
-    });
-
     it('re-registers after detach when setRange is called again', () => {
       const highlight = new CursorHighlight('red');
       highlight.setRange(document.createRange(), document);
@@ -276,6 +256,14 @@ describe('CursorHighlight', () => {
       const sheets: any[] = (document as any).adoptedStyleSheets;
       expect(sheets).toHaveLength(1);
       expect(sheets[0].cssText).toContain(second.name);
+    });
+
+    it('tolerates a stylesheet already removed by external code', () => {
+      const highlight = new CursorHighlight('red');
+      highlight.setRange(document.createRange(), document);
+      (document as any).adoptedStyleSheets = [];
+
+      expect(() => highlight.detach()).not.toThrow();
     });
   });
 

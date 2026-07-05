@@ -1,6 +1,10 @@
+import ICursorHighlight from './i-cursor-highlight';
+
 let nextHighlightNumber = 0;
 
-export default class CursorHighlight {
+// Assumes the Highlight API globals exist: only construct this class when
+// CursorHighlight.isSupported(), and use NoOpCursorHighlight otherwise.
+export default class CursorHighlight implements ICursorHighlight {
   public static readonly NAME_PREFIX = 'ql-cursor-highlight';
   public static readonly SELECTION_ALPHA = '30%';
 
@@ -28,37 +32,39 @@ export default class CursorHighlight {
   // standalone color value prevents any breakout, while still allowing
   // custom properties like var(--user-color).
   private static _safeColor(color: string): string {
-    if (typeof CSS === 'undefined' || typeof CSS.supports !== 'function') return color;
     return CSS.supports('background-color', color) ? color : 'transparent';
   }
 
   // Another copy of this module on the same page (e.g. duplicated bundles)
-  // shares the page-global registry but not this counter — skip taken names.
-  private static _nextName(): string {
-    let name = `${ CursorHighlight.NAME_PREFIX }-${ nextHighlightNumber++ }`;
-    while (typeof CSS !== 'undefined' && CSS.highlights && CSS.highlights.has(name)) {
-      name = `${ CursorHighlight.NAME_PREFIX }-${ nextHighlightNumber++ }`;
+  // shares the page-global registry but not this counter — skip taken numbers.
+  private static _nextNumber(): number {
+    let number = nextHighlightNumber++;
+    while (CSS.highlights.has(`${ CursorHighlight.NAME_PREFIX }-${ number }`)) {
+      number = nextHighlightNumber++;
     }
-    return name;
+    return number;
   }
 
   public readonly name: string;
 
   private readonly _color: string;
+  private readonly _priority: number;
   private _highlight: Highlight | null = null;
   private _sheet: CSSStyleSheet | null = null;
   private _root: Document | ShadowRoot | null = null;
 
   public constructor(color: string) {
     this._color = CursorHighlight._safeColor(color);
-    this.name = CursorHighlight._nextName();
+    this._priority = CursorHighlight._nextNumber();
+    this.name = `${ CursorHighlight.NAME_PREFIX }-${ this._priority }`;
   }
 
+  // The root is passed per call rather than at construction because the
+  // cursor element is not attached to the DOM (and so has no root) until
+  // after Cursor.build().
   public setRange(range: Range | null, root: Node): void {
-    if (!CursorHighlight.isSupported()) return;
-
     this._attach(root);
-    this._highlight.clear();
+    this.clear();
     if (range) {
       this._highlight.add(range);
     }
@@ -70,20 +76,19 @@ export default class CursorHighlight {
   }
 
   public detach(): void {
-    if (this._highlight) {
-      CSS.highlights.delete(this.name);
-      this._highlight = null;
-    }
-
-    if (this._root) {
-      this._removeSheetFrom(this._root);
-      this._root = null;
-    }
+    CSS.highlights.delete(this.name);
+    this._highlight = null;
+    this._removeSheet();
   }
 
   private _attach(root: Node): void {
     if (!this._highlight) {
       this._highlight = new Highlight();
+      // When selections overlap, later-created cursors paint on top of
+      // earlier ones, mirroring v4's DOM append order. The priority is fixed
+      // at creation: it cannot track document position, because positions
+      // change with every edit while a highlight's priority is static.
+      this._highlight.priority = this._priority;
       CSS.highlights.set(this.name, this._highlight);
     }
 
@@ -93,22 +98,26 @@ export default class CursorHighlight {
   private _adoptSheetInto(root: Document | ShadowRoot | null): void {
     if (!root || root === this._root) return;
 
-    if (this._root) {
-      // The editor has moved to a different document or shadow root
-      this._removeSheetFrom(this._root);
-    }
+    // The editor has moved to a different document or shadow root
+    this._removeSheet();
 
     if (!this._sheet) {
       this._sheet = this._buildSheet();
     }
 
-    root.adoptedStyleSheets = [...root.adoptedStyleSheets, this._sheet];
+    root.adoptedStyleSheets.push(this._sheet);
     this._root = root;
   }
 
-  private _removeSheetFrom(root: Document | ShadowRoot): void {
-    root.adoptedStyleSheets = root.adoptedStyleSheets
-      .filter((sheet: CSSStyleSheet) => sheet !== this._sheet);
+  private _removeSheet(): void {
+    if (!this._root) return;
+
+    const sheets = this._root.adoptedStyleSheets;
+    const index = sheets.indexOf(this._sheet);
+    if (index >= 0) {
+      sheets.splice(index, 1);
+    }
+    this._root = null;
   }
 
   private _buildSheet(): CSSStyleSheet {
