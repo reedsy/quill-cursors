@@ -102,7 +102,6 @@ describe('CursorHighlight', () => {
         '{ background-color: color-mix(in srgb, transparent 30%, transparent); }',
       );
     });
-
   });
 
   describe('setRange', () => {
