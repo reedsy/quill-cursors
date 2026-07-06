@@ -46,6 +46,7 @@
     "@reedsy/eslint-plugin": "^0.14.2",
     "@testing-library/jest-dom": "^5.16.1",
     "@types/jest": "^27.4.0",
+    "@types/node": "25.3.1",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "@typescript-eslint/parser": "^5.49.0",
     "css-loader": "^6.6.0",
