@@ -84,10 +84,8 @@ export default class Cursor {
     this._el.classList.remove(Cursor.HIDDEN_CLASS);
   }
 
-  // Also clears the highlight: it lives in the global registry, not in this
-  // cursor's hidden DOM container. No restore needed on show() — full updates
-  // always follow show() with a selection update, and caret-only updates
-  // (scroll/resize) intentionally leave the highlight untouched.
+  // The highlight lives in the global registry, not in this hidden container,
+  // so it needs clearing; the next selection update after show() repaints it.
   public hide(): void {
     this._el.classList.add(Cursor.HIDDEN_CLASS);
     this._highlight.clear();
@@ -135,11 +133,8 @@ export default class Cursor {
     this._highlight.setRange(range, this._el.getRootNode());
   }
 
-  // Text is tinted via the Highlight API (setSelectionRange), but custom
-  // highlights do not paint over embeds. Embeds included in the selection —
-  // inline (e.g. images) or block (e.g. videos) — get a tinted overlay
-  // rectangle instead, like the ones v4 drew for the whole selection and the
-  // way native selection paints replaced elements.
+  // Custom highlights cannot paint over embeds, so embeds in the selection
+  // (inline like images, block like videos) get a tinted overlay instead.
   public updateEmbedSelections(rectangles: ClientRect[], container: ClientRect): void {
     if (!this._selectionEl) return; // custom template without a selections element
 

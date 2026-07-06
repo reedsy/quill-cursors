@@ -1,8 +1,7 @@
 import ICursorHighlight from './i-cursor-highlight';
 
-// Used in place of CursorHighlight when the browser does not support the
-// CSS Custom Highlight API: carets, flags and embed overlays still render
-// (they are plain DOM elements), and text selections are skipped entirely.
+// Stands in for CursorHighlight when the CSS Custom Highlight API is
+// unsupported: text selections are skipped entirely.
 export default class NoOpCursorHighlight implements ICursorHighlight {
   public readonly name = '';
 

@@ -129,8 +129,7 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
     }
   }
 
-  // Tinted overlays for block embeds included in a remote selection; text is
-  // tinted via the CSS Custom Highlight API instead.
+  // Tinted overlays for embeds included in a remote selection
   .ql-cursor-selection-block {
     position: absolute;
     pointer-events: none;

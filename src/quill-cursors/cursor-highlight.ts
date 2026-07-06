@@ -2,8 +2,8 @@ import ICursorHighlight from './i-cursor-highlight';
 
 let nextHighlightNumber = 0;
 
-// Assumes the Highlight API globals exist: only construct this class when
-// CursorHighlight.isSupported(), and use NoOpCursorHighlight otherwise.
+// Only constructed when isSupported(); methods assume the Highlight API
+// globals exist.
 export default class CursorHighlight implements ICursorHighlight {
   public static readonly NAME_PREFIX = 'ql-cursor-highlight';
   public static readonly SELECTION_ALPHA = '30%';
@@ -36,7 +36,7 @@ export default class CursorHighlight implements ICursorHighlight {
   }
 
   // Another copy of this module on the same page (e.g. duplicated bundles)
-  // shares the page-global registry but not this counter — skip taken numbers.
+  // shares the page-global registry but not this counter, so skip taken numbers.
   private static _nextNumber(): number {
     let number = nextHighlightNumber++;
     while (CSS.highlights.has(`${ CursorHighlight.NAME_PREFIX }-${ number }`)) {
@@ -59,9 +59,8 @@ export default class CursorHighlight implements ICursorHighlight {
     this.name = `${ CursorHighlight.NAME_PREFIX }-${ this._priority }`;
   }
 
-  // The root is passed per call rather than at construction because the
-  // cursor element is not attached to the DOM (and so has no root) until
-  // after Cursor.build().
+  // The root is passed per call: the cursor element has no root until it is
+  // attached to the DOM after build().
   public setRange(range: Range | null, root: Node): void {
     this._attach(root);
     this.clear();
@@ -84,10 +83,9 @@ export default class CursorHighlight implements ICursorHighlight {
   private _attach(root: Node): void {
     if (!this._highlight) {
       this._highlight = new Highlight();
-      // When selections overlap, later-created cursors paint on top of
-      // earlier ones, mirroring v4's DOM append order. The priority is fixed
-      // at creation: it cannot track document position, because positions
-      // change with every edit while a highlight's priority is static.
+      // Later-created cursors paint on top when selections overlap. Priority
+      // is fixed at creation: it cannot track document position, which
+      // changes with every edit.
       this._highlight.priority = this._priority;
       CSS.highlights.set(this.name, this._highlight);
     }
@@ -127,11 +125,10 @@ export default class CursorHighlight implements ICursorHighlight {
     return sheet;
   }
 
-  // Note: instanceof is realm-sensitive by design. A root from another realm
-  // (e.g. an editor inside an iframe while this library runs in the parent)
-  // is deliberately not matched: constructable stylesheets cannot be adopted
-  // across realms (the assignment throws), so foreign-realm roots degrade to
-  // carets-only rendering instead of crashing.
+  // instanceof is realm-sensitive by design: constructable stylesheets cannot
+  // be adopted across realms (the assignment throws), so a root from another
+  // realm (e.g. an iframe) degrades to carets-only rendering instead of
+  // crashing.
   private _styleRoot(node: Node): Document | ShadowRoot | null {
     if (node instanceof Document || node instanceof ShadowRoot) {
       return node;

@@ -8,10 +8,8 @@ const CURSOR_LATENCY = 1000;
 // text changes.
 const TEXT_LATENCY = 500;
 
-// The default snow toolbar, plus image and video controls for checking how
-// remote selections cover embeds: image inserts an INLINE embed, video a
-// BLOCK embed — both are tinted with an overlay rectangle when selected,
-// since the Highlight API itself only paints text.
+// Default snow toolbar plus image (inline embed) and video (block embed)
+// controls, for checking how remote selections cover embeds.
 const TOOLBAR = [
   [{header: ['1', '2', '3', false]}],
   ['bold', 'italic', 'underline', 'link'],

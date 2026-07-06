@@ -119,12 +119,8 @@ export default class QuillCursors {
   };
 
   // Highlights are repainted natively by the browser on scroll/resize; only
-  // the absolutely-positioned elements (carets, flags and embed overlays) go
-  // stale. Skipping the range rebuild also avoids needless highlight
-  // repaints. Trade-off: if a cursor was hidden by a SILENT content change
-  // (no text-change event), this path re-shows its caret but its selection
-  // stays unpainted until the next full update — preferable to v4, which
-  // re-revealed stale, mispositioned rects.
+  // the absolutely-positioned carets, flags and embed overlays go stale, so
+  // skip the range rebuild and its needless highlight repaints.
   private _repositionCursors(): void {
     this.cursors().forEach((cursor: Cursor) => this._updateCursor(cursor, true));
   }
@@ -350,9 +346,8 @@ export default class QuillCursors {
     return options;
   }
 
-  // Builds a single DOM Range spanning the cursor's selection. The CSS Custom
-  // Highlight API paints a multi-line range exactly like a native selection,
-  // so no per-line splitting or rectangle computation is needed.
+  // The Highlight API paints a multi-line Range like a native selection, so a
+  // single Range per cursor is enough.
   private _selectionRange(cursor: Cursor, startLeaf: any[], endLeaf: any[]): Range | null {
     if (!cursor.range.length) {
       return null;
@@ -377,11 +372,9 @@ export default class QuillCursors {
     return range.collapsed ? null : range;
   }
 
-  // Embeds are not painted by the Highlight API, so every embed leaf in the
-  // selection — inline (e.g. images) or block (e.g. videos) — gets a tinted
-  // overlay rectangle, the way native selection paints replaced elements.
-  // The criteria is structural rather than a list of blot types: any leaf
-  // blot that isn't a text node is an embed, so custom blots are covered too.
+  // The Highlight API only paints text, so embed leaves in the selection get
+  // tinted overlay rectangles. Any childless blot with a non-text DOM node is
+  // an embed: inline (images) or block (videos), stock or custom.
   private _embedRectangles(cursor: Cursor): ClientRect[] {
     if (!cursor.range.length) {
       return [];

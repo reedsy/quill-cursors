@@ -63,7 +63,7 @@ class ResizeObserverStub {
 (globalThis as any).ResizeObserver = ResizeObserverStub;
 
 // Production code mutates adoptedStyleSheets in place (push/splice), so each
-// document or shadow root must get its OWN array on first access — a shared
+// document or shadow root must get its own array on first access; a shared
 // prototype default would leak sheets between instances and tests.
 [Document.prototype, ShadowRoot.prototype].forEach((proto) => {
   Object.defineProperty(proto, 'adoptedStyleSheets', {
