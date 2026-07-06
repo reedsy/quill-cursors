@@ -136,10 +136,10 @@ export default class Cursor {
   }
 
   // Text is tinted via the Highlight API (setSelectionRange), but custom
-  // highlights do not paint over embeds. Block embeds included in the
-  // selection get a tinted overlay rectangle instead, like the ones v4 drew
-  // for the whole selection. Inline embeds are deliberately skipped, matching
-  // native selection painting.
+  // highlights do not paint over embeds. Embeds included in the selection —
+  // inline (e.g. images) or block (e.g. videos) — get a tinted overlay
+  // rectangle instead, like the ones v4 drew for the whole selection and the
+  // way native selection paints replaced elements.
   public updateEmbedSelections(rectangles: ClientRect[], container: ClientRect): void {
     if (!this._selectionEl) return; // custom template without a selections element
 

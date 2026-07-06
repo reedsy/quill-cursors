@@ -25,7 +25,7 @@ which requires:
 | 111+ | 17.2+ | 140+ |
 
 In older browsers, `quill-cursors` degrades gracefully: carets, name flags and
-block-embed overlays still work (they are plain DOM elements), text selection
+embed overlays still work (they are plain DOM elements), text selection
 ranges are simply not drawn, and a single warning is logged to the console.
 If you need text selection rendering in older browsers, stay on the 4.x
 release line.
@@ -86,7 +86,7 @@ npm start
 
 The `quill-cursors` module has the following optional configuration:
 
-  - `template` _string_: override the default HTML template used for a cursor (since v5, the selections element is only used for block-embed overlays and may be omitted)
+  - `template` _string_: override the default HTML template used for a cursor (since v5, the selections element is only used for embed overlays and may be omitted)
   - `containerClass` _string_ (default: `ql-cursors`): the CSS class to add to the cursors container
   - `hideDelayMs` _number_ (default: `3000`): number of milliseconds to show the username flag before hiding it
   - `hideSpeedMs` _number_ (default: `400`): the duration of the flag hiding animation in milliseconds

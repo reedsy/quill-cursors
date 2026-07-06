@@ -119,12 +119,12 @@ export default class QuillCursors {
   };
 
   // Highlights are repainted natively by the browser on scroll/resize; only
-  // the absolutely-positioned elements (carets, flags and block-embed
-  // overlays) go stale. Skipping the range rebuild also avoids needless
-  // highlight repaints. Trade-off: if a cursor was hidden by a SILENT content
-  // change (no text-change event), this path re-shows its caret but its
-  // selection stays unpainted until the next full update — preferable to v4,
-  // which re-revealed stale, mispositioned rects.
+  // the absolutely-positioned elements (carets, flags and embed overlays) go
+  // stale. Skipping the range rebuild also avoids needless highlight
+  // repaints. Trade-off: if a cursor was hidden by a SILENT content change
+  // (no text-change event), this path re-shows its caret but its selection
+  // stays unpainted until the next full update — preferable to v4, which
+  // re-revealed stale, mispositioned rects.
   private _repositionCursors(): void {
     this.cursors().forEach((cursor: Cursor) => this._updateCursor(cursor, true));
   }
@@ -377,18 +377,23 @@ export default class QuillCursors {
     return range.collapsed ? null : range;
   }
 
-  // Block embeds (lines without children, e.g. video) are not painted by the
-  // Highlight API, so they get tinted overlay rectangles instead. Inline
-  // embeds are skipped, matching native selection painting.
+  // Embeds are not painted by the Highlight API, so every embed leaf in the
+  // selection — inline (e.g. images) or block (e.g. videos) — gets a tinted
+  // overlay rectangle, the way native selection paints replaced elements.
+  // The criteria is structural rather than a list of blot types: any leaf
+  // blot that isn't a text node is an embed, so custom blots are covered too.
   private _embedRectangles(cursor: Cursor): ClientRect[] {
     if (!cursor.range.length) {
       return [];
     }
 
-    const lines = this.quill.getLines(cursor.range);
-    return lines
-      .filter((line: any) => !line.children)
-      .map((line: any) => line.domNode.getBoundingClientRect());
+    const embeds = this.quill.scroll.descendants(
+      (blot: any) => !blot.children && !(blot.domNode instanceof Text),
+      cursor.range.index,
+      cursor.range.length,
+    );
+
+    return embeds.map((blot: any) => blot.domNode.getBoundingClientRect());
   }
 
   private _transformCursors(delta: Delta): void {

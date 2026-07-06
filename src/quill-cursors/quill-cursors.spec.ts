@@ -46,7 +46,9 @@ describe('QuillCursors', () => {
       getLeaf: (): any => {},
       getLength: (): number => 0,
       getSelection: (): void => {},
-      getLines: (): any[] => [],
+      scroll: {
+        descendants: (): any[] => [],
+      },
       on: (): void => {},
       off: (): void => {},
     };
@@ -529,29 +531,41 @@ describe('QuillCursors', () => {
       expect(cursor.setSelectionRange).toHaveBeenCalledWith(null);
     });
 
-    it('draws overlay blocks over block embeds in the selection', () => {
+    it('draws overlay rectangles over embeds in the selection', () => {
       jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
       const embedRectangle = {top: 10, left: 20, width: 100, height: 50};
-      const embedLine = {domNode: {getBoundingClientRect: (): any => embedRectangle}};
-      const textLine = {children: {}, domNode: {}};
-      jest.spyOn(quill, 'getLines').mockReturnValue([textLine, embedLine]);
+      const embedBlot = {domNode: {getBoundingClientRect: (): any => embedRectangle}};
+      jest.spyOn(quill.scroll, 'descendants').mockReturnValue([embedBlot]);
       jest.spyOn(cursor, 'updateEmbedSelections');
+
+      cursors.moveCursor(cursor.id, {index: 3, length: 5});
+
+      expect(quill.scroll.descendants).toHaveBeenCalledWith(expect.any(Function), 3, 5);
+      expect(cursor.updateEmbedSelections).toHaveBeenCalledWith([embedRectangle], expect.anything());
+    });
+
+    it('identifies embed leaves structurally, covering custom blots', () => {
+      jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
+      jest.spyOn(quill.scroll, 'descendants').mockReturnValue([]);
 
       cursors.moveCursor(cursor.id, {index: 0, length: 5});
 
-      expect(quill.getLines).toHaveBeenCalledWith(cursor.range);
-      expect(cursor.updateEmbedSelections).toHaveBeenCalledWith([embedRectangle], expect.anything());
+      const criteria = (quill.scroll.descendants as jest.Mock).mock.calls[0][0];
+      expect(criteria({children: {}, domNode: document.createElement('p')})).toBe(false);
+      expect(criteria({domNode: document.createTextNode('text')})).toBe(false);
+      expect(criteria({domNode: document.createElement('img')})).toBe(true);
+      expect(criteria({domNode: document.createElement('my-custom-embed')})).toBe(true);
     });
 
     it('passes no embed rectangles for a collapsed cursor', () => {
       jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
-      jest.spyOn(quill, 'getLines');
+      jest.spyOn(quill.scroll, 'descendants');
       jest.spyOn(cursor, 'updateEmbedSelections');
 
       cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
       expect(cursor.updateEmbedSelections).toHaveBeenCalledWith([], expect.anything());
-      expect(quill.getLines).not.toHaveBeenCalled();
+      expect(quill.scroll.descendants).not.toHaveBeenCalled();
     });
 
     describe('RTL positioning', () => {

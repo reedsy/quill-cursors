@@ -7,18 +7,18 @@ Selections are now rendered with the native
 instead of manually-positioned rectangles ([#98](https://github.com/reedsy/quill-cursors/issues/98)).
 
 * Browser support floor is now Chrome/Edge 111+, Safari 17.2+, Firefox 140+. Older
-  browsers still render carets, flags and block-embed overlays, but not text
-  selections (one console warning).
+  browsers still render carets, flags and embed overlays, but not text selections
+  (one console warning).
 * The `<span class="ql-cursor-selections">` element in the cursor template is now only
-  used for tinted overlays over block embeds; text selections no longer create any DOM
-  elements. Templates without the element are tolerated (block embeds just won't be
-  tinted for those cursors).
+  used for tinted overlays over embeds; text selections no longer create any DOM
+  elements. Templates without the element are tolerated (embeds just won't be tinted
+  for those cursors).
 * `cursor.updateSelection(rects, container)` is replaced by
   `cursor.setSelectionRange(range: Range | null)` for text and
-  `cursor.updateEmbedSelections(rects, container)` for block embeds.
-* Inline embeds (e.g. formula markers) within a remote selection are no longer tinted,
-  matching native selection painting; block embeds (e.g. video) still receive a tinted
-  overlay rectangle.
+  `cursor.updateEmbedSelections(rects, container)` for embeds.
+* Embeds within a remote selection — inline (e.g. images) or block (e.g. videos) — are
+  covered by a tinted overlay rectangle, since the Highlight API itself only paints
+  text.
 * Dropped the `rangefix` and `resize-observer-polyfill` dependencies; the bundles are
   significantly smaller, and scroll/resize now only reposition carets and embed
   overlays (the browser repaints highlights natively).
