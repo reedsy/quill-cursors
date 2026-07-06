@@ -8,12 +8,24 @@ const CURSOR_LATENCY = 1000;
 // text changes.
 const TEXT_LATENCY = 500;
 
+// The default snow toolbar, plus embed controls: image inserts an INLINE
+// embed (not tinted by remote selections, matching native selection
+// painting), video inserts a BLOCK embed (tinted with an overlay rectangle).
+const TOOLBAR = [
+  [{header: ['1', '2', '3', false]}],
+  ['bold', 'italic', 'underline', 'link'],
+  [{list: 'ordered'}, {list: 'bullet'}],
+  ['image', 'video'],
+  ['clean'],
+];
+
 const quillOne = new Quill('#editor-one', {
   theme: 'snow',
   modules: {
     cursors: {
       transformOnTextChange: true,
     },
+    toolbar: TOOLBAR,
   },
 });
 
@@ -23,6 +35,7 @@ const quillTwo = new Quill('#editor-two', {
     cursors: {
       transformOnTextChange: true,
     },
+    toolbar: TOOLBAR,
   },
 });
 
