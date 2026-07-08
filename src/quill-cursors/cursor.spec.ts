@@ -146,7 +146,6 @@ describe('Cursor', () => {
       expect(blocks[0]).toHaveStyle('width: 100px');
       expect(blocks[0]).toHaveStyle('height: 50px');
       expect(blocks[0]).toHaveStyle('background-color: red');
-      expect(blocks[0]).toHaveStyle('opacity: 0.3');
     });
 
     it('clears previous blocks on update', () => {

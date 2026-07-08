@@ -169,7 +169,6 @@ export default class Cursor {
     element.style.width = `${rectangle.width}px`;
     element.style.height = `${rectangle.height}px`;
     element.style.backgroundColor = this.color;
-    element.style.opacity = '0.3';
 
     return element;
   }
