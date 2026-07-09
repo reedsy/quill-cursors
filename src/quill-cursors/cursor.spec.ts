@@ -204,13 +204,19 @@ describe('Cursor', () => {
       expect(registered.size).toBe(0);
     });
 
-    it('empties the highlight when the cursor is hidden', () => {
-      cursor.setSelectionRange(document.createRange());
+    it('hides the highlight without losing the selection', () => {
+      const range = document.createRange();
+      cursor.setSelectionRange(range);
 
       cursor.hide();
 
-      const registered: any = (CSS as any).highlights.get(cursor.highlightName);
-      expect(registered.size).toBe(0);
+      const sheets: any[] = (document as any).adoptedStyleSheets;
+      expect(sheets[0].disabled).toBe(true);
+      expect((CSS as any).highlights.get(cursor.highlightName).has(range)).toBe(true);
+
+      cursor.show();
+
+      expect(sheets[0].disabled).toBe(false);
     });
 
     it('unregisters the highlight when the cursor is removed', () => {

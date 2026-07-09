@@ -60,6 +60,9 @@ export default class CursorHighlight implements ICursorHighlight {
     this._color = CursorHighlight._safeColor(color);
     this._priority = CursorHighlight._nextNumber();
     this.name = `${ CursorHighlight.NAME_PREFIX }-${ this._priority }`;
+    // Register eagerly: this reserves the name in the page-global registry,
+    // so another module copy probing _nextNumber cannot take the same one.
+    this._register();
   }
 
   // The root is passed per call: the cursor element has no root until it is
@@ -77,20 +80,35 @@ export default class CursorHighlight implements ICursorHighlight {
     this._highlight.clear();
   }
 
+  // Hiding disables the stylesheet instead of dropping the ranges, so
+  // becoming visible again does not need a selection update.
+  public setVisible(visible: boolean): void {
+    if (!this._sheet) return;
+    this._sheet.disabled = !visible;
+  }
+
   public detach(): void {
     CSS.highlights.delete(this.name);
     this._highlight = null;
+    if (this._sheet) {
+      this._sheet.disabled = false;
+    }
     this._removeSheet();
+  }
+
+  private _register(): void {
+    this._highlight = new Highlight();
+    // Later-created cursors paint on top when selections overlap. Priority
+    // is fixed at creation: it cannot track document position, which
+    // changes with every edit.
+    this._highlight.priority = this._priority;
+    CSS.highlights.set(this.name, this._highlight);
   }
 
   private _attach(root: Node): void {
     if (!this._highlight) {
-      this._highlight = new Highlight();
-      // Later-created cursors paint on top when selections overlap. Priority
-      // is fixed at creation: it cannot track document position, which
-      // changes with every edit.
-      this._highlight.priority = this._priority;
-      CSS.highlights.set(this.name, this._highlight);
+      // Re-attach after detach()
+      this._register();
     }
 
     this._adoptSheetInto(this._styleRoot(root));

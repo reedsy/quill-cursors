@@ -34,6 +34,7 @@ class HighlightStub {
 
 class CSSStyleSheetStub {
   public cssText = '';
+  public disabled = false;
 
   public replaceSync(text: string): void {
     this.cssText = text;

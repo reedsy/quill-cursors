@@ -381,7 +381,7 @@ export default class QuillCursors {
     }
 
     const embeds = this.quill.scroll.descendants(
-      (blot: any) => !blot.children && !(blot.domNode instanceof Text),
+      (blot: any) => !blot.children && blot.domNode.nodeType !== Node.TEXT_NODE,
       cursor.range.index,
       cursor.range.length,
     );

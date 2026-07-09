@@ -82,13 +82,14 @@ export default class Cursor {
 
   public show(): void {
     this._el.classList.remove(Cursor.HIDDEN_CLASS);
+    this._highlight.setVisible(true);
   }
 
   // The highlight lives in the global registry, not in this hidden container,
-  // so it needs clearing; the next selection update after show() repaints it.
+  // so it is toggled through its stylesheet instead of the hidden class.
   public hide(): void {
     this._el.classList.add(Cursor.HIDDEN_CLASS);
-    this._highlight.clear();
+    this._highlight.setVisible(false);
   }
 
   public remove(): void {

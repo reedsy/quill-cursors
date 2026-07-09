@@ -43,6 +43,12 @@ describe('CursorHighlight', () => {
       expect(first.name).not.toBe(second.name);
     });
 
+    it('reserves the name in the registry at construction', () => {
+      const highlight = new CursorHighlight('red');
+
+      expect((CSS as any).highlights.has(highlight.name)).toBe(true);
+    });
+
     it('skips names already taken in the registry', () => {
       const current = new CursorHighlight('red');
       const nextNumber = Number(current.name.split('-').pop()) + 1;
@@ -231,6 +237,47 @@ describe('CursorHighlight', () => {
     it('is safe to call before any range is set', () => {
       const highlight = new CursorHighlight('red');
       expect(() => highlight.clear()).not.toThrow();
+    });
+
+    it('is safe to call after detach', () => {
+      const highlight = new CursorHighlight('red');
+      highlight.detach();
+
+      expect(() => highlight.clear()).not.toThrow();
+    });
+  });
+
+  describe('setVisible', () => {
+    it('toggles the stylesheet instead of dropping the ranges', () => {
+      const highlight = new CursorHighlight('red');
+      const range = document.createRange();
+      highlight.setRange(range, document);
+
+      highlight.setVisible(false);
+
+      const sheets: any[] = (document as any).adoptedStyleSheets;
+      expect(sheets[0].disabled).toBe(true);
+      expect((CSS as any).highlights.get(highlight.name).has(range)).toBe(true);
+
+      highlight.setVisible(true);
+
+      expect(sheets[0].disabled).toBe(false);
+    });
+
+    it('is safe to call before any range is set', () => {
+      const highlight = new CursorHighlight('red');
+      expect(() => highlight.setVisible(false)).not.toThrow();
+    });
+
+    it('re-enables the stylesheet on detach for later reuse', () => {
+      const highlight = new CursorHighlight('red');
+      highlight.setRange(document.createRange(), document);
+      highlight.setVisible(false);
+      highlight.detach();
+
+      highlight.setRange(document.createRange(), document);
+
+      expect((document as any).adoptedStyleSheets[0].disabled).toBe(false);
     });
   });
 

@@ -7,6 +7,7 @@ describe('NoOpCursorHighlight', () => {
 
     highlight.setRange(document.createRange(), document);
     highlight.clear();
+    highlight.setVisible(false);
     highlight.detach();
 
     expect(highlight.name).toBe('');

@@ -13,6 +13,10 @@ export default class NoOpCursorHighlight implements ICursorHighlight {
     // no-op
   }
 
+  public setVisible(): void {
+    // no-op
+  }
+
   public detach(): void {
     // no-op
   }
