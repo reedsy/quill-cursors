@@ -22,7 +22,7 @@ which requires:
 
 | Chrome / Edge | Safari | Firefox |
 |---|---|---|
-| 111+ | 17.2+ | 140+ |
+| 122+ | 17.2+ | 140+ |
 
 In older browsers, `quill-cursors` degrades gracefully: carets, name flags and
 embed overlays still work (they are plain DOM elements), text selection
@@ -30,9 +30,10 @@ ranges are simply not drawn, and a single warning is logged to the console.
 If you need text selection rendering in older browsers, stay on the 4.x
 release line.
 
-Cursor colors using CSS custom properties (e.g. `var(--user-color)`) resolve
-inside highlight rules in Chrome/Edge 122+; Safari and Firefox support them
-from the same versions as the API itself.
+How faded remote selections look is controlled by a single CSS variable,
+`--ql-cursor-selection-fade` (default `0.3`), used by both the text highlight
+and the embed overlays. Override it on `.ql-container` to theme the fade.
+Cursor colors may also be CSS custom properties (e.g. `var(--user-color)`).
 
 ## Usage
 

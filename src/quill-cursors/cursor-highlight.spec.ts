@@ -88,7 +88,10 @@ describe('CursorHighlight', () => {
 
       expect((CSS as any).supports).toHaveBeenCalledWith('background-color', 'var(--user-color)');
       expect((document as any).adoptedStyleSheets[0].cssText)
-        .toContain('color-mix(in srgb, var(--user-color) 30%, transparent)');
+        .toContain(
+          'color-mix(in srgb, var(--user-color) ' +
+          'calc(var(--ql-cursor-selection-fade, 0.3) * 100%), transparent)',
+        );
     });
 
     it('replaces colors that fail validation with transparent', () => {
@@ -98,8 +101,8 @@ describe('CursorHighlight', () => {
       highlight.setRange(document.createRange(), document);
 
       expect((document as any).adoptedStyleSheets[0].cssText).toBe(
-        `::highlight(${ highlight.name }) ` +
-        '{ background-color: color-mix(in srgb, transparent 30%, transparent); }',
+        `::highlight(${ highlight.name }) { background-color: color-mix(in srgb, ` +
+        'transparent calc(var(--ql-cursor-selection-fade, 0.3) * 100%), transparent); }',
       );
     });
   });
@@ -139,7 +142,7 @@ describe('CursorHighlight', () => {
       expect(registered.size).toBe(0);
     });
 
-    it('adopts a stylesheet fading the cursor color to 30%', () => {
+    it('adopts a stylesheet fading the cursor color', () => {
       const highlight = new CursorHighlight('red');
 
       highlight.setRange(document.createRange(), document);
@@ -147,7 +150,10 @@ describe('CursorHighlight', () => {
       const sheets: any[] = (document as any).adoptedStyleSheets;
       expect(sheets).toHaveLength(1);
       expect(sheets[0].cssText)
-        .toBe(`::highlight(${ highlight.name }) { background-color: color-mix(in srgb, red 30%, transparent); }`);
+        .toBe(
+          `::highlight(${ highlight.name }) { background-color: color-mix(in srgb, ` +
+          'red calc(var(--ql-cursor-selection-fade, 0.3) * 100%), transparent); }',
+        );
     });
 
     it('adopts the stylesheet only once', () => {

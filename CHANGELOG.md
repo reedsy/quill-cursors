@@ -6,7 +6,7 @@ Selections are now rendered with the native
 [CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API)
 instead of manually-positioned rectangles ([#98](https://github.com/reedsy/quill-cursors/issues/98)).
 
-* Browser support floor is now Chrome/Edge 111+, Safari 17.2+, Firefox 140+. Older
+* Browser support floor is now Chrome/Edge 122+, Safari 17.2+, Firefox 140+. Older
   browsers still render carets, flags and embed overlays, but not text selections
   (one console warning).
 * The `<span class="ql-cursor-selections">` element in the cursor template is now only
@@ -33,6 +33,8 @@ instead of manually-positioned rectangles ([#98](https://github.com/reedsy/quill
   rules; invalid values fall back to `transparent`.
 * Overlapping selections from different cursors stack deterministically
   (later-created cursors paint on top) via `Highlight.priority`.
+* The selection fade is themable via the `--ql-cursor-selection-fade` CSS variable
+  (default `0.3`), shared by text highlights and embed overlays.
 
 # 4.3.0
 - Add `destroy()` method for proper cleanup: removes event listeners, disconnects ResizeObserver, clears pending timers, and removes the cursor container from the DOM

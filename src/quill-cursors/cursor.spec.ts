@@ -193,7 +193,7 @@ describe('Cursor', () => {
 
       const sheets: any[] = (document as any).adoptedStyleSheets;
       expect(sheets).toHaveLength(1);
-      expect(sheets[0].cssText).toContain('color-mix(in srgb, red 30%, transparent)');
+      expect(sheets[0].cssText).toContain('color-mix(in srgb, red calc(var(--ql-cursor-selection-fade, 0.3) * 100%)');
     });
 
     it('empties the highlight when passed null', () => {

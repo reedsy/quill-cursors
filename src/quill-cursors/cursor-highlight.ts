@@ -6,7 +6,10 @@ let nextHighlightNumber = 0;
 // globals exist.
 export default class CursorHighlight implements ICursorHighlight {
   public static readonly NAME_PREFIX = 'ql-cursor-highlight';
-  public static readonly SELECTION_ALPHA = '30%';
+  // Single source of truth for the fade lives in the stylesheet, which also
+  // uses it for the embed overlay opacity; the fallback covers setups that
+  // load the core bundle without the stylesheet.
+  public static readonly SELECTION_FADE = 'var(--ql-cursor-selection-fade, 0.3)';
 
   private static _hasWarnedUnsupported = false;
 
@@ -120,7 +123,8 @@ export default class CursorHighlight implements ICursorHighlight {
 
   private _buildSheet(): CSSStyleSheet {
     const sheet = new CSSStyleSheet();
-    const background = `color-mix(in srgb, ${ this._color } ${ CursorHighlight.SELECTION_ALPHA }, transparent)`;
+    const fade = `calc(${ CursorHighlight.SELECTION_FADE } * 100%)`;
+    const background = `color-mix(in srgb, ${ this._color } ${ fade }, transparent)`;
     sheet.replaceSync(`::highlight(${ this.name }) { background-color: ${ background }; }`);
     return sheet;
   }
