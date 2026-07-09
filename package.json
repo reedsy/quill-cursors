@@ -1,6 +1,6 @@
 {
   "name": "quill-cursors",
-  "version": "4.3.0",
+  "version": "5.0.0",
   "description": "A multi cursor module for Quill.",
   "keywords": [
     "quill",
@@ -46,6 +46,7 @@
     "@reedsy/eslint-plugin": "^0.14.2",
     "@testing-library/jest-dom": "^5.16.1",
     "@types/jest": "^27.4.0",
+    "@types/node": "25.3.1",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "@typescript-eslint/parser": "^5.49.0",
     "css-loader": "^6.6.0",
@@ -53,8 +54,6 @@
     "jest": "^27.4.7",
     "quill": "^1.3.7",
     "quill-delta": "^4.2.2",
-    "rangefix": "^0.2.10",
-    "resize-observer-polyfill": "^1.5.1",
     "sass": "^1.49.7",
     "sass-loader": "^12.4.0",
     "style-loader": "^3.3.1",

@@ -1,3 +1,8 @@
+:root {
+  /* Used as a cursor color to demonstrate CSS custom property support */
+  --demo-cursor-color: rebeccapurple;
+}
+
 html, body {
   font-family: Helvetica, Arial, sans-serif;
 }

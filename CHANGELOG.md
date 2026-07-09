@@ -1,3 +1,41 @@
+# 5.0.0
+
+### ⚠ BREAKING CHANGES
+
+Selections are now rendered with the native
+[CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API)
+instead of manually-positioned rectangles ([#98](https://github.com/reedsy/quill-cursors/issues/98)).
+
+* Browser support floor is now Chrome/Edge 122+, Safari 17.2+, Firefox 140+. Older
+  browsers still render carets, flags and embed overlays, but not text selections
+  (one console warning).
+* The `<span class="ql-cursor-selections">` element in the cursor template is now only
+  used for tinted overlays over embeds; text selections no longer create any DOM
+  elements. Templates without the element are tolerated (embeds just won't be tinted
+  for those cursors).
+* `cursor.updateSelection(rects, container)` is replaced by
+  `cursor.setSelectionRange(range: Range | null)` for text and
+  `cursor.updateEmbedSelections(rects, container)` for embeds.
+* Embeds within a remote selection — inline (e.g. images) or block (e.g. videos) — are
+  covered by a tinted overlay rectangle, since the Highlight API itself only paints
+  text.
+* Dropped the `rangefix` and `resize-observer-polyfill` dependencies; the bundles are
+  significantly smaller, and scroll/resize now only reposition carets and embed
+  overlays (the browser repaints highlights natively).
+
+### Features
+
+* `cursor.highlightName` exposes the `CSS.highlights` registry name, so applications
+  can layer extra styling via `::highlight(<name>)`.
+* Selection highlight styles use constructable stylesheets: CSP-safe in both bundles,
+  Shadow-DOM-aware (the stylesheet is adopted into the editor's actual root).
+* Cursor colors validated via `CSS.supports()` before being written into highlight
+  rules; invalid values fall back to `transparent`.
+* Overlapping selections from different cursors stack deterministically
+  (later-created cursors paint on top) via `Highlight.priority`.
+* The selection fade is themable via the `--ql-cursor-selection-fade` CSS variable
+  (default `0.3`), shared by text highlights and embed overlays.
+
 # 4.3.0
 - Add `destroy()` method for proper cleanup: removes event listeners, disconnects ResizeObserver, clears pending timers, and removes the cursor container from the DOM
 - Auto-teardown: when the Quill container is removed from the DOM, the module detects this on the next Quill event and calls `destroy()` automatically

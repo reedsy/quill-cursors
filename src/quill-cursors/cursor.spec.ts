@@ -51,6 +51,23 @@ describe('Cursor', () => {
     `);
   });
 
+  it('tolerates templates without a selections element', () => {
+    options.template = `
+      <span class="ql-cursor-caret-container">
+        <span class="ql-cursor-caret"></span>
+      </span>
+      <div class="ql-cursor-flag">
+        <small class="ql-cursor-name"></small>
+      </div>
+    `;
+    const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+    cursor.build(options);
+
+    const rectangle: any = {top: 10, left: 10, width: 100, height: 20};
+    const container: any = {top: 0, left: 0, width: 500, height: 500};
+    expect(() => cursor.updateEmbedSelections([rectangle], container)).not.toThrow();
+  });
+
   it('adds the ID to the element', () => {
     const element = new Cursor('abc', 'Jane Bloggs', 'red').build(options);
     expect(element.id).toBe('ql-cursor-abc');
@@ -80,6 +97,136 @@ describe('Cursor', () => {
 
     cursor.remove();
     expect(element).not.toBeInTheDocument();
+  });
+
+  it('exposes a unique highlight name', () => {
+    const first = new Cursor('abc', 'Jane Bloggs', 'red');
+    const second = new Cursor('def', 'Joe Bloggs', 'blue');
+
+    expect(first.highlightName).toMatch(/^ql-cursor-highlight-\d+$/);
+    expect(first.highlightName).not.toBe(second.highlightName);
+  });
+
+  it('uses a no-op highlight when the Highlight API is unsupported', () => {
+    const highlight = (globalThis as any).Highlight;
+    delete (globalThis as any).Highlight;
+    try {
+      const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+      cursor.build(options);
+
+      expect(cursor.highlightName).toBe('');
+      expect(() => cursor.setSelectionRange(document.createRange())).not.toThrow();
+      expect((CSS as any).highlights.size).toBe(0);
+    } finally {
+      (globalThis as any).Highlight = highlight;
+    }
+  });
+
+  describe('embed selections', () => {
+    let cursor: Cursor;
+    let element: HTMLElement;
+    let container: any;
+
+    beforeEach(() => {
+      cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+      element = cursor.build(options);
+      container = {top: 5, left: 5, width: 2000, height: 2000};
+    });
+
+    it('draws a tinted block over each rectangle', () => {
+      cursor.updateEmbedSelections([
+        {top: 10, left: 20, width: 100, height: 50},
+        {top: 100, left: 20, width: 200, height: 80},
+      ] as any, container);
+
+      const blocks = element.getElementsByClassName(Cursor.SELECTION_BLOCK_CLASS);
+      expect(blocks).toHaveLength(2);
+      expect(blocks[0]).toHaveStyle('top: 5px');
+      expect(blocks[0]).toHaveStyle('left: 15px');
+      expect(blocks[0]).toHaveStyle('width: 100px');
+      expect(blocks[0]).toHaveStyle('height: 50px');
+      expect(blocks[0]).toHaveStyle('background-color: red');
+    });
+
+    it('clears previous blocks on update', () => {
+      cursor.updateEmbedSelections([{top: 10, left: 20, width: 100, height: 50}] as any, container);
+      cursor.updateEmbedSelections([], container);
+
+      expect(element.getElementsByClassName(Cursor.SELECTION_BLOCK_CLASS)).toHaveLength(0);
+    });
+
+    it('skips rectangles without an area', () => {
+      cursor.updateEmbedSelections([
+        {top: 10, left: 20, width: 0, height: 50},
+        {top: 10, left: 20, width: 100, height: 0},
+      ] as any, container);
+
+      expect(element.getElementsByClassName(Cursor.SELECTION_BLOCK_CLASS)).toHaveLength(0);
+    });
+  });
+
+  describe('selection range highlight', () => {
+    let cursor: Cursor;
+    let element: HTMLElement;
+
+    beforeEach(() => {
+      cursor = new Cursor('abc', 'Jane Bloggs', 'red');
+      element = cursor.build(options);
+      document.body.appendChild(element);
+    });
+
+    afterEach(() => {
+      if (element.parentNode) element.parentNode.removeChild(element);
+    });
+
+    it('registers the range in the highlight registry', () => {
+      const range = document.createRange();
+
+      cursor.setSelectionRange(range);
+
+      const registered: any = (CSS as any).highlights.get(cursor.highlightName);
+      expect(registered.has(range)).toBe(true);
+    });
+
+    it('adopts a stylesheet with the cursor color', () => {
+      cursor.setSelectionRange(document.createRange());
+
+      const sheets: any[] = (document as any).adoptedStyleSheets;
+      expect(sheets).toHaveLength(1);
+      expect(sheets[0].cssText).toContain('color-mix(in srgb, red calc(var(--ql-cursor-selection-fade, 0.3) * 100%)');
+    });
+
+    it('empties the highlight when passed null', () => {
+      cursor.setSelectionRange(document.createRange());
+      cursor.setSelectionRange(null);
+
+      const registered: any = (CSS as any).highlights.get(cursor.highlightName);
+      expect(registered.size).toBe(0);
+    });
+
+    it('hides the highlight without losing the selection', () => {
+      const range = document.createRange();
+      cursor.setSelectionRange(range);
+
+      cursor.hide();
+
+      const sheets: any[] = (document as any).adoptedStyleSheets;
+      expect(sheets[0].disabled).toBe(true);
+      expect((CSS as any).highlights.get(cursor.highlightName).has(range)).toBe(true);
+
+      cursor.show();
+
+      expect(sheets[0].disabled).toBe(false);
+    });
+
+    it('unregisters the highlight when the cursor is removed', () => {
+      cursor.setSelectionRange(document.createRange());
+
+      cursor.remove();
+
+      expect((CSS as any).highlights.has(cursor.highlightName)).toBe(false);
+      expect((document as any).adoptedStyleSheets).toHaveLength(0);
+    });
   });
 
   it('updates the caret position', () => {
@@ -188,146 +335,6 @@ describe('Cursor', () => {
     expect(flag).toHaveClass(Cursor.NO_DELAY_CLASS);
     jest.advanceTimersByTime(options.hideSpeedMs);
     expect(flag).not.toHaveClass(Cursor.NO_DELAY_CLASS);
-  });
-
-  describe('with some selections', () => {
-    let cursor: Cursor;
-    let element: HTMLElement;
-    let container: any;
-    let selection1: any;
-    let selection2: any;
-
-    beforeEach(() => {
-      cursor = new Cursor('abc', 'Jane Bloggs', 'red');
-      element = cursor.build(options);
-
-      selection1 = {
-        top: 0,
-        left: 50,
-        width: 100,
-        height: 200,
-      };
-
-      selection2 = {
-        top: 1000,
-        left: 1050,
-        width: 200,
-        height: 300,
-      };
-
-      container = {
-        top: 0,
-        left: 0,
-        width: 2000,
-        height: 2000,
-      };
-
-      cursor.updateSelection([selection1, selection2], container);
-    });
-
-    it('adds selections', () => {
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-
-      expect(selections.children.length).toBe(2);
-
-      expect(selections.children[0]).toHaveStyle('top: 0px');
-      expect(selections.children[0]).toHaveStyle('left: 50px');
-      expect(selections.children[0]).toHaveStyle('width: 100px');
-      expect(selections.children[0]).toHaveStyle('height: 200px');
-      expect(selections.children[0]).toHaveStyle('background-color: red');
-      expect(selections.children[0]).toHaveStyle('opacity: 0.3');
-
-      expect(selections.children[1]).toHaveStyle('top: 1000px');
-      expect(selections.children[1]).toHaveStyle('left: 1050px');
-      expect(selections.children[1]).toHaveStyle('width: 200px');
-      expect(selections.children[1]).toHaveStyle('height: 300px');
-      expect(selections.children[1]).toHaveStyle('background-color: red');
-      expect(selections.children[1]).toHaveStyle('opacity: 0.3');
-    });
-
-    it('clears the selection if nothing is passed in', () => {
-      cursor.updateSelection(null, container);
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-      expect(selections.children).toHaveLength(0);
-    });
-
-    it('sorts the selections by DOM position', () => {
-      cursor.updateSelection([selection2, selection1], container);
-
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-
-      expect(selections.children[0]).toHaveStyle('top: 0px');
-      expect(selections.children[0]).toHaveStyle('left: 50px');
-
-      expect(selections.children[1]).toHaveStyle('top: 1000px');
-      expect(selections.children[1]).toHaveStyle('left: 1050px');
-    });
-
-    it('sorts by left-to-right if the selection tops are the same', () => {
-      const selection3 = {
-        top: 0,
-        left: 150,
-        width: 100,
-        height: 200,
-      };
-
-      cursor.updateSelection([selection3, selection1], container);
-
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-
-      expect(selections.children[0]).toHaveStyle('top: 0px');
-      expect(selections.children[0]).toHaveStyle('left: 50px');
-
-      expect(selections.children[1]).toHaveStyle('top: 0px');
-      expect(selections.children[1]).toHaveStyle('left: 150px');
-    });
-
-    it('deduplicates selections', () => {
-      cursor.updateSelection([selection1, selection1], container);
-
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-
-      expect(selections.children).toHaveLength(1);
-
-      expect(selections.children[0]).toHaveStyle('top: 0px');
-      expect(selections.children[0]).toHaveStyle('left: 50px');
-    });
-
-    it('ignores selections with no width', () => {
-      const noWidthSelection = {
-        top: 0,
-        left: 0,
-        width: 0,
-        height: 100,
-      };
-
-      cursor.updateSelection([selection1, noWidthSelection], container);
-
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-
-      expect(selections.children).toHaveLength(1);
-
-      expect(selections.children[0]).toHaveStyle('top: 0px');
-      expect(selections.children[0]).toHaveStyle('left: 50px');
-    });
-
-    it('ignores selections with no height', () => {
-      const noHeightSelection = {
-        top: 0,
-        left: 0,
-        width: 100,
-        height: 0,
-      };
-
-      cursor.updateSelection([selection1, noHeightSelection], container);
-
-      const selections = element.getElementsByClassName(Cursor.SELECTION_CLASS)[0];
-
-      expect(selections.children).toHaveLength(1);
-
-      expect(selections.children[0]).toHaveStyle('top: 0px');
-      expect(selections.children[0]).toHaveStyle('left: 50px');
-    });
   });
 
   describe('mouse move handlers', () => {

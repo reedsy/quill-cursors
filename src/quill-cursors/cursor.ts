@@ -1,6 +1,9 @@
 import IQuillCursorsOptions from './i-quill-cursors-options';
 import IQuillRange from './i-range';
 import {ICoordinates} from './i-coordinates';
+import ICursorHighlight from './i-cursor-highlight';
+import CursorHighlight from './cursor-highlight';
+import NoOpCursorHighlight from './no-op-cursor-highlight';
 
 export default class Cursor {
   public static readonly CONTAINER_ELEMENT_TAG = 'SPAN';
@@ -22,6 +25,7 @@ export default class Cursor {
   public readonly name: string;
   public readonly color: string;
   public range: IQuillRange;
+  public readonly highlightName: string;
 
   private _el: HTMLElement;
   private _selectionEl: HTMLElement;
@@ -30,11 +34,16 @@ export default class Cursor {
   private _hideDelay: string;
   private _hideSpeedMs: number;
   private _positionFlag: (flag: HTMLElement, caretRectangle: ClientRect, container: ClientRect) => void;
+  private readonly _highlight: ICursorHighlight;
 
   public constructor(id: string, name: string, color: string) {
     this.id = id;
     this.name = name;
     this.color = color;
+    this._highlight = CursorHighlight.isSupported() ?
+      new CursorHighlight(color) :
+      new NoOpCursorHighlight();
+    this.highlightName = this._highlight.name;
     this.toggleNearCursor = this.toggleNearCursor.bind(this);
     this._toggleOpenedCursor = this._toggleOpenedCursor.bind(this);
     this._setHoverState = this._setHoverState.bind(this);
@@ -73,13 +82,18 @@ export default class Cursor {
 
   public show(): void {
     this._el.classList.remove(Cursor.HIDDEN_CLASS);
+    this._highlight.setVisible(true);
   }
 
+  // The highlight lives in the global registry, not in this hidden container,
+  // so it is toggled through its stylesheet instead of the hidden class.
   public hide(): void {
     this._el.classList.add(Cursor.HIDDEN_CLASS);
+    this._highlight.setVisible(false);
   }
 
   public remove(): void {
+    this._highlight.detach();
     this._el.parentNode.removeChild(this._el);
   }
 
@@ -116,13 +130,21 @@ export default class Cursor {
     }
   }
 
-  public updateSelection(selections: ClientRect[], container: ClientRect): void {
-    this._clearSelection();
-    selections = selections || [];
-    selections = Array.from(selections);
-    selections = this._sanitize(selections);
-    selections = this._sortByDomPosition(selections);
-    selections.forEach((selection: ClientRect) => this._addSelection(selection, container));
+  public setSelectionRange(range: Range | null): void {
+    this._highlight.setRange(range, this._el.getRootNode());
+  }
+
+  // Custom highlights cannot paint over embeds, so embeds in the selection
+  // (inline like images, block like videos) get a tinted overlay instead.
+  public updateEmbedSelections(rectangles: ClientRect[], container: ClientRect): void {
+    if (!this._selectionEl) return; // custom template without a selections element
+
+    this._selectionEl.innerHTML = '';
+    rectangles
+      .filter((rectangle: ClientRect) => rectangle.width && rectangle.height)
+      .forEach((rectangle: ClientRect) => {
+        this._selectionEl.appendChild(this._selectionBlock(rectangle, container));
+      });
   }
 
   private _setHoverState(): void {
@@ -139,6 +161,19 @@ export default class Cursor {
     return this._caretEl.getBoundingClientRect();
   }
 
+  private _selectionBlock(rectangle: ClientRect, container: ClientRect): HTMLElement {
+    const element = document.createElement(Cursor.SELECTION_ELEMENT_TAG);
+
+    element.classList.add(Cursor.SELECTION_BLOCK_CLASS);
+    element.style.top = `${rectangle.top - container.top}px`;
+    element.style.left = `${rectangle.left - container.left}px`;
+    element.style.width = `${rectangle.width}px`;
+    element.style.height = `${rectangle.height}px`;
+    element.style.backgroundColor = this.color;
+
+    return element;
+  }
+
   private _updateCaretFlag(caretRectangle: ClientRect, container: ClientRect): void {
     this._flagEl.style.width = '';
     const flagRect = this._flagEl.getBoundingClientRect();
@@ -151,65 +186,5 @@ export default class Cursor {
     this._flagEl.style.top = `${caretRectangle.top}px`;
     // Chrome has an issue when doing translate3D with non integer width, this ceil is to overcome it.
     this._flagEl.style.width = `${Math.ceil(flagRect.width)}px`;
-  }
-
-  private _clearSelection(): void {
-    this._selectionEl.innerHTML = '';
-  }
-
-  private _addSelection(selection: ClientRect, container: ClientRect): void {
-    const selectionBlock = this._selectionBlock(selection, container);
-    this._selectionEl.appendChild(selectionBlock);
-  }
-
-  private _selectionBlock(selection: ClientRect, container: ClientRect): HTMLElement {
-    const element = document.createElement(Cursor.SELECTION_ELEMENT_TAG);
-
-    element.classList.add(Cursor.SELECTION_BLOCK_CLASS);
-    element.style.top = `${selection.top - container.top}px`;
-    element.style.left = `${selection.left - container.left}px`;
-    element.style.width = `${selection.width}px`;
-    element.style.height = `${selection.height}px`;
-    element.style.backgroundColor = this.color;
-    element.style.opacity = '0.3';
-
-    return element;
-  }
-
-  private _sortByDomPosition(selections: ClientRect[]): ClientRect[] {
-    return selections.sort((a, b) => {
-      if (a.top === b.top) {
-        return a.left - b.left;
-      }
-
-      return a.top - b.top;
-    });
-  }
-
-  private _sanitize(selections: ClientRect[]): ClientRect[] {
-    const serializedSelections = new Set();
-
-    return selections.filter((selection: ClientRect) => {
-      if (!selection.width || !selection.height) {
-        return false;
-      }
-
-      const serialized = this._serialize(selection);
-      if (serializedSelections.has(serialized)) {
-        return false;
-      }
-
-      serializedSelections.add(serialized);
-      return true;
-    });
-  }
-
-  private _serialize(selection: ClientRect): string {
-    return [
-      `top:${ selection.top }`,
-      `right:${ selection.right }`,
-      `bottom:${ selection.bottom }`,
-      `left:${ selection.left }`,
-    ].join(';');
   }
 }

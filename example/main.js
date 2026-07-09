@@ -8,12 +8,23 @@ const CURSOR_LATENCY = 1000;
 // text changes.
 const TEXT_LATENCY = 500;
 
+// Default snow toolbar plus image (inline embed) and video (block embed)
+// controls, for checking how remote selections cover embeds.
+const TOOLBAR = [
+  [{header: ['1', '2', '3', false]}],
+  ['bold', 'italic', 'underline', 'link'],
+  [{list: 'ordered'}, {list: 'bullet'}],
+  ['image', 'video'],
+  ['clean'],
+];
+
 const quillOne = new Quill('#editor-one', {
   theme: 'snow',
   modules: {
     cursors: {
       transformOnTextChange: true,
     },
+    toolbar: TOOLBAR,
   },
 });
 
@@ -23,6 +34,7 @@ const quillTwo = new Quill('#editor-two', {
     cursors: {
       transformOnTextChange: true,
     },
+    toolbar: TOOLBAR,
   },
 });
 
@@ -30,7 +42,7 @@ const cursorsOne = quillOne.getModule('cursors');
 const cursorsTwo = quillTwo.getModule('cursors');
 
 cursorsOne.createCursor('cursor', 'User 2', 'blue');
-cursorsTwo.createCursor('cursor', 'User 1', 'red');
+cursorsTwo.createCursor('cursor', 'User 1', 'var(--demo-cursor-color)');
 
 function textChangeHandler(quill) {
   return function(delta, oldContents, source) {
