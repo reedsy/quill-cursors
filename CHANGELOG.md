@@ -1,3 +1,6 @@
+# 5.0.1
+- Fix remote selections going stale when a selection drag ends outside the browser window ([#104](https://github.com/reedsy/quill-cursors/issues/104))
+
 # 5.0.0
 
 ### ⚠ BREAKING CHANGES

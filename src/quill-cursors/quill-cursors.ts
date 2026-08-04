@@ -14,6 +14,8 @@ export default class QuillCursors {
     hideSpeedMs: 400,
   };
 
+  private static readonly SELECTION_SETTLE_MS = 300;
+
   public readonly quill: any;
   public readonly options: IQuillCursorsOptions;
 
@@ -27,7 +29,8 @@ export default class QuillCursors {
   private _resizeObserver: ResizeObserver | null = null;
   private _touchTimerIds: ReturnType<typeof setTimeout>[] = [];
   private _quillListeners: Array<{ event: string; wrapped: (...args: any[]) => void }> = [];
-  private _domListeners: Array<{target: HTMLElement; event: string; wrapped: EventListener}> = [];
+  private _domListeners: Array<{target: HTMLElement | Document; event: string; wrapped: EventListener}> = [];
+  private _selectionSettleTimerId: ReturnType<typeof setTimeout> | null = null;
 
   public constructor(quill: any, options: IQuillCursorsOptions = {}) {
     CursorHighlight.warnIfUnsupported();
@@ -104,6 +107,10 @@ export default class QuillCursors {
     this.clearCursors();
     this._touchTimerIds.forEach((id) => clearTimeout(id));
     this._touchTimerIds = [];
+    if (this._selectionSettleTimerId != null) {
+      clearTimeout(this._selectionSettleTimerId);
+      this._selectionSettleTimerId = null;
+    }
     this._quillListeners.forEach(({event, wrapped}) => this.quill.off(event, wrapped));
     this._quillListeners = [];
     this._domListeners.forEach(({target, event, wrapped}) => target.removeEventListener(event, wrapped));
@@ -150,7 +157,7 @@ export default class QuillCursors {
   }
 
   private _addDomListener(
-    target: HTMLElement,
+    target: HTMLElement | Document,
     event: string,
     handler: EventListener,
     options?: AddEventListenerOptions,
@@ -187,6 +194,28 @@ export default class QuillCursors {
   private _registerDomListeners(): void {
     this._addDomListener(this._editor, 'scroll', this._onScroll, {passive: true});
     this._addDomListener(this._editor, 'touchstart', this._handleCursorTouch as EventListener, {passive: true});
+    this._addDomListener(document, 'selectionchange', this._onDocumentSelectionChange);
+  }
+
+  // Quill only emits a mouse selection on the mouseup ending the drag, and
+  // that mouseup never arrives if the button is released outside the window.
+  // Once the selection settles, getSelection() makes Quill reconcile against
+  // its last known range and emit the missed 'user' selection-change itself.
+  private readonly _onDocumentSelectionChange = (): void => {
+    if (this._selectionSettleTimerId != null) {
+      clearTimeout(this._selectionSettleTimerId);
+    }
+    this._selectionSettleTimerId = setTimeout(() => {
+      this._selectionSettleTimerId = null;
+      this._nudgeSelectionEmission();
+    }, QuillCursors.SELECTION_SETTLE_MS);
+  };
+
+  private _nudgeSelectionEmission(): void {
+    if (this._destroyed || this.quill.selection?.composing) {
+      return;
+    }
+    this.quill.getSelection();
   }
 
   private _registerResizeObserver(): void {

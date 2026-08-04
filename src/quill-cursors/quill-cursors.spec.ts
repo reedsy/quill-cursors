@@ -293,6 +293,58 @@ describe('QuillCursors', () => {
     });
   });
 
+  describe('reconciling selections missed by Quill', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('registers a document selectionchange listener', () => {
+      jest.spyOn(document, 'addEventListener');
+      new QuillCursors(quill);
+      expect(document.addEventListener)
+        .toHaveBeenCalledWith('selectionchange', expect.anything(), undefined);
+    });
+
+    it('nudges Quill to reconcile once the selection has settled', () => {
+      jest.useFakeTimers();
+      new QuillCursors(quill);
+      jest.spyOn(quill, 'getSelection');
+
+      document.dispatchEvent(new Event('selectionchange'));
+      expect(quill.getSelection).not.toHaveBeenCalled();
+
+      jest.runAllTimers();
+      expect(quill.getSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('debounces the nudge while the selection keeps changing', () => {
+      jest.useFakeTimers();
+      new QuillCursors(quill);
+      jest.spyOn(quill, 'getSelection');
+
+      document.dispatchEvent(new Event('selectionchange'));
+      jest.advanceTimersByTime(200);
+      document.dispatchEvent(new Event('selectionchange'));
+      jest.advanceTimersByTime(200);
+      expect(quill.getSelection).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(100);
+      expect(quill.getSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not nudge while an IME composition is in progress', () => {
+      jest.useFakeTimers();
+      quill.selection = {composing: true};
+      new QuillCursors(quill);
+      jest.spyOn(quill, 'getSelection');
+
+      document.dispatchEvent(new Event('selectionchange'));
+      jest.runAllTimers();
+
+      expect(quill.getSelection).not.toHaveBeenCalled();
+    });
+  });
+
   describe('creating a cursor', () => {
     it('creates a cursor', () => {
       const cursors = new QuillCursors(quill);
@@ -904,6 +956,22 @@ describe('QuillCursors', () => {
       editor.dispatchEvent(new TouchEvent('touchstart'));
       jest.runAllTimers();
       expect(cursor.toggleNearCursor).not.toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it('removes the document selectionchange listener', () => {
+      jest.spyOn(document, 'removeEventListener');
+      cursors.destroy();
+      expect(document.removeEventListener).toHaveBeenCalledWith('selectionchange', expect.anything());
+    });
+
+    it('does not nudge Quill when destroyed before the selection settle timer fires', () => {
+      jest.useFakeTimers();
+      jest.spyOn(quill, 'getSelection');
+      document.dispatchEvent(new Event('selectionchange'));
+      cursors.destroy();
+      jest.runAllTimers();
+      expect(quill.getSelection).not.toHaveBeenCalled();
       jest.useRealTimers();
     });
 
