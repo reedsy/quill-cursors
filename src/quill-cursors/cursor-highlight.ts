@@ -22,6 +22,7 @@ export default class CursorHighlight implements ICursorHighlight {
   public static warnIfUnsupported(): void {
     if (CursorHighlight.isSupported() || CursorHighlight._hasWarnedUnsupported) return;
     CursorHighlight._hasWarnedUnsupported = true;
+    // eslint-disable-next-line no-console
     console.warn(
       'quill-cursors: This browser does not support the CSS Custom Highlight API. ' +
       'Cursor carets and flags will work, but selection ranges will not be shown. ' +

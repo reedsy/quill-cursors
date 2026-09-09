@@ -34,7 +34,7 @@
   "scripts": {
     "prebuild": "rm -rf dist",
     "build": "npm run lint && NODE_ENV=production webpack && sass assets/quill-cursors.scss dist/quill-cursors.min.css --style=compressed --no-source-map",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "start": "webpack serve --open",
     "test": "NODE_ENV=test jest --coverage"
   },
