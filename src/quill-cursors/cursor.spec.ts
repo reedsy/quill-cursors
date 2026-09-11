@@ -1,6 +1,6 @@
-import Cursor from './cursor';
-import IQuillCursorsOptions from './i-quill-cursors-options';
-import '@testing-library/jest-dom/extend-expect';
+import Cursor from './cursor.js';
+import IQuillCursorsOptions from './i-quill-cursors-options.js';
+import '@testing-library/jest-dom';
 
 describe('Cursor', () => {
   let template: string;
@@ -145,7 +145,7 @@ describe('Cursor', () => {
       expect(blocks[0]).toHaveStyle('left: 15px');
       expect(blocks[0]).toHaveStyle('width: 100px');
       expect(blocks[0]).toHaveStyle('height: 50px');
-      expect(blocks[0]).toHaveStyle('background-color: red');
+      expect(blocks[0]).toHaveStyle('background-color: rgb(255, 0, 0)');
     });
 
     it('clears previous blocks on update', () => {

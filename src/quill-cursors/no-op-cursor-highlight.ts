@@ -1,4 +1,4 @@
-import ICursorHighlight from './i-cursor-highlight';
+import ICursorHighlight from './i-cursor-highlight.js';
 
 // Stands in for CursorHighlight when the CSS Custom Highlight API is
 // unsupported: text selections are skipped entirely.

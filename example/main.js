@@ -1,3 +1,5 @@
+import QuillCursors from './quill-cursors.js';
+
 Quill.register('modules/cursors', QuillCursors);
 
 // Constant to simulate a high-latency connection when sending cursor

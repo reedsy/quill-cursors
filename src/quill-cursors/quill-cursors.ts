@@ -1,9 +1,9 @@
-import IQuillCursorsOptions from './i-quill-cursors-options';
-import Cursor from './cursor';
-import IQuillRange from './i-range';
-import CursorHighlight from './cursor-highlight';
-import template from './template';
-import Delta = require('quill-delta');
+import IQuillCursorsOptions from './i-quill-cursors-options.js';
+import Cursor from './cursor.js';
+import IQuillRange from './i-range.js';
+import CursorHighlight from './cursor-highlight.js';
+import template from './template.js';
+import Delta from 'quill-delta';
 
 export default class QuillCursors {
   public static DEFAULTS: IQuillCursorsOptions = {

@@ -1,4 +1,4 @@
-import CursorHighlight from './cursor-highlight';
+import CursorHighlight from './cursor-highlight.js';
 
 describe('CursorHighlight', () => {
   beforeEach(() => {

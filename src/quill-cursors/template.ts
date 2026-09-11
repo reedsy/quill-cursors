@@ -1,4 +1,4 @@
-import Cursor from './cursor';
+import Cursor from './cursor.js';
 
 const template = `
   <span class="${Cursor.SELECTION_CLASS}"></span>

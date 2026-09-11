@@ -42,24 +42,22 @@ collaborative editing.
 
 First, [set up a Quill editor](https://quilljs.com/docs/quickstart/).
 
-Next, load `quill-cursors` through any of the options presented by [UMD](https://github.com/umdjs/umd).
+Next, load `quill-cursors`. Since v6.0.0, the package ships as
+[ES modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
+only (no UMD or CommonJS builds).
 
-Load script in HTML:
-
-```html
-<script src="quill-cursors.js"></script>
-```
-
-Using [ES6-style `import`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import):
+Using `import` (with a bundler, or natively in the browser):
 
 ```javascript
 import QuillCursors from 'quill-cursors';
 ```
 
-Using CommonJS-style `require`:
+Or load the bundle directly in HTML:
 
-```javascript
-const QuillCursors = require('quill-cursors');
+```html
+<script type="module">
+  import QuillCursors from './quill-cursors.js';
+</script>
 ```
 
 Then, register the `quill-cursors` module:
@@ -263,9 +261,11 @@ To support these use cases, `quill-cursors` provides separate builds:
 
 | File | Description |
 |---|---|
-| `dist/quill-cursors.js` | Full bundle with inline style injection (default, backwards-compatible) |
+| `dist/quill-cursors.js` | Full bundle with inline style injection (default) |
 | `dist/quill-cursors.core.js` | JS-only bundle, no style injection |
 | `dist/quill-cursors.min.css` | Standalone CSS file with all cursor styles |
+
+Both bundles are ES modules.
 
 ### Import examples
 
@@ -282,11 +282,13 @@ import QuillCursors from 'quill-cursors/core';
 import 'quill-cursors/css';
 ```
 
-**CSP-safe usage via script tags:**
+**CSP-safe usage without a bundler:**
 
 ```html
 <link rel="stylesheet" href="quill-cursors.min.css">
-<script src="quill-cursors.core.js"></script>
+<script type="module">
+  import QuillCursors from './quill-cursors.core.js';
+</script>
 ```
 
 **Shadow DOM: JS only, inject CSS into shadow root manually:**

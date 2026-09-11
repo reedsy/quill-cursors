@@ -1,4 +1,4 @@
-import ICursorHighlight from './i-cursor-highlight';
+import ICursorHighlight from './i-cursor-highlight.js';
 
 let nextHighlightNumber = 0;
 

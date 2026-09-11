@@ -1,9 +1,9 @@
-import IQuillCursorsOptions from './i-quill-cursors-options';
-import IQuillRange from './i-range';
-import {ICoordinates} from './i-coordinates';
-import ICursorHighlight from './i-cursor-highlight';
-import CursorHighlight from './cursor-highlight';
-import NoOpCursorHighlight from './no-op-cursor-highlight';
+import IQuillCursorsOptions from './i-quill-cursors-options.js';
+import IQuillRange from './i-range.js';
+import {ICoordinates} from './i-coordinates.js';
+import ICursorHighlight from './i-cursor-highlight.js';
+import CursorHighlight from './cursor-highlight.js';
+import NoOpCursorHighlight from './no-op-cursor-highlight.js';
 
 export default class Cursor {
   public static readonly CONTAINER_ELEMENT_TAG = 'SPAN';

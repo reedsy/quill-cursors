@@ -56,7 +56,7 @@ export default tseslint.config(
   },
   {
     name: 'quill-cursors/commonjs-build-config',
-    files: ['*.js'],
+    files: ['*.cjs'],
     languageOptions: {
       sourceType: 'commonjs',
       globals: globals.node,

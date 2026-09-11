@@ -1,10 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2015",
     "lib": [
       "dom",
-      "es6"
+      "es2015"
     ],
+    "moduleResolution": "bundler",
+    "types": [
+      "jest",
+      "node"
+    ],
+    "strict": false,
     "noImplicitAny": true,
     "sourceMap": true,
     "removeComments": true,

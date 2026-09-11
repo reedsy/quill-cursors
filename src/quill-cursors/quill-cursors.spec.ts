@@ -1,7 +1,7 @@
-import QuillCursors from './quill-cursors';
-import Cursor from './cursor';
-import CursorHighlight from './cursor-highlight';
-import '@testing-library/jest-dom/extend-expect';
+import QuillCursors from './quill-cursors.js';
+import Cursor from './cursor.js';
+import CursorHighlight from './cursor-highlight.js';
+import '@testing-library/jest-dom';
 
 const mockObserver = jest.fn();
 const mockDisconnect = jest.fn();
@@ -163,6 +163,14 @@ describe('QuillCursors', () => {
       const callback = ResizeObserverMock.mock.calls[0][0];
       callback([{target: {isConnected: true}}]);
       expect(mockDisconnect).toHaveBeenCalledTimes(0);
+    });
+
+    it('ignores a disconnected-target notification after destroy', () => {
+      const callback = ResizeObserverMock.mock.calls[0][0];
+      cursors.destroy();
+      mockDisconnect.mockClear();
+      callback([{target: {isConnected: false}}]);
+      expect(mockDisconnect).not.toHaveBeenCalled();
     });
   });
 
@@ -840,7 +848,7 @@ describe('QuillCursors', () => {
         const touch = new TouchEvent('touchstart');
         const editor = quill.root;
         editor.dispatchEvent(touch);
-        expect(cursor.toggleNearCursor).toBeCalled();
+        expect(cursor.toggleNearCursor).toHaveBeenCalled();
       });
 
       it('hide flags after 2 secs', () => {
@@ -855,11 +863,25 @@ describe('QuillCursors', () => {
         const touch = new TouchEvent('touchstart');
         const editor = quill.root;
         editor.dispatchEvent(touch);
-        expect(cursor.toggleNearCursor).toBeCalled();
+        expect(cursor.toggleNearCursor).toHaveBeenCalled();
 
         jest.runAllTimers();
 
-        expect(cursor.toggleFlag).toBeCalled();
+        expect(cursor.toggleFlag).toHaveBeenCalled();
+      });
+
+      it('still hides the flag if its timer was already forgotten', () => {
+        jest.useFakeTimers();
+        const cursors = new QuillCursors(quill);
+        cursors.createCursor('abc', 'Iron Man', 'red');
+        const cursor = cursors.cursors()[0];
+        jest.spyOn(cursor, 'toggleFlag');
+
+        quill.root.dispatchEvent(new TouchEvent('touchstart'));
+        (cursors as any)._touchTimerIds = [];
+        jest.runAllTimers();
+
+        expect(cursor.toggleFlag).toHaveBeenCalledWith(false);
       });
     });
   });

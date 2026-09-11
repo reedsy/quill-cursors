@@ -1,3 +1,21 @@
+# 6.0.0
+
+### ⚠ BREAKING CHANGES
+
+The package is now [ESM-only](https://github.com/reedsy/quill-cursors/issues/96):
+`package.json` declares `"type": "module"` and both bundles
+(`dist/quill-cursors.js` and `dist/quill-cursors.core.js`) are ES modules.
+
+* The UMD builds are gone: there is no `QuillCursors` global, and plain
+  `<script src>` tags must become `<script type="module">` with an `import`.
+* CommonJS `require('quill-cursors')` is no longer supported (Node.js ≥ 22.12
+  can still `require()` the ES module natively).
+* Bundlers (webpack, Vite, esbuild, Angular CLI) resolve the ES modules via the
+  `exports` map, which removes the CommonJS optimization bailout warnings.
+* The type declarations are strict ES modules too (explicit `.js` extensions, no
+  stylesheet side-effect import), so they resolve under `moduleResolution: node16`
+  and `bundler`.
+
 # 5.0.0
 
 ### ⚠ BREAKING CHANGES

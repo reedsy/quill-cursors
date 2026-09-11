@@ -1,5 +1,5 @@
-import ICursorHighlight from './i-cursor-highlight';
-import NoOpCursorHighlight from './no-op-cursor-highlight';
+import ICursorHighlight from './i-cursor-highlight.js';
+import NoOpCursorHighlight from './no-op-cursor-highlight.js';
 
 describe('NoOpCursorHighlight', () => {
   it('does nothing and touches no globals', () => {
