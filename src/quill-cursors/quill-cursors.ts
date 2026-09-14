@@ -1,4 +1,4 @@
-import IQuillCursorsOptions from './i-quill-cursors-options.js';
+import IQuillCursorsOptions, {IQuillCursorsResolvedOptions} from './i-quill-cursors-options.js';
 import Cursor from './cursor.js';
 import IQuillRange from './i-range.js';
 import CursorHighlight from './cursor-highlight.js';
@@ -6,7 +6,7 @@ import template from './template.js';
 import Delta from 'quill-delta';
 
 export default class QuillCursors {
-  public static DEFAULTS: IQuillCursorsOptions = {
+  public static DEFAULTS: IQuillCursorsResolvedOptions = {
     template,
     containerClass: 'ql-cursors',
     selectionChangeSource: 'api',
@@ -15,7 +15,7 @@ export default class QuillCursors {
   };
 
   public readonly quill: any;
-  public readonly options: IQuillCursorsOptions;
+  public readonly options: IQuillCursorsResolvedOptions;
 
   private readonly _cursors: {[id: string]: Cursor} = {};
   private readonly _container: HTMLElement;
@@ -56,7 +56,7 @@ export default class QuillCursors {
     return cursor;
   }
 
-  public moveCursor(id: string, range: IQuillRange): void {
+  public moveCursor(id: string, range: IQuillRange | null): void {
     const cursor = this._cursors[id];
     if (!cursor) {
       return;
@@ -216,8 +216,9 @@ export default class QuillCursors {
       return cursor.hide();
     }
 
-    const startIndex = this._indexWithinQuillBounds(cursor.range.index);
-    const endIndex = this._indexWithinQuillBounds(cursor.range.index + cursor.range.length);
+    const range = cursor.range;
+    const startIndex = this._indexWithinQuillBounds(range.index);
+    const endIndex = this._indexWithinQuillBounds(range.index + range.length);
 
     const startLeaf = this.quill.getLeaf(startIndex);
     const endLeaf = this.quill.getLeaf(endIndex);
@@ -236,13 +237,13 @@ export default class QuillCursors {
       endBounds = this._adjustBoundsForRtl(endBounds, endLeaf);
     }
     cursor.updateCaret(endBounds, containerRectangle);
-    cursor.updateEmbedSelections(this._embedRectangles(cursor), containerRectangle);
+    cursor.updateEmbedSelections(this._embedRectangles(range), containerRectangle);
 
     if (positionsOnly) {
       return;
     }
 
-    cursor.setSelectionRange(this._selectionRange(cursor, startLeaf, endLeaf));
+    cursor.setSelectionRange(this._selectionRange(range, startLeaf, endLeaf));
   }
 
   // Quill's getBounds() returns width:0 for cursor positions, losing the
@@ -323,33 +324,28 @@ export default class QuillCursors {
     );
   }
 
-  private _setDefaults(options: IQuillCursorsOptions): IQuillCursorsOptions {
-    options = Object.assign({}, options);
+  private _setDefaults(options: IQuillCursorsOptions): IQuillCursorsResolvedOptions {
+    return {
+      ...options,
+      template: options.template || QuillCursors.DEFAULTS.template,
+      containerClass: options.containerClass || QuillCursors.DEFAULTS.containerClass,
+      selectionChangeSource: options.selectionChangeSource === null ?
+        null :
+        options.selectionChangeSource || QuillCursors.DEFAULTS.selectionChangeSource,
+      hideDelayMs: QuillCursors._integerOr(options.hideDelayMs, QuillCursors.DEFAULTS.hideDelayMs),
+      hideSpeedMs: QuillCursors._integerOr(options.hideSpeedMs, QuillCursors.DEFAULTS.hideSpeedMs),
+      transformOnTextChange: !!options.transformOnTextChange,
+    };
+  }
 
-    options.template ||= QuillCursors.DEFAULTS.template;
-    options.containerClass ||= QuillCursors.DEFAULTS.containerClass;
-
-    if (options.selectionChangeSource !== null) {
-      options.selectionChangeSource ||= QuillCursors.DEFAULTS.selectionChangeSource;
-    }
-
-    options.hideDelayMs = Number.isInteger(options.hideDelayMs) ?
-      options.hideDelayMs :
-      QuillCursors.DEFAULTS.hideDelayMs;
-
-    options.hideSpeedMs = Number.isInteger(options.hideSpeedMs) ?
-      options.hideSpeedMs :
-      QuillCursors.DEFAULTS.hideSpeedMs;
-
-    options.transformOnTextChange = !!options.transformOnTextChange;
-
-    return options;
+  private static _integerOr(value: number | undefined, fallback: number): number {
+    return Number.isInteger(value) ? value as number : fallback;
   }
 
   // The Highlight API paints a multi-line Range like a native selection, so a
   // single Range per cursor is enough.
-  private _selectionRange(cursor: Cursor, startLeaf: any[], endLeaf: any[]): Range | null {
-    if (!cursor.range.length) {
+  private _selectionRange(quillRange: IQuillRange, startLeaf: any[], endLeaf: any[]): Range | null {
+    if (!quillRange.length) {
       return null;
     }
 
@@ -375,15 +371,15 @@ export default class QuillCursors {
   // The Highlight API only paints text, so embed leaves in the selection get
   // tinted overlay rectangles. Any childless blot with a non-text DOM node is
   // an embed: inline (images) or block (videos), stock or custom.
-  private _embedRectangles(cursor: Cursor): ClientRect[] {
-    if (!cursor.range.length) {
+  private _embedRectangles(range: IQuillRange): ClientRect[] {
+    if (!range.length) {
       return [];
     }
 
     const embeds = this.quill.scroll.descendants(
       (blot: any) => !blot.children && blot.domNode.nodeType !== Node.TEXT_NODE,
-      cursor.range.index,
-      cursor.range.length,
+      range.index,
+      range.length,
     );
 
     return embeds.map((blot: any) => blot.domNode.getBoundingClientRect());
@@ -392,11 +388,10 @@ export default class QuillCursors {
   private _transformCursors(delta: Delta): void {
     delta = new Delta(delta);
 
-    this.cursors()
-      .filter((cursor: Cursor) => cursor.range)
-      .forEach((cursor: Cursor) => {
-        cursor.range.index = delta.transformPosition(cursor.range.index);
-        this._updateCursor(cursor);
-      });
+    this.cursors().forEach((cursor: Cursor) => {
+      if (!cursor.range) return;
+      cursor.range.index = delta.transformPosition(cursor.range.index);
+      this._updateCursor(cursor);
+    });
   }
 }

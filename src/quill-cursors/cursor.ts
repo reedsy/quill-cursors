@@ -1,4 +1,4 @@
-import IQuillCursorsOptions from './i-quill-cursors-options.js';
+import {IQuillCursorsResolvedOptions} from './i-quill-cursors-options.js';
 import IQuillRange from './i-range.js';
 import {ICoordinates} from './i-coordinates.js';
 import ICursorHighlight from './i-cursor-highlight.js';
@@ -24,16 +24,17 @@ export default class Cursor {
   public readonly id: string;
   public readonly name: string;
   public readonly color: string;
-  public range: IQuillRange;
+  public range: IQuillRange | null = null;
   public readonly highlightName: string;
 
-  private _el: HTMLElement;
-  private _selectionEl: HTMLElement;
-  private _caretEl: HTMLElement;
-  private _flagEl: HTMLElement;
-  private _hideDelay: string;
-  private _hideSpeedMs: number;
-  private _positionFlag: (flag: HTMLElement, caretRectangle: ClientRect, container: ClientRect) => void;
+  // Assigned by build(), which runs before any other method is used.
+  private _el!: HTMLElement;
+  private _selectionEl!: HTMLElement;
+  private _caretEl!: HTMLElement;
+  private _flagEl!: HTMLElement;
+  private _hideDelay!: string;
+  private _hideSpeedMs!: number;
+  private _positionFlag?: (flag: HTMLElement, caretRectangle: ClientRect, container: ClientRect) => void;
   private readonly _highlight: ICursorHighlight;
 
   public constructor(id: string, name: string, color: string) {
@@ -49,7 +50,7 @@ export default class Cursor {
     this._setHoverState = this._setHoverState.bind(this);
   }
 
-  public build(options: IQuillCursorsOptions): HTMLElement {
+  public build(options: IQuillCursorsResolvedOptions): HTMLElement {
     const element = document.createElement(Cursor.CONTAINER_ELEMENT_TAG);
     element.classList.add(Cursor.CURSOR_CLASS);
     element.id = `ql-cursor-${this.id}`;
@@ -94,7 +95,7 @@ export default class Cursor {
 
   public remove(): void {
     this._highlight.detach();
-    this._el.parentNode.removeChild(this._el);
+    this._el.remove();
   }
 
   public toggleNearCursor(pointX: number, pointY: number): boolean {
