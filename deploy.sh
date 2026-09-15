@@ -1,34 +1,39 @@
 #!/bin/bash
 
-VERSION="v$(node -p "require('./package.json').version")"
+set -eo pipefail
 
 git checkout main
 git pull
-git fetch --tags
-VERSION_COUNT=$(git tag --list $VERSION | wc -l)
 
-if [ $VERSION_COUNT -gt 0 ]
+PACKAGE=$(node -p "require('./package.json').name")
+VERSION=$(node -p "require('./package.json').version")
+TAG="v$VERSION"
+
+if [ -n "$(npm view "$PACKAGE@$VERSION" version 2> /dev/null)" ]
 then
-  echo "Version $VERSION already deployed"
+  echo "Version $VERSION already published."
   exit 0
-else
-  echo "Deploying version $VERSION"
 fi
 
-echo '!/dist' >> .gitignore
+echo "Publishing version $VERSION"
 
 npm install
 npm test
 npm run build
 
-git checkout -b release-$VERSION
+echo '!/dist' >> .gitignore
+
+git checkout -B "release-$VERSION"
 git add .gitignore
 git add --all dist/
 git commit --message "Release version $VERSION"
-git tag $VERSION
-git push origin refs/tags/$VERSION
 
 npm publish
 
+if ! git tag "$TAG" || ! git push origin "refs/tags/$TAG"
+then
+  echo "Published $VERSION but could not tag it." >&2
+fi
+
 git checkout main
-git branch --delete --force release-$VERSION
+git branch --delete --force "release-$VERSION"
