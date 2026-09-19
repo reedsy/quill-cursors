@@ -38,7 +38,6 @@ export default tseslint.config(
     extends: [tseslint.configs.recommended],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-unused-vars': ['error', {argsIgnorePattern: '^_'}],
       '@typescript-eslint/explicit-member-accessibility': 'error',
       '@typescript-eslint/naming-convention': ['error', {
@@ -55,10 +54,9 @@ export default tseslint.config(
     },
   },
   {
-    name: 'quill-cursors/commonjs-build-config',
-    files: ['*.cjs'],
+    name: 'quill-cursors/build-config',
+    files: ['*.js'],
     languageOptions: {
-      sourceType: 'commonjs',
       globals: globals.node,
     },
   },

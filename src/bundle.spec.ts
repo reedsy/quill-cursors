@@ -12,7 +12,7 @@ interface IBundleReport {
   injectedStyles: number;
 }
 
-const root = path.resolve(__dirname, '..');
+const root = path.resolve(path.dirname(expect.getState().testPath!), '..');
 
 // Evaluates a built bundle with the real Node ESM loader. Each bundle gets its
 // own process, so the style injection of one cannot leak into another's report.
@@ -47,7 +47,8 @@ describe('built bundles', () => {
 
   beforeAll(() => {
     outputPath = fs.mkdtempSync(path.join(os.tmpdir(), 'quill-cursors-dist-'));
-    execFileSync(process.execPath, [require.resolve('webpack-cli/bin/cli.js'), '--output-path', outputPath], {
+    const webpackCli = path.join(root, 'node_modules/webpack-cli/bin/cli.js');
+    execFileSync(process.execPath, [webpackCli, '--output-path', outputPath], {
       cwd: root,
       env: {...process.env, NODE_ENV: 'production'},
     });
