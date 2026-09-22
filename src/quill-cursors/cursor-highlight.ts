@@ -69,10 +69,10 @@ export default class CursorHighlight implements ICursorHighlight {
   // The root is passed per call: the cursor element has no root until it is
   // attached to the DOM after build().
   public setRange(range: Range | null, root: Node): void {
-    this._attach(root);
+    const highlight = this._attach(root);
     this.clear();
     if (range) {
-      this._highlight.add(range);
+      highlight.add(range);
     }
   }
 
@@ -97,22 +97,22 @@ export default class CursorHighlight implements ICursorHighlight {
     this._removeSheet();
   }
 
-  private _register(): void {
-    this._highlight = new Highlight();
+  private _register(): Highlight {
+    const highlight = new Highlight();
     // Later-created cursors paint on top when selections overlap. Priority
     // is fixed at creation: it cannot track document position, which
     // changes with every edit.
-    this._highlight.priority = this._priority;
-    CSS.highlights.set(this.name, this._highlight);
+    highlight.priority = this._priority;
+    CSS.highlights.set(this.name, highlight);
+    this._highlight = highlight;
+    return highlight;
   }
 
-  private _attach(root: Node): void {
-    if (!this._highlight) {
-      // Re-attach after detach()
-      this._register();
-    }
-
+  private _attach(root: Node): Highlight {
+    // Re-attach after detach()
+    const highlight = this._highlight || this._register();
     this._adoptSheetInto(this._styleRoot(root));
+    return highlight;
   }
 
   private _adoptSheetInto(root: Document | ShadowRoot | null): void {
@@ -133,7 +133,8 @@ export default class CursorHighlight implements ICursorHighlight {
     if (!this._root) return;
 
     const sheets = this._root.adoptedStyleSheets;
-    const index = sheets.indexOf(this._sheet);
+    // A root is only recorded once its sheet has been adopted.
+    const index = sheets.indexOf(this._sheet!);
     if (index >= 0) {
       sheets.splice(index, 1);
     }

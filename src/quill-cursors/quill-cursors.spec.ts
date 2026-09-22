@@ -253,6 +253,17 @@ describe('QuillCursors', () => {
 
       expect(cursor.range).toEqual({index: 13, length: 5});
     });
+
+    it('leaves cursors without a range alone', () => {
+      jest.useFakeTimers();
+      const cursors = new QuillCursors(quill, {transformOnTextChange: true});
+      const cursor = cursors.createCursor('abc', 'Joe Bloggs', 'red');
+
+      listeners['text-change']([{insert: 'foo'}]);
+      jest.runAllTimers();
+
+      expect(cursor.range).toBeNull();
+    });
   });
 
   describe('tracking current selection', () => {

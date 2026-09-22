@@ -1,3 +1,6 @@
+# 6.1.0
+- The type declarations admit `null` where the runtime always did: `cursor.range`, the range passed to `moveCursor()`, and the `selectionChangeSource` option (the sources now compile under `strict`)
+
 # 6.0.0
 
 ### ⚠ BREAKING CHANGES

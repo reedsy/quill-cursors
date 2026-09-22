@@ -10,8 +10,7 @@
       "jest",
       "node"
     ],
-    "strict": false,
-    "noImplicitAny": true,
+    "strict": true,
     "sourceMap": true,
     "removeComments": true,
     "esModuleInterop": true,

@@ -1,10 +1,10 @@
 import Cursor from './cursor.js';
-import IQuillCursorsOptions from './i-quill-cursors-options.js';
+import {IQuillCursorsResolvedOptions} from './i-quill-cursors-options.js';
 import '@testing-library/jest-dom';
 
 describe('Cursor', () => {
   let template: string;
-  let options: IQuillCursorsOptions;
+  let options: IQuillCursorsResolvedOptions;
 
   beforeEach(() => {
     template = `
@@ -22,7 +22,8 @@ describe('Cursor', () => {
       template: template,
       hideDelayMs: 100,
       hideSpeedMs: 200,
-      positionFlag: null,
+      containerClass: 'ql-cursors',
+      selectionChangeSource: 'api',
     };
 
     jest.useFakeTimers();

@@ -1,4 +1,4 @@
-const path = require('path');
+import path from 'node:path';
 
 const environment = process.env.NODE_ENV || 'development';
 const isProduction = environment === 'production';
@@ -11,7 +11,7 @@ const baseConfig = {
   },
   output: {
     filename: '[name].js',
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(import.meta.dirname, 'dist'),
     library: {type: 'module'},
   },
   experiments: {outputModule: true},
@@ -44,8 +44,8 @@ const moduleBundle = {
   },
   devServer: {
     static: [
-      path.join(__dirname, 'example'),
-      path.join(__dirname, 'node_modules/quill/dist'),
+      path.join(import.meta.dirname, 'example'),
+      path.join(import.meta.dirname, 'node_modules/quill/dist'),
     ],
   },
 };
@@ -60,4 +60,4 @@ const coreBundleConfig = {
   },
 };
 
-module.exports = [moduleBundle, coreBundleConfig];
+export default [moduleBundle, coreBundleConfig];

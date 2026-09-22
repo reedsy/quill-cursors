@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   testEnvironment: 'jsdom',
   transform: {
     '^.+\\.ts$': ['ts-jest', {tsconfig: 'tsconfig.base.json'}],
