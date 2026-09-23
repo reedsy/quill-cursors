@@ -1,3 +1,4 @@
+import {describe, expect, it} from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as index from './index.js';
@@ -14,9 +15,8 @@ describe('index', () => {
   });
 
   it('should NOT import any .scss or .css files', () => {
-    const specPath = expect.getState().testPath!;
     const source = fs.readFileSync(
-      path.resolve(path.dirname(specPath), 'index.ts'),
+      path.resolve(import.meta.dirname, 'index.ts'),
       'utf-8',
     );
     expect(source).not.toMatch(/\.scss/);

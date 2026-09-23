@@ -1,3 +1,4 @@
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import CursorHighlight from './cursor-highlight.js';
 
 describe('CursorHighlight', () => {
@@ -87,7 +88,7 @@ describe('CursorHighlight', () => {
     });
 
     it('keeps colors that pass CSS.supports validation', () => {
-      (CSS as any).supports = jest.fn().mockReturnValue(true);
+      (CSS as any).supports = vi.fn().mockReturnValue(true);
       const highlight = new CursorHighlight('var(--user-color)');
 
       highlight.setRange(document.createRange(), document);
@@ -101,7 +102,7 @@ describe('CursorHighlight', () => {
     });
 
     it('replaces colors that fail validation with transparent', () => {
-      (CSS as any).supports = jest.fn().mockReturnValue(false);
+      (CSS as any).supports = vi.fn().mockReturnValue(false);
       const highlight = new CursorHighlight('red; } * { background: red; }');
 
       highlight.setRange(document.createRange(), document);
@@ -321,14 +322,14 @@ describe('CursorHighlight', () => {
 
   describe('warnIfUnsupported', () => {
     it('does not warn when the API is supported', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation();
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       CursorHighlight.warnIfUnsupported();
       expect(warn).not.toHaveBeenCalled();
       warn.mockRestore();
     });
 
     it('warns exactly once when the API is unsupported', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation();
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       withoutGlobal('Highlight', () => {
         CursorHighlight.warnIfUnsupported();
         CursorHighlight.warnIfUnsupported();

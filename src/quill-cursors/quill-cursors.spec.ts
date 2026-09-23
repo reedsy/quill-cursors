@@ -1,14 +1,14 @@
+import {afterEach, beforeEach, describe, expect, it, vi, type Mock} from 'vitest';
 import QuillCursors from './quill-cursors.js';
 import Cursor from './cursor.js';
 import CursorHighlight from './cursor-highlight.js';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 
-const mockObserver = jest.fn();
-const mockDisconnect = jest.fn();
-const ResizeObserverMock = jest.fn().mockImplementation(() => ({
-  observe: mockObserver,
-  disconnect: mockDisconnect,
-}));
+const mockObserver = vi.fn();
+const mockDisconnect = vi.fn();
+const ResizeObserverMock = vi.fn(function (_callback: (entries: any[]) => void) {
+  return {observe: mockObserver, disconnect: mockDisconnect};
+});
 
 describe('QuillCursors', () => {
   let quill: any;
@@ -29,7 +29,7 @@ describe('QuillCursors', () => {
         sources: {
           API: 'api',
         },
-        find: jest.fn(),
+        find: vi.fn(),
       },
       addContainer: (className: string): HTMLElement => {
         const cursorsContainer = document.createElement('DIV');
@@ -71,24 +71,24 @@ describe('QuillCursors', () => {
 
   describe('initialisation', () => {
     it('adds a container to Quill', () => {
-      jest.spyOn(quill, 'addContainer');
+      vi.spyOn(quill, 'addContainer');
       new QuillCursors(quill);
       expect(quill.addContainer).toHaveBeenCalledTimes(1);
     });
 
     it('repositions carets and embed overlays on scroll, without rebuilding highlights', () => {
       const editor = quill.root;
-      jest.spyOn(editor, 'addEventListener');
+      vi.spyOn(editor, 'addEventListener');
       const cursors = new QuillCursors(quill);
       expect(editor.addEventListener).toHaveBeenCalledWith('scroll', expect.anything(), {passive: true});
 
       const cursor = cursors.createCursor('abc', 'Jane Bloggs', 'red');
       cursor.range = {index: 0, length: 1};
-      jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: document.createTextNode('foo')}, 0]);
-      jest.spyOn(quill, 'getBounds').mockReturnValue({top: 0, left: 0, width: 0, height: 0});
-      jest.spyOn(cursor, 'updateCaret');
-      jest.spyOn(cursor, 'updateEmbedSelections');
-      jest.spyOn(cursor, 'setSelectionRange');
+      vi.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: document.createTextNode('foo')}, 0]);
+      vi.spyOn(quill, 'getBounds').mockReturnValue({top: 0, left: 0, width: 0, height: 0});
+      vi.spyOn(cursor, 'updateCaret');
+      vi.spyOn(cursor, 'updateEmbedSelections');
+      vi.spyOn(cursor, 'setSelectionRange');
 
       editor.dispatchEvent(new Event('scroll'));
 
@@ -101,9 +101,9 @@ describe('QuillCursors', () => {
       const cursors = new QuillCursors(quill);
       const cursor = cursors.createCursor('xyz', 'Joe Bloggs', 'blue');
       cursor.range = {index: 0, length: 1};
-      jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: document.createTextNode('foo')}, 0]);
-      jest.spyOn(quill, 'getBounds').mockReturnValue({top: 0, left: 0, width: 0, height: 0});
-      jest.spyOn(cursor, 'setSelectionRange');
+      vi.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: document.createTextNode('foo')}, 0]);
+      vi.spyOn(quill, 'getBounds').mockReturnValue({top: 0, left: 0, width: 0, height: 0});
+      vi.spyOn(cursor, 'setSelectionRange');
 
       cursors.update();
 
@@ -111,7 +111,7 @@ describe('QuillCursors', () => {
     });
 
     it('warns when the Highlight API is unsupported', () => {
-      const warn = jest.spyOn(CursorHighlight, 'warnIfUnsupported').mockImplementation();
+      const warn = vi.spyOn(CursorHighlight, 'warnIfUnsupported').mockImplementation(() => {});
       try {
         new QuillCursors(quill);
         expect(warn).toHaveBeenCalledTimes(1);
@@ -140,10 +140,10 @@ describe('QuillCursors', () => {
       const callback = ResizeObserverMock.mock.calls[0][0];
       const cursor = cursors.cursors()[0];
       cursor.range = {index: 0, length: 1};
-      jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: document.createTextNode('foo')}, 0]);
-      jest.spyOn(quill, 'getBounds').mockReturnValue({top: 0, left: 0, width: 0, height: 0});
-      jest.spyOn(cursor, 'updateCaret');
-      jest.spyOn(cursor, 'setSelectionRange');
+      vi.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: document.createTextNode('foo')}, 0]);
+      vi.spyOn(quill, 'getBounds').mockReturnValue({top: 0, left: 0, width: 0, height: 0});
+      vi.spyOn(cursor, 'updateCaret');
+      vi.spyOn(cursor, 'setSelectionRange');
       callback([{target: {isConnected: true}}]);
       expect(cursor.updateCaret).toHaveBeenCalled();
       expect(cursor.setSelectionRange).not.toHaveBeenCalled();
@@ -180,13 +180,13 @@ describe('QuillCursors', () => {
     beforeEach(() => {
       listeners = {};
 
-      jest.spyOn(quill, 'on').mockImplementation(((event: string, callback: (...args: any[]) => void) => {
+      vi.spyOn(quill, 'on').mockImplementation(((event: string, callback: (...args: any[]) => void) => {
         listeners[event] = callback;
       }) as any);
 
-      jest.spyOn(quill.emitter, 'emit');
+      vi.spyOn(quill.emitter, 'emit');
 
-      jest.spyOn(quill, 'getSelection').mockReturnValue({index: 0, length: 0});
+      vi.spyOn(quill, 'getSelection').mockReturnValue({index: 0, length: 0});
     });
 
     it('registers the text change listener', () => {
@@ -195,22 +195,22 @@ describe('QuillCursors', () => {
     });
 
     it('does not emit a selection change event if setting the source to null', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       new QuillCursors(quill, {selectionChangeSource: null});
 
       listeners['text-change']();
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       expect(quill.emitter.emit).not.toHaveBeenCalled();
     });
 
     it('emits the selection on text change', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       new QuillCursors(quill);
 
-      jest.spyOn(quill, 'getSelection').mockReturnValue({index: 10, length: 10});
+      vi.spyOn(quill, 'getSelection').mockReturnValue({index: 10, length: 10});
       listeners['text-change']();
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       expect(quill.emitter.emit).toHaveBeenCalledTimes(1);
       expect(quill.emitter.emit).toHaveBeenCalledWith(
@@ -222,12 +222,12 @@ describe('QuillCursors', () => {
     });
 
     it('emits a custom source for selection-change on text change', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       new QuillCursors(quill, {selectionChangeSource: 'quill-cursors'});
 
-      jest.spyOn(quill, 'getSelection').mockReturnValue({index: 10, length: 10});
+      vi.spyOn(quill, 'getSelection').mockReturnValue({index: 10, length: 10});
       listeners['text-change']();
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       expect(quill.emitter.emit).toHaveBeenCalledTimes(1);
       expect(quill.emitter.emit).toHaveBeenCalledWith(
@@ -239,7 +239,7 @@ describe('QuillCursors', () => {
     });
 
     it('transforms an existing cursor after an insertion', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const cursors = new QuillCursors(quill, {transformOnTextChange: true});
       const cursor = cursors.createCursor('abc', 'Joe Bloggs', 'red');
       cursors.moveCursor('abc', {index: 10, length: 5});
@@ -249,18 +249,18 @@ describe('QuillCursors', () => {
         {insert: 'foo'},
       ];
       listeners['text-change'](delta);
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       expect(cursor.range).toEqual({index: 13, length: 5});
     });
 
     it('leaves cursors without a range alone', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const cursors = new QuillCursors(quill, {transformOnTextChange: true});
       const cursor = cursors.createCursor('abc', 'Joe Bloggs', 'red');
 
       listeners['text-change']([{insert: 'foo'}]);
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       expect(cursor.range).toBeNull();
     });
@@ -272,25 +272,25 @@ describe('QuillCursors', () => {
     beforeEach(() => {
       listeners = {};
 
-      jest.spyOn(quill, 'on').mockImplementation(((event: string, callback: (...args: any[]) => void) => {
+      vi.spyOn(quill, 'on').mockImplementation(((event: string, callback: (...args: any[]) => void) => {
         listeners[event] = callback;
       }) as any);
 
-      jest.spyOn(quill.emitter, 'emit').mockImplementation(((event: string, ...args: any[]) => {
+      vi.spyOn(quill.emitter, 'emit').mockImplementation(((event: string, ...args: any[]) => {
         const callback = listeners[event];
         callback(...args);
       }) as any);
 
-      jest.spyOn(quill, 'getSelection').mockReturnValue({index: 0, length: 0});
+      vi.spyOn(quill, 'getSelection').mockReturnValue({index: 0, length: 0});
     });
 
     it('updates the current selection on text change', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       new QuillCursors(quill);
 
-      jest.spyOn(quill, 'getSelection').mockReturnValue({index: 10, length: 10});
+      vi.spyOn(quill, 'getSelection').mockReturnValue({index: 10, length: 10});
       quill.emitter.emit('text-change');
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       expect(quill.emitter.emit).toHaveBeenCalledWith(
         'selection-change',
@@ -299,9 +299,9 @@ describe('QuillCursors', () => {
         'api',
       );
 
-      jest.spyOn(quill, 'getSelection').mockReturnValue({index: 20, length: 20});
+      vi.spyOn(quill, 'getSelection').mockReturnValue({index: 20, length: 20});
       quill.emitter.emit('text-change');
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       expect(quill.emitter.emit).toHaveBeenCalledWith(
         'selection-change',
@@ -423,7 +423,7 @@ describe('QuillCursors', () => {
       cursors = new QuillCursors(quill);
       cursor = cursors.createCursor('abc', 'Joe Bloggs', 'red');
 
-      jest.spyOn(quill, 'getBounds').mockReturnValue({
+      vi.spyOn(quill, 'getBounds').mockReturnValue({
         top: 0,
         left: 0,
         width: 0,
@@ -442,8 +442,8 @@ describe('QuillCursors', () => {
     });
 
     it('hides a cursor with no range', () => {
-      jest.spyOn(cursor, 'hide');
-      jest.spyOn(cursor, 'show');
+      vi.spyOn(cursor, 'hide');
+      vi.spyOn(cursor, 'show');
       cursors.moveCursor(cursor.id, null);
 
       expect(cursor.hide).toHaveBeenCalled();
@@ -451,8 +451,8 @@ describe('QuillCursors', () => {
     });
 
     it('hides a cursor with no range if the range is updated manually', () => {
-      jest.spyOn(cursor, 'hide');
-      jest.spyOn(cursor, 'show');
+      vi.spyOn(cursor, 'hide');
+      vi.spyOn(cursor, 'show');
       cursor.range = null;
 
       expect(cursor.hide).not.toHaveBeenCalled();
@@ -463,9 +463,9 @@ describe('QuillCursors', () => {
     });
 
     it('hides a cursor with a range, but no valid leaf', () => {
-      jest.spyOn(cursor, 'hide');
-      jest.spyOn(cursor, 'show');
-      jest.spyOn(quill, 'getLeaf').mockReturnValue(null);
+      vi.spyOn(cursor, 'hide');
+      vi.spyOn(cursor, 'show');
+      vi.spyOn(quill, 'getLeaf').mockReturnValue(null);
       cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
       expect(cursor.hide).toHaveBeenCalled();
@@ -473,9 +473,9 @@ describe('QuillCursors', () => {
     });
 
     it('shows a cursor with a valid range and leaf', () => {
-      jest.spyOn(cursor, 'hide');
-      jest.spyOn(cursor, 'show');
-      jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
+      vi.spyOn(cursor, 'hide');
+      vi.spyOn(cursor, 'show');
+      vi.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
       cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
       expect(cursor.hide).not.toHaveBeenCalled();
@@ -483,8 +483,8 @@ describe('QuillCursors', () => {
     });
 
     it('forces ranges into the Quill bounds', () => {
-      jest.spyOn(quill, 'getLength').mockReturnValue(10);
-      jest.spyOn(quill, 'getLeaf');
+      vi.spyOn(quill, 'getLength').mockReturnValue(10);
+      vi.spyOn(quill, 'getLeaf');
 
       cursors.moveCursor(cursor.id, {index: -10, length: 100});
 
@@ -497,7 +497,7 @@ describe('QuillCursors', () => {
       const endIndex = 2;
       const startLeaf = createLeaf();
       const endLeaf = createLeaf();
-      jest.spyOn(quill, 'getLeaf').mockImplementation(((index: number) => {
+      vi.spyOn(quill, 'getLeaf').mockImplementation(((index: number) => {
         switch (index) {
           case startIndex:
             return startLeaf;
@@ -507,8 +507,8 @@ describe('QuillCursors', () => {
             return null;
         }
       }) as any);
-      jest.spyOn(mockRange, 'setStart');
-      jest.spyOn(mockRange, 'setEnd');
+      vi.spyOn(mockRange, 'setStart');
+      vi.spyOn(mockRange, 'setEnd');
 
       cursors.moveCursor(cursor.id, {index: startIndex, length: endIndex - startIndex});
 
@@ -521,9 +521,9 @@ describe('QuillCursors', () => {
 
     it('sets the range on either side of an embed element', () => {
       const leaf = createLeaf('img');
-      jest.spyOn(quill, 'getLeaf').mockImplementation(() => leaf);
-      jest.spyOn(mockRange, 'setStartBefore');
-      jest.spyOn(mockRange, 'setEndAfter');
+      vi.spyOn(quill, 'getLeaf').mockImplementation(() => leaf);
+      vi.spyOn(mockRange, 'setStartBefore');
+      vi.spyOn(mockRange, 'setEndAfter');
 
       cursors.moveCursor(cursor.id, {index: 0, length: 1});
 
@@ -532,8 +532,8 @@ describe('QuillCursors', () => {
     });
 
     it('clears the highlight for a collapsed cursor', () => {
-      jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
-      jest.spyOn(cursor, 'setSelectionRange');
+      vi.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
+      vi.spyOn(cursor, 'setSelectionRange');
 
       cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
@@ -541,8 +541,8 @@ describe('QuillCursors', () => {
     });
 
     it('clears the highlight when the built range is collapsed', () => {
-      jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
-      jest.spyOn(cursor, 'setSelectionRange');
+      vi.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
+      vi.spyOn(cursor, 'setSelectionRange');
       mockRange.collapsed = true;
 
       cursors.moveCursor(cursor.id, {index: 0, length: 1});
@@ -551,11 +551,11 @@ describe('QuillCursors', () => {
     });
 
     it('draws overlay rectangles over embeds in the selection', () => {
-      jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
+      vi.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
       const embedRectangle = {top: 10, left: 20, width: 100, height: 50};
       const embedBlot = {domNode: {getBoundingClientRect: (): any => embedRectangle}};
-      jest.spyOn(quill.scroll, 'descendants').mockReturnValue([embedBlot]);
-      jest.spyOn(cursor, 'updateEmbedSelections');
+      vi.spyOn(quill.scroll, 'descendants').mockReturnValue([embedBlot]);
+      vi.spyOn(cursor, 'updateEmbedSelections');
 
       cursors.moveCursor(cursor.id, {index: 3, length: 5});
 
@@ -564,12 +564,12 @@ describe('QuillCursors', () => {
     });
 
     it('identifies embed leaves structurally, covering custom blots', () => {
-      jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
-      jest.spyOn(quill.scroll, 'descendants').mockReturnValue([]);
+      vi.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
+      vi.spyOn(quill.scroll, 'descendants').mockReturnValue([]);
 
       cursors.moveCursor(cursor.id, {index: 0, length: 5});
 
-      const criteria = (quill.scroll.descendants as jest.Mock).mock.calls[0][0];
+      const criteria = (quill.scroll.descendants as Mock).mock.calls[0][0];
       expect(criteria({children: {}, domNode: document.createElement('p')})).toBe(false);
       expect(criteria({domNode: document.createTextNode('text')})).toBe(false);
       expect(criteria({domNode: document.createElement('img')})).toBe(true);
@@ -577,9 +577,9 @@ describe('QuillCursors', () => {
     });
 
     it('passes no embed rectangles for a collapsed cursor', () => {
-      jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
-      jest.spyOn(quill.scroll, 'descendants');
-      jest.spyOn(cursor, 'updateEmbedSelections');
+      vi.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
+      vi.spyOn(quill.scroll, 'descendants');
+      vi.spyOn(cursor, 'updateEmbedSelections');
 
       cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
@@ -594,23 +594,23 @@ describe('QuillCursors', () => {
         const textNode = document.createTextNode('שלום');
         parentElement.appendChild(textNode);
 
-        jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
-        jest.spyOn(quill, 'getBounds').mockReturnValue({
+        vi.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
+        vi.spyOn(quill, 'getBounds').mockReturnValue({
           top: 10, left: 100, width: 0, height: 20,
         });
-        jest.spyOn(quill.container, 'getBoundingClientRect').mockReturnValue({
+        vi.spyOn(quill.container, 'getBoundingClientRect').mockReturnValue({
           left: 50, top: 0, width: 600, height: 400, right: 650, bottom: 400,
         });
 
         const charRange = {
-          setStart: jest.fn(), setEnd: jest.fn(),
+          setStart: vi.fn(), setEnd: vi.fn(),
           getBoundingClientRect: () => ({
             left: 250, right: 260, width: 10, top: 10, height: 20, bottom: 30,
           }),
         };
         document.createRange = () => charRange as any;
 
-        jest.spyOn(cursor, 'updateCaret');
+        vi.spyOn(cursor, 'updateCaret');
         cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
         expect(cursor.updateCaret).toHaveBeenCalledWith(
@@ -625,23 +625,23 @@ describe('QuillCursors', () => {
         const textNode = document.createTextNode('שלום');
         parentElement.appendChild(textNode);
 
-        jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 4]);
-        jest.spyOn(quill, 'getBounds').mockReturnValue({
+        vi.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 4]);
+        vi.spyOn(quill, 'getBounds').mockReturnValue({
           top: 10, left: 120, width: 0, height: 20,
         });
-        jest.spyOn(quill.container, 'getBoundingClientRect').mockReturnValue({
+        vi.spyOn(quill.container, 'getBoundingClientRect').mockReturnValue({
           left: 50, top: 0, width: 600, height: 400, right: 650, bottom: 400,
         });
 
         const charRange = {
-          setStart: jest.fn(), setEnd: jest.fn(),
+          setStart: vi.fn(), setEnd: vi.fn(),
           getBoundingClientRect: () => ({
             left: 150, right: 160, width: 10, top: 10, height: 20, bottom: 30,
           }),
         };
         document.createRange = () => charRange as any;
 
-        jest.spyOn(cursor, 'updateCaret');
+        vi.spyOn(cursor, 'updateCaret');
         cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
         expect(cursor.updateCaret).toHaveBeenCalledWith(
@@ -656,11 +656,11 @@ describe('QuillCursors', () => {
         const textNode = document.createTextNode('hello');
         parentElement.appendChild(textNode);
 
-        jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
-        jest.spyOn(quill, 'getBounds').mockReturnValue({
+        vi.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
+        vi.spyOn(quill, 'getBounds').mockReturnValue({
           top: 10, left: 100, width: 0, height: 20,
         });
-        jest.spyOn(cursor, 'updateCaret');
+        vi.spyOn(cursor, 'updateCaret');
 
         cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
@@ -671,11 +671,11 @@ describe('QuillCursors', () => {
       });
 
       it('defaults to LTR when leaf has no parent element', () => {
-        jest.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
-        jest.spyOn(quill, 'getBounds').mockReturnValue({
+        vi.spyOn(quill, 'getLeaf').mockReturnValue(createLeaf());
+        vi.spyOn(quill, 'getBounds').mockReturnValue({
           top: 10, left: 100, width: 0, height: 20,
         });
-        jest.spyOn(cursor, 'updateCaret');
+        vi.spyOn(cursor, 'updateCaret');
 
         cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
@@ -691,23 +691,23 @@ describe('QuillCursors', () => {
         const textNode = document.createTextNode('שלום');
         parentElement.appendChild(textNode);
 
-        jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
-        jest.spyOn(quill, 'getBounds').mockReturnValue({
+        vi.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
+        vi.spyOn(quill, 'getBounds').mockReturnValue({
           top: 10, left: 100, width: 0, height: 20,
         });
-        jest.spyOn(quill.container, 'getBoundingClientRect').mockReturnValue({
+        vi.spyOn(quill.container, 'getBoundingClientRect').mockReturnValue({
           left: 50, top: 0, width: 600, height: 400, right: 650, bottom: 400,
         });
 
         const charRange = {
-          setStart: jest.fn(), setEnd: jest.fn(),
+          setStart: vi.fn(), setEnd: vi.fn(),
           getBoundingClientRect: () => ({
             left: 250, right: 260, width: 10, top: 10, height: 20, bottom: 30,
           }),
         };
         document.createRange = () => charRange as any;
 
-        jest.spyOn(cursor, 'updateCaret');
+        vi.spyOn(cursor, 'updateCaret');
         cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
         expect(cursor.updateCaret).toHaveBeenCalledWith(
@@ -722,11 +722,11 @@ describe('QuillCursors', () => {
         const img = document.createElement('img');
         parentElement.appendChild(img);
 
-        jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: img}, 0]);
-        jest.spyOn(quill, 'getBounds').mockReturnValue({
+        vi.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: img}, 0]);
+        vi.spyOn(quill, 'getBounds').mockReturnValue({
           top: 10, left: 100, width: 0, height: 20,
         });
-        jest.spyOn(cursor, 'updateCaret');
+        vi.spyOn(cursor, 'updateCaret');
 
         cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
@@ -744,7 +744,7 @@ describe('QuillCursors', () => {
         parentElement.appendChild(textNode);
 
         const originalGetComputedStyle = window.getComputedStyle;
-        jest.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
+        vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
           const style = originalGetComputedStyle(el);
           if (el === parentElement) {
             return {...style, direction: 'rtl'} as CSSStyleDeclaration;
@@ -752,23 +752,23 @@ describe('QuillCursors', () => {
           return style;
         });
 
-        jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
-        jest.spyOn(quill, 'getBounds').mockReturnValue({
+        vi.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
+        vi.spyOn(quill, 'getBounds').mockReturnValue({
           top: 10, left: 100, width: 0, height: 20,
         });
-        jest.spyOn(quill.container, 'getBoundingClientRect').mockReturnValue({
+        vi.spyOn(quill.container, 'getBoundingClientRect').mockReturnValue({
           left: 50, top: 0, width: 600, height: 400, right: 650, bottom: 400,
         });
 
         const charRange = {
-          setStart: jest.fn(), setEnd: jest.fn(),
+          setStart: vi.fn(), setEnd: vi.fn(),
           getBoundingClientRect: () => ({
             left: 250, right: 260, width: 10, top: 10, height: 20, bottom: 30,
           }),
         };
         document.createRange = () => charRange as any;
 
-        jest.spyOn(cursor, 'updateCaret');
+        vi.spyOn(cursor, 'updateCaret');
         cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
         expect(cursor.updateCaret).toHaveBeenCalledWith(
@@ -785,11 +785,11 @@ describe('QuillCursors', () => {
         const textNode = document.createTextNode('hello');
         parentElement.appendChild(textNode);
 
-        jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
-        jest.spyOn(quill, 'getBounds').mockReturnValue({
+        vi.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
+        vi.spyOn(quill, 'getBounds').mockReturnValue({
           top: 10, left: 100, width: 0, height: 20,
         });
-        jest.spyOn(cursor, 'updateCaret');
+        vi.spyOn(cursor, 'updateCaret');
 
         cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
@@ -805,23 +805,23 @@ describe('QuillCursors', () => {
         const textNode = document.createTextNode('שלום');
         parentElement.appendChild(textNode);
 
-        jest.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
-        jest.spyOn(quill, 'getBounds').mockReturnValue({
+        vi.spyOn(quill, 'getLeaf').mockReturnValue([{domNode: textNode}, 0]);
+        vi.spyOn(quill, 'getBounds').mockReturnValue({
           top: 10, left: 100, width: 0, height: 20,
         });
-        jest.spyOn(quill.container, 'getBoundingClientRect').mockReturnValue({
+        vi.spyOn(quill.container, 'getBoundingClientRect').mockReturnValue({
           left: 50, top: 0, width: 600, height: 400, right: 650, bottom: 400,
         });
 
         const charRange = {
-          setStart: jest.fn(), setEnd: jest.fn(),
+          setStart: vi.fn(), setEnd: vi.fn(),
           getBoundingClientRect: () => ({
             left: 250, right: 260, width: 10, top: 10, height: 20, bottom: 30,
           }),
         };
         document.createRange = () => charRange as any;
 
-        jest.spyOn(cursor, 'updateCaret');
+        vi.spyOn(cursor, 'updateCaret');
         cursors.moveCursor(cursor.id, {index: 0, length: 0});
 
         expect(cursor.updateCaret).toHaveBeenCalledWith(
@@ -854,7 +854,7 @@ describe('QuillCursors', () => {
         cursors.createCursor('abc', 'Iron Man', 'red');
 
         const cursor = cursors.cursors()[0];
-        jest.spyOn(cursor, 'toggleNearCursor');
+        vi.spyOn(cursor, 'toggleNearCursor');
 
         const touch = new TouchEvent('touchstart');
         const editor = quill.root;
@@ -863,34 +863,34 @@ describe('QuillCursors', () => {
       });
 
       it('hide flags after 2 secs', () => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
         const cursors = new QuillCursors(quill);
         cursors.createCursor('abc', 'Iron Man', 'red');
 
         const cursor = cursors.cursors()[0];
-        jest.spyOn(cursor, 'toggleNearCursor');
-        jest.spyOn(cursor, 'toggleFlag');
+        vi.spyOn(cursor, 'toggleNearCursor');
+        vi.spyOn(cursor, 'toggleFlag');
 
         const touch = new TouchEvent('touchstart');
         const editor = quill.root;
         editor.dispatchEvent(touch);
         expect(cursor.toggleNearCursor).toHaveBeenCalled();
 
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(cursor.toggleFlag).toHaveBeenCalled();
       });
 
       it('still hides the flag if its timer was already forgotten', () => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
         const cursors = new QuillCursors(quill);
         cursors.createCursor('abc', 'Iron Man', 'red');
         const cursor = cursors.cursors()[0];
-        jest.spyOn(cursor, 'toggleFlag');
+        vi.spyOn(cursor, 'toggleFlag');
 
         quill.root.dispatchEvent(new TouchEvent('touchstart'));
         (cursors as any)._touchTimerIds = [];
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(cursor.toggleFlag).toHaveBeenCalledWith(false);
       });
@@ -918,26 +918,26 @@ describe('QuillCursors', () => {
     });
 
     it('removes the scroll listener', () => {
-      jest.spyOn(editor, 'removeEventListener');
+      vi.spyOn(editor, 'removeEventListener');
       cursors.destroy();
       expect(editor.removeEventListener).toHaveBeenCalledWith('scroll', expect.anything());
     });
 
     it('removes the touchstart listener', () => {
-      jest.spyOn(editor, 'removeEventListener');
+      vi.spyOn(editor, 'removeEventListener');
       cursors.destroy();
       expect(editor.removeEventListener).toHaveBeenCalledWith('touchstart', expect.anything());
     });
 
     it('does not toggle cursor flags when touchstart fires after destroy', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const cursor = cursors.createCursor('abc', 'Jane', 'red');
-      jest.spyOn(cursor, 'toggleNearCursor');
+      vi.spyOn(cursor, 'toggleNearCursor');
       cursors.destroy();
       editor.dispatchEvent(new TouchEvent('touchstart'));
-      jest.runAllTimers();
+      vi.runAllTimers();
       expect(cursor.toggleNearCursor).not.toHaveBeenCalled();
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('disconnects ResizeObserver when one exists', () => {
@@ -953,13 +953,13 @@ describe('QuillCursors', () => {
     });
 
     it('calls quill.off for TEXT_CHANGE', () => {
-      jest.spyOn(quill, 'off');
+      vi.spyOn(quill, 'off');
       cursors.destroy();
       expect(quill.off).toHaveBeenCalledWith('text-change', expect.anything());
     });
 
     it('calls quill.off for SELECTION_CHANGE', () => {
-      jest.spyOn(quill, 'off');
+      vi.spyOn(quill, 'off');
       cursors.destroy();
       expect(quill.off).toHaveBeenCalledWith('selection-change', expect.anything());
     });
@@ -973,26 +973,26 @@ describe('QuillCursors', () => {
     });
 
     it('does not emit selection change when destroyed before pending text-change timer fires', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const listeners: any = {};
-      jest.spyOn(quill, 'on').mockImplementation(((event: string, callback: (...args: any[]) => void) => {
+      vi.spyOn(quill, 'on').mockImplementation(((event: string, callback: (...args: any[]) => void) => {
         listeners[event] = callback;
       }) as any);
-      jest.spyOn(quill.emitter, 'emit');
+      vi.spyOn(quill.emitter, 'emit');
 
       const localCursors = new QuillCursors(quill);
       listeners['text-change']({});
       localCursors.destroy();
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       expect(quill.emitter.emit).not.toHaveBeenCalled();
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('does not transform cursors when destroyed before pending text-change timer fires', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const listeners: any = {};
-      jest.spyOn(quill, 'on').mockImplementation(((event: string, callback: (...args: any[]) => void) => {
+      vi.spyOn(quill, 'on').mockImplementation(((event: string, callback: (...args: any[]) => void) => {
         listeners[event] = callback;
       }) as any);
 
@@ -1001,29 +1001,29 @@ describe('QuillCursors', () => {
       cursor.range = {index: 5, length: 0};
       listeners['text-change']({ops: [{retain: 3}, {insert: 'x'}]});
       localCursors.destroy();
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       expect(cursor.range.index).toBe(5);
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('is idempotent — calling destroy twice does not throw or repeat cleanup', () => {
-      jest.spyOn(quill, 'off');
+      vi.spyOn(quill, 'off');
       cursors.destroy();
-      const callsAfterFirst = (quill.off as jest.Mock).mock.calls.length;
+      const callsAfterFirst = (quill.off as Mock).mock.calls.length;
       expect(() => cursors.destroy()).not.toThrow();
-      expect((quill.off as jest.Mock).mock.calls.length).toBe(callsAfterFirst);
+      expect((quill.off as Mock).mock.calls.length).toBe(callsAfterFirst);
     });
 
     it('cancels pending touchstart timers', () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const cursor = cursors.createCursor('abc', 'Jane', 'red');
-      jest.spyOn(cursor, 'toggleFlag');
+      vi.spyOn(cursor, 'toggleFlag');
       editor.dispatchEvent(new TouchEvent('touchstart'));
       cursors.destroy();
-      jest.runAllTimers();
+      vi.runAllTimers();
       expect(cursor.toggleFlag).not.toHaveBeenCalled();
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('ignores moveCursor calls after destroy', () => {
@@ -1059,13 +1059,13 @@ describe('QuillCursors', () => {
     describe('auto-teardown via Quill.find', () => {
       it('forwards events to handler when Quill.find returns the instance', () => {
         const listeners: any = {};
-        jest.spyOn(quill, 'on').mockImplementation(((event: string, cb: (...args: any[]) => void) => {
+        vi.spyOn(quill, 'on').mockImplementation(((event: string, cb: (...args: any[]) => void) => {
           listeners[event] = cb;
         }) as any);
         quill.constructor.find.mockReturnValue(quill);
 
         const localCursors = new QuillCursors(quill);
-        jest.spyOn(localCursors as any, '_handleTextChange');
+        vi.spyOn(localCursors as any, '_handleTextChange');
         listeners['text-change']({ops: []});
 
         expect((localCursors as any)._handleTextChange).toHaveBeenCalledWith({ops: []});
@@ -1073,13 +1073,13 @@ describe('QuillCursors', () => {
 
       it('calls destroy when Quill.find returns null', () => {
         const listeners: any = {};
-        jest.spyOn(quill, 'on').mockImplementation(((event: string, cb: (...args: any[]) => void) => {
+        vi.spyOn(quill, 'on').mockImplementation(((event: string, cb: (...args: any[]) => void) => {
           listeners[event] = cb;
         }) as any);
         quill.constructor.find.mockReturnValue(null);
 
         const localCursors = new QuillCursors(quill);
-        jest.spyOn(localCursors, 'destroy');
+        vi.spyOn(localCursors, 'destroy');
         listeners['text-change']({ops: []});
 
         expect(localCursors.destroy).toHaveBeenCalled();
@@ -1087,20 +1087,20 @@ describe('QuillCursors', () => {
 
       it('does not forward events after Quill.find returns null', () => {
         const listeners: any = {};
-        jest.spyOn(quill, 'on').mockImplementation(((event: string, cb: (...args: any[]) => void) => {
+        vi.spyOn(quill, 'on').mockImplementation(((event: string, cb: (...args: any[]) => void) => {
           listeners[event] = cb;
         }) as any);
         quill.constructor.find.mockReturnValue(null);
 
         const localCursors = new QuillCursors(quill);
-        jest.spyOn(localCursors as any, '_handleTextChange');
+        vi.spyOn(localCursors as any, '_handleTextChange');
         listeners['text-change']({ops: []});
 
         expect((localCursors as any)._handleTextChange).not.toHaveBeenCalled();
       });
 
       it('explicit destroy removes all quill listeners via _quillListeners loop', () => {
-        jest.spyOn(quill, 'off');
+        vi.spyOn(quill, 'off');
         const localCursors = new QuillCursors(quill);
         localCursors.destroy();
 
@@ -1110,14 +1110,14 @@ describe('QuillCursors', () => {
 
       it('calls destroy when Quill.find returns null on selection-change', () => {
         const listeners: any = {};
-        jest.spyOn(quill, 'on').mockImplementation(((event: string, cb: (...args: any[]) => void) => {
+        vi.spyOn(quill, 'on').mockImplementation(((event: string, cb: (...args: any[]) => void) => {
           listeners[event] = cb;
         }) as any);
-        jest.spyOn(quill, 'off');
+        vi.spyOn(quill, 'off');
         quill.constructor.find.mockReturnValue(null);
 
         const localCursors = new QuillCursors(quill);
-        jest.spyOn(localCursors, 'destroy');
+        vi.spyOn(localCursors, 'destroy');
         listeners['selection-change'](null);
 
         expect(localCursors.destroy).toHaveBeenCalled();
@@ -1125,7 +1125,7 @@ describe('QuillCursors', () => {
 
       it('does not forward selection-change events after Quill.find returns null', () => {
         const listeners: any = {};
-        jest.spyOn(quill, 'on').mockImplementation(((event: string, cb: (...args: any[]) => void) => {
+        vi.spyOn(quill, 'on').mockImplementation(((event: string, cb: (...args: any[]) => void) => {
           listeners[event] = cb;
         }) as any);
         quill.constructor.find.mockReturnValue(null);
@@ -1149,7 +1149,7 @@ describe('QuillCursors', () => {
       it('does not fire scroll handler when quill.constructor.find returns null', () => {
         quill.constructor.find.mockReturnValue(null);
         const localCursors = new QuillCursors(quill);
-        jest.spyOn(localCursors as any, '_repositionCursors');
+        vi.spyOn(localCursors as any, '_repositionCursors');
         editor.dispatchEvent(new Event('scroll'));
         expect((localCursors as any)._repositionCursors).not.toHaveBeenCalled();
       });
@@ -1157,8 +1157,8 @@ describe('QuillCursors', () => {
       it('calls destroy and removes the DOM listener when quill.constructor.find returns null on scroll', () => {
         quill.constructor.find.mockReturnValue(null);
         const localCursors = new QuillCursors(quill);
-        jest.spyOn(localCursors, 'destroy');
-        const removeListenerSpy = jest.spyOn(editor, 'removeEventListener');
+        vi.spyOn(localCursors, 'destroy');
+        const removeListenerSpy = vi.spyOn(editor, 'removeEventListener');
         editor.dispatchEvent(new Event('scroll'));
         expect(localCursors.destroy).toHaveBeenCalled();
         expect(removeListenerSpy).toHaveBeenCalledWith('scroll', expect.anything());
@@ -1168,7 +1168,7 @@ describe('QuillCursors', () => {
         quill.constructor.find.mockReturnValue(null);
         const localCursors = new QuillCursors(quill);
         const cursor = localCursors.createCursor('abc', 'Jane', 'red');
-        jest.spyOn(cursor, 'toggleNearCursor');
+        vi.spyOn(cursor, 'toggleNearCursor');
         editor.dispatchEvent(new TouchEvent('touchstart'));
         expect(cursor.toggleNearCursor).not.toHaveBeenCalled();
       });

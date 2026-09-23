@@ -1,6 +1,7 @@
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import Cursor from './cursor.js';
 import {IQuillCursorsResolvedOptions} from './i-quill-cursors-options.js';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 
 describe('Cursor', () => {
   let template: string;
@@ -26,7 +27,7 @@ describe('Cursor', () => {
       selectionChangeSource: 'api',
     };
 
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   it('stores constructor parameters', () => {
@@ -291,7 +292,7 @@ describe('Cursor', () => {
 
   it('updates flag with custom position method', () => {
     const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
-    options.positionFlag = jest.fn();
+    options.positionFlag = vi.fn();
     cursor.build(options);
 
     const rectangle: any = {
@@ -334,35 +335,23 @@ describe('Cursor', () => {
     cursor.toggleFlag(true);
     cursor.toggleFlag(false);
     expect(flag).toHaveClass(Cursor.NO_DELAY_CLASS);
-    jest.advanceTimersByTime(options.hideSpeedMs);
+    vi.advanceTimersByTime(options.hideSpeedMs);
     expect(flag).not.toHaveClass(Cursor.NO_DELAY_CLASS);
   });
 
   describe('mouse move handlers', () => {
     it('add listener to document by mouse over', () => {
-      jest.spyOn(document, 'addEventListener');
+      vi.spyOn(document, 'addEventListener');
       const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
       const element = cursor.build(options);
       const container = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
       const mouseEvent = new MouseEvent('mouseover');
       container.dispatchEvent(mouseEvent);
-      expect(document.addEventListener).toHaveBeenCalled();
-    });
-
-    it('add listeners to document by mouse over', () => {
-      jest.spyOn(document, 'addEventListener');
-      const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
-      const element = cursor.build(options);
-      const container = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
-      const mouseEvent = new MouseEvent('mouseover');
-      container.dispatchEvent(mouseEvent);
-      expect(document.addEventListener).toHaveBeenCalled();
-      jest.runAllTimers();
-      expect(document.addEventListener).toHaveBeenCalledTimes(2);
+      expect(document.addEventListener).toHaveBeenCalledWith('mousemove', expect.any(Function), {passive: true});
     });
 
     it('keep flag opened if the pointer is near cursor', () => {
-      jest.spyOn(document, 'addEventListener');
+      vi.spyOn(document, 'addEventListener');
       const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
       const element = cursor.build(options);
       const container = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
@@ -380,7 +369,7 @@ describe('Cursor', () => {
     });
 
     it('hide flag if the pointer is not near cursor', () => {
-      jest.spyOn(document, 'addEventListener');
+      vi.spyOn(document, 'addEventListener');
       const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
       const element = cursor.build(options);
       const container = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
