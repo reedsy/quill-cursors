@@ -1,3 +1,6 @@
+# 6.1.1
+- Fix the Sass deprecation warnings printed by the build ([#115](https://github.com/reedsy/quill-cursors/issues/115)); the emitted CSS is unchanged
+
 # 6.1.0
 - The type declarations admit `null` where the runtime always did: `cursor.range`, the range passed to `moveCursor()`, and the `selectionChangeSource` option (the sources now compile under `strict`)
 

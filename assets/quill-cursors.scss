@@ -1,3 +1,5 @@
+@use 'sass:list';
+
 /********
  * VARS *
  ********/
@@ -23,7 +25,7 @@ $transition-func: cubic-bezier(0.250, 0.460, 0.450, 0.940);
   $transitions: ();
 
   @each $property in $properties {
-    $transitions: append($transitions
+    $transitions: list.append($transitions
       , $property $speed $transition-func $delay, comma);
   }
 
