@@ -11,7 +11,6 @@
       "node"
     ],
     "strict": true,
-    "skipLibCheck": true,
     "sourceMap": true,
     "removeComments": true,
     "esModuleInterop": true,

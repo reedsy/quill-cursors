@@ -2,7 +2,6 @@ import {afterEach, beforeEach, describe, expect, it, vi, type Mock} from 'vitest
 import QuillCursors from './quill-cursors.js';
 import Cursor from './cursor.js';
 import CursorHighlight from './cursor-highlight.js';
-import '@testing-library/jest-dom/vitest';
 
 const mockObserver = vi.fn();
 const mockDisconnect = vi.fn();
@@ -349,8 +348,8 @@ describe('QuillCursors', () => {
       cursors.createCursor('abc', 'Jane Bloggs', 'red');
 
       const flag = quill.container.getElementsByClassName(Cursor.FLAG_CLASS)[0];
-      expect(flag).toHaveStyle('transition-delay: 1000ms');
-      expect(flag).toHaveStyle('transition-duration: 2000ms');
+      expect(getComputedStyle(flag).transitionDelay).toBe('1000ms');
+      expect(getComputedStyle(flag).transitionDuration).toBe('2000ms');
     });
 
     it('can override the Quill container class', () => {
@@ -838,9 +837,9 @@ describe('QuillCursors', () => {
       cursors.createCursor('abc', 'Joe Bloggs', 'red');
 
       const container = quill.container.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
-      expect(container).not.toHaveClass(Cursor.CONTAINER_HOVER_CLASS);
+      expect(container.classList.contains(Cursor.CONTAINER_HOVER_CLASS)).toBe(false);
       cursors.toggleFlag('abc', true);
-      expect(container).toHaveClass(Cursor.CONTAINER_HOVER_CLASS);
+      expect(container.classList.contains(Cursor.CONTAINER_HOVER_CLASS)).toBe(true);
     });
 
     it('does not throw if the cursor does not exist', () => {
