@@ -1,3 +1,5 @@
+import {beforeEach} from 'vitest';
+
 // jsdom does not implement the CSS Custom Highlight API, constructable
 // stylesheets, adoptedStyleSheets or ResizeObserver. These minimal stand-ins
 // let the unit tests exercise the code paths that use them.

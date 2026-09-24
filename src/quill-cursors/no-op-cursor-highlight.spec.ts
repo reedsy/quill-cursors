@@ -1,3 +1,4 @@
+import {describe, expect, it} from 'vitest';
 import ICursorHighlight from './i-cursor-highlight.js';
 import NoOpCursorHighlight from './no-op-cursor-highlight.js';
 

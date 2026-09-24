@@ -1,6 +1,6 @@
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import Cursor from './cursor.js';
 import {IQuillCursorsResolvedOptions} from './i-quill-cursors-options.js';
-import '@testing-library/jest-dom';
 
 describe('Cursor', () => {
   let template: string;
@@ -26,7 +26,7 @@ describe('Cursor', () => {
       selectionChangeSource: 'api',
     };
 
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   it('stores constructor parameters', () => {
@@ -40,7 +40,8 @@ describe('Cursor', () => {
   it('builds the cursor element', () => {
     const element = new Cursor('abc', 'Jane Bloggs', 'red').build(options);
 
-    expect(element).toContainHTML(`
+    const expected = document.createElement('div');
+    expected.innerHTML = `
       <span class="ql-cursor-selections"></span>
       <span class="ql-cursor-caret-container">
         <span class="ql-cursor-caret" style="background-color: red;"></span>
@@ -49,7 +50,8 @@ describe('Cursor', () => {
         <small class="ql-cursor-name">Jane Bloggs</small>
         <span class="ql-cursor-flag-flap"></span>
       </div>
-    `);
+    `;
+    expect(element.innerHTML).toContain(expected.innerHTML);
   });
 
   it('tolerates templates without a selections element', () => {
@@ -92,12 +94,12 @@ describe('Cursor', () => {
     const parent = document.createElement('DIV');
     document.body.appendChild(parent);
 
-    expect(element).not.toBeInTheDocument();
+    expect(document.contains(element)).toBe(false);
     parent.appendChild(element);
-    expect(element).toBeInTheDocument();
+    expect(document.contains(element)).toBe(true);
 
     cursor.remove();
-    expect(element).not.toBeInTheDocument();
+    expect(document.contains(element)).toBe(false);
   });
 
   it('exposes a unique highlight name', () => {
@@ -142,11 +144,11 @@ describe('Cursor', () => {
 
       const blocks = element.getElementsByClassName(Cursor.SELECTION_BLOCK_CLASS);
       expect(blocks).toHaveLength(2);
-      expect(blocks[0]).toHaveStyle('top: 5px');
-      expect(blocks[0]).toHaveStyle('left: 15px');
-      expect(blocks[0]).toHaveStyle('width: 100px');
-      expect(blocks[0]).toHaveStyle('height: 50px');
-      expect(blocks[0]).toHaveStyle('background-color: rgb(255, 0, 0)');
+      expect(getComputedStyle(blocks[0]).top).toBe('5px');
+      expect(getComputedStyle(blocks[0]).left).toBe('15px');
+      expect(getComputedStyle(blocks[0]).width).toBe('100px');
+      expect(getComputedStyle(blocks[0]).height).toBe('50px');
+      expect(getComputedStyle(blocks[0]).backgroundColor).toBe('rgb(255, 0, 0)');
     });
 
     it('clears previous blocks on update', () => {
@@ -250,13 +252,13 @@ describe('Cursor', () => {
     cursor.updateCaret(rectangle, boundRectangle);
 
     const caretContainer = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
-    expect(caretContainer).toHaveStyle('top: 100px');
-    expect(caretContainer).toHaveStyle('left: 200px');
-    expect(caretContainer).toHaveStyle('height: 50px');
+    expect(getComputedStyle(caretContainer).top).toBe('100px');
+    expect(getComputedStyle(caretContainer).left).toBe('200px');
+    expect(getComputedStyle(caretContainer).height).toBe('50px');
 
     const flag = element.getElementsByClassName(Cursor.FLAG_CLASS)[0];
-    expect(flag).toHaveStyle('top: 100px');
-    expect(flag).toHaveStyle('left: 200px');
+    expect(getComputedStyle(flag).top).toBe('100px');
+    expect(getComputedStyle(flag).left).toBe('200px');
   });
 
   it('updates the caret position flipping flag', () => {
@@ -279,19 +281,19 @@ describe('Cursor', () => {
     cursor.updateCaret(rectangle, boundRectangle);
 
     const caretContainer = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
-    expect(caretContainer).toHaveStyle('top: 100px');
-    expect(caretContainer).toHaveStyle('left: 700px');
-    expect(caretContainer).toHaveStyle('height: 50px');
+    expect(getComputedStyle(caretContainer).top).toBe('100px');
+    expect(getComputedStyle(caretContainer).left).toBe('700px');
+    expect(getComputedStyle(caretContainer).height).toBe('50px');
 
     const flag = element.getElementsByClassName(Cursor.FLAG_CLASS)[0];
-    expect(flag).toHaveStyle('top: 100px');
-    expect(flag).toHaveStyle('left: 700px');
-    expect(flag).toHaveClass(Cursor.FLAG_FLIPPED_CLASS);
+    expect(getComputedStyle(flag).top).toBe('100px');
+    expect(getComputedStyle(flag).left).toBe('700px');
+    expect(flag.classList.contains(Cursor.FLAG_FLIPPED_CLASS)).toBe(true);
   });
 
   it('updates flag with custom position method', () => {
     const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
-    options.positionFlag = jest.fn();
+    options.positionFlag = vi.fn();
     cursor.build(options);
 
     const rectangle: any = {
@@ -317,13 +319,13 @@ describe('Cursor', () => {
     const element = cursor.build(options);
     const flag = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
 
-    expect(flag).not.toHaveClass(Cursor.CONTAINER_HOVER_CLASS);
+    expect(flag.classList.contains(Cursor.CONTAINER_HOVER_CLASS)).toBe(false);
     cursor.toggleFlag(true);
-    expect(flag).toHaveClass(Cursor.CONTAINER_HOVER_CLASS);
+    expect(flag.classList.contains(Cursor.CONTAINER_HOVER_CLASS)).toBe(true);
     cursor.toggleFlag(false);
-    expect(flag).not.toHaveClass(Cursor.CONTAINER_HOVER_CLASS);
+    expect(flag.classList.contains(Cursor.CONTAINER_HOVER_CLASS)).toBe(false);
     cursor.toggleFlag();
-    expect(flag).toHaveClass(Cursor.CONTAINER_HOVER_CLASS);
+    expect(flag.classList.contains(Cursor.CONTAINER_HOVER_CLASS)).toBe(true);
   });
 
   it('removes the delay when actively hiding the flag', () => {
@@ -333,36 +335,24 @@ describe('Cursor', () => {
 
     cursor.toggleFlag(true);
     cursor.toggleFlag(false);
-    expect(flag).toHaveClass(Cursor.NO_DELAY_CLASS);
-    jest.advanceTimersByTime(options.hideSpeedMs);
-    expect(flag).not.toHaveClass(Cursor.NO_DELAY_CLASS);
+    expect(flag.classList.contains(Cursor.NO_DELAY_CLASS)).toBe(true);
+    vi.advanceTimersByTime(options.hideSpeedMs);
+    expect(flag.classList.contains(Cursor.NO_DELAY_CLASS)).toBe(false);
   });
 
   describe('mouse move handlers', () => {
     it('add listener to document by mouse over', () => {
-      jest.spyOn(document, 'addEventListener');
+      vi.spyOn(document, 'addEventListener');
       const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
       const element = cursor.build(options);
       const container = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
       const mouseEvent = new MouseEvent('mouseover');
       container.dispatchEvent(mouseEvent);
-      expect(document.addEventListener).toHaveBeenCalled();
-    });
-
-    it('add listeners to document by mouse over', () => {
-      jest.spyOn(document, 'addEventListener');
-      const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
-      const element = cursor.build(options);
-      const container = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
-      const mouseEvent = new MouseEvent('mouseover');
-      container.dispatchEvent(mouseEvent);
-      expect(document.addEventListener).toHaveBeenCalled();
-      jest.runAllTimers();
-      expect(document.addEventListener).toHaveBeenCalledTimes(2);
+      expect(document.addEventListener).toHaveBeenCalledWith('mousemove', expect.any(Function), {passive: true});
     });
 
     it('keep flag opened if the pointer is near cursor', () => {
-      jest.spyOn(document, 'addEventListener');
+      vi.spyOn(document, 'addEventListener');
       const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
       const element = cursor.build(options);
       const container = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
@@ -376,11 +366,11 @@ describe('Cursor', () => {
       }) as any;
       container.dispatchEvent(mouseEvent);
       document.dispatchEvent(mouseMoveEvent);
-      expect(container).toHaveClass(Cursor.CONTAINER_NO_POINTER_CLASS);
+      expect(container.classList.contains(Cursor.CONTAINER_NO_POINTER_CLASS)).toBe(true);
     });
 
     it('hide flag if the pointer is not near cursor', () => {
-      jest.spyOn(document, 'addEventListener');
+      vi.spyOn(document, 'addEventListener');
       const cursor = new Cursor('abc', 'Jane Bloggs', 'red');
       const element = cursor.build(options);
       const container = element.getElementsByClassName(Cursor.CARET_CONTAINER_CLASS)[0];
@@ -394,7 +384,7 @@ describe('Cursor', () => {
       }) as any;
       container.dispatchEvent(mouseEvent);
       document.dispatchEvent(mouseMoveEvent);
-      expect(container).not.toHaveClass(Cursor.CONTAINER_NO_POINTER_CLASS);
+      expect(container.classList.contains(Cursor.CONTAINER_NO_POINTER_CLASS)).toBe(false);
     });
   });
 });

@@ -5,9 +5,9 @@
       "dom",
       "es2015"
     ],
-    "moduleResolution": "bundler",
+    "module": "node16",
+    "moduleResolution": "node16",
     "types": [
-      "jest",
       "node"
     ],
     "strict": true,

@@ -1,3 +1,4 @@
+import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {execFileSync} from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -12,7 +13,7 @@ interface IBundleReport {
   injectedStyles: number;
 }
 
-const root = path.resolve(path.dirname(expect.getState().testPath!), '..');
+const root = path.resolve(import.meta.dirname, '..');
 
 // Evaluates a built bundle with the real Node ESM loader. Each bundle gets its
 // own process, so the style injection of one cannot leak into another's report.
